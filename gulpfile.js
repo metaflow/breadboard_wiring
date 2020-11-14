@@ -31,6 +31,7 @@ function theme_sass() {
             prefix: '$theme: ',
         }))
         .pipe(fs.createWriteStream('theme.scss'));
+    wait(1000);
 }
 
 function scripts(watch) {

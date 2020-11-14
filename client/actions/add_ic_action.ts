@@ -2,6 +2,7 @@ import { Action, actionDeserializers } from "../action";
 import { KonvaEventObject } from "konva/types/Node";
 import { Component, deserializeComponent } from "../components/component";
 import { actionLayer, defaultLayer, PhysicalPoint, PlainPoint } from "../stage";
+import { activeColor, foregroundColor } from "../theme";
 
 const marker = 'PlaceComponentAction';
 
@@ -26,13 +27,13 @@ export class PlaceComponentAction implements Action {
     component: Component;
     constructor(component: Component) {
         this.component = component;
-        this.component.mainColor('red');
+        this.component.mainColor(activeColor);
         this.component.updateLayout();
         this.component.show(actionLayer());
     }
     apply(): void {
         this.component.offset(this.xy);
-        this.component.mainColor('black');
+        this.component.mainColor(foregroundColor);
         this.component.updateLayout();
         this.component.show(defaultLayer());
         this.component.materialized(true);

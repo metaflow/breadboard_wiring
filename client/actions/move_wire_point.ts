@@ -6,6 +6,7 @@ import { getByAddress, copy, all } from '../address';
 import assertExists from 'ts-assert-exists';
 import { selectionAddresses } from '../components/selectable_component';
 import { Contact } from '../components/contact';
+import { activeColor } from '../theme';
 
 const marker = 'MoveWirePointAction';
 
@@ -112,6 +113,7 @@ export class MoveWirePointAction implements Action {
       }
       this.states.push(s);
       s.auxWire?.pointsSpec(w.pointsSpec());
+      s.auxWire?.mainColor(activeColor);
       w.hide();
       s.auxWire?.show(actionLayer());
     }

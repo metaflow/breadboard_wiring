@@ -1,6 +1,7 @@
 import { Component } from "./component";
 import { typeGuard } from "../utils";
 import { getTypedByAddress } from "../address";
+import { activeColor, foregroundColor, selectionColor } from "../theme";
 
 export class SelectableComponent extends Component {
     _selected: boolean = false;
@@ -9,7 +10,7 @@ export class SelectableComponent extends Component {
         if (v !== undefined) {
             if (this._selected != v) {
                 this._selected = v;
-                this.mainColor(v ? 'red' : 'black');
+                this.mainColor(v ? selectionColor : foregroundColor);
                 this.updateLayout();
                 if (v) {
                     _selection.add(this);

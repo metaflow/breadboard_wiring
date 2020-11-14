@@ -3,6 +3,7 @@ import Konva from "konva";
 import { scale, pointAsNumber, PhysicalPoint } from "../stage";
 import { newAddress } from "../address";
 import { Contact } from "./contact";
+import { foregroundColor } from "../theme";
 
 const gap = 1;
 const height = 2.54 * 2;
@@ -29,12 +30,15 @@ export class IntegratedCircuit extends Component {
         super(spec.super);
         this.pins = spec.pins;
         this.rect = new Konva.Rect({
-            stroke: 'black',
+            stroke: foregroundColor,
             strokeWidth: 1,
         });
         this.shapes.add(this.rect);
         for (const s of this.pins) {
-            const t = new Konva.Text({ text: s, fill: 'black' });
+            const t = new Konva.Text({ 
+                text: s, 
+                fill: foregroundColor,
+            });
             this.labels.push(t);
             // spec.layer.add(t);
         }
@@ -56,7 +60,13 @@ export class IntegratedCircuit extends Component {
         }
         this.name = new Konva.Text({ text: spec.label, align: 'center' });
         this.shapes.add(this.name);
-        this.arc = new Konva.Arc({ angle: 180, rotation: -90, innerRadius: 10, outerRadius: 10, stroke: 'black' });
+        this.arc = new Konva.Arc({ 
+            angle: 180, 
+            rotation: -90, 
+            innerRadius: 10, 
+            outerRadius: 10, 
+            stroke: this.mainColor(),
+        });
         this.shapes.add(this.arc);
         this.updateLayout();
     }

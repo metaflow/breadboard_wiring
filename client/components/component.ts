@@ -3,6 +3,7 @@ import Konva from "konva";
 import { PhysicalPoint, PlainPoint } from "../stage";
 import assertExists from "ts-assert-exists";
 import { typeGuard } from "../utils";
+import { backgroundColor, foregroundColor } from "../theme";
 
 export const componentDeserializers: { (data: any): (Component | null) }[] = [];
 
@@ -15,7 +16,7 @@ export class Component implements Addressable {
     _parent: Component | null = null;
     children = new Map<string, Component>();
     shapes = new Konva.Group();
-    _mainColor = 'black';
+    _mainColor = foregroundColor;
     typeMarker: string = 'Component';
     _offset = new PhysicalPoint();
     _id: string|undefined;

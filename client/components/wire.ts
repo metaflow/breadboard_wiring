@@ -8,6 +8,7 @@ import { MoveWirePointAction } from '../actions/move_wire_point';
 import { selectionByType, SelectableComponent } from './selectable_component';
 import { MoveSelectionAction } from '../actions/move_selection';
 import e from 'express';
+import { activeColor, foregroundColor, helperColor, selectionColor } from '../theme';
 
 export interface WirePointSpec extends ComponentSpec {
     helper: boolean;
@@ -79,7 +80,7 @@ export class WirePoint extends SelectableComponent {
         } else {
             this.selectionRect.dash([]);
         }
-        this.selectionRect.stroke(this._selected ? 'red' : (this.helper ? 'green' : 'black'));
+        this.selectionRect.stroke(this._selected ? selectionColor : (this.helper ? helperColor : foregroundColor));
     }
     wire(): Wire {
         return this.parent() as Wire;

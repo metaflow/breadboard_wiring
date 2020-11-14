@@ -1,28 +1,17 @@
 ("todo list" extension format)
 
-- make selection an action on toolbar @done
-- remove normal righ / middle click menu @done
-- add orthogonal wire action @done
-- right click deselects @done
-- mark wire points attached to contacts @done
-- delete, undo, select complains about state change @done
 - move editor to a separate repo
 - make contact capture clicks in a bigger area than itself
 - when adding wire - click on contact should complete the wire
+- change cursor when moving a component
 - dark theme
 - save / load history and schematic
-
+- bug: two non-aux wire points occupying same place. Only one should remain
 - fix start / end wire point
 - save / load schematic w/o history
 - show / hide helper points when cursor is near the wire
+- check that deletion of wire point deletes
 - schematic
-    - toolbar to add components @done
-    - separate layer and address space for schematic @done
-    - add IC should be in different color @done
-    - schematic IC @done
-    - add schematic IC @done
-    - select IC @done
-    - delete IC
     - move IC
     - schematic wire (intiallay copy)
     - make wire with orthogonal bends
@@ -32,7 +21,6 @@
     - move wire end
     - add bends in schematic wire
 - add IC
-    - rectangle @done
     - selection
     - move
 - select wire
