@@ -1,0 +1,29 @@
+@import "./theme.scss";
+
+@function map-deep-get($map, $keys...) {
+    @each $key in $keys {
+        $map: map-get($map, $key);
+    }
+    @return $map;
+}
+
+$background: map-deep-get($theme, "colors", "editor_background");
+$border: map-deep-get($theme, "colors", "editorWidget_border");
+
+body {
+    padding: 50px;
+    font: 14px "Lucida Console", Monaco, monospace;
+    background-color: $background;
+}
+
+a {
+    color: #00b7ff;
+}
+
+#toolbar {
+    padding: 10px;
+}
+
+#container {
+    box-shadow: 0 0 0 1px $border;
+}

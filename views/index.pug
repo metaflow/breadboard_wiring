@@ -1,0 +1,11 @@
+extends layout
+
+block content
+  #toolbar
+    button(onclick='clearActionsHistory()') clear history
+    button(onclick='add245()') 245
+    button(onclick='addOrthogonal()') wire
+    button(onclick='toolSelect()') select
+    button(onclick='deleteSelection()') delete
+  #container
+  script(src='/gen/bundle.js')
