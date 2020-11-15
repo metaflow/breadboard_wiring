@@ -1,11 +1,10 @@
 import Konva from 'konva';
-import { fullState, StageState } from './stage';
-import {diffString} from 'json-diff';
-import { json } from 'express';
+import { fullState, StageState, stageUpdated } from './stage';
+import { diffString } from 'json-diff';
 
 export const actionDeserializers: { (data: any): (Action | null) }[] = [];
 
-export function deserializeAction(data: any) : Action {
+export function deserializeAction(data: any): Action {
     for (const d of actionDeserializers) {
         const a = d(data);
         if (a !== null) return a;
@@ -35,40 +34,55 @@ export class Actions {
         this.stateHistory.push(fullState());
     }
     current(a?: Action | null): Action | null {
-        if (a !== undefined) this._current = a;
+        if (a !== undefined) {
+            this._current = a;
+            stageUpdated();
+        }
         return this._current;
     }
     onMouseDown(event: Konva.KonvaEventObject<MouseEvent>): boolean {
         if (this.current() == null) return false;
-        if (this.current()?.mousedown(event)) this.commit();
+        if (this.current()?.mousedown(event)) {
+            this.commit();
+        } else {
+            stageUpdated();
+        }
         return true;
     }
     onMouseUp(event: Konva.KonvaEventObject<MouseEvent>) {
         if (this.current() == null) return false;
-        if (this.current()?.mouseup(event)) this.commit();
+        if (this.current()?.mouseup(event)) {
+            this.commit();
+        } else {
+            stageUpdated();
+        }
         return true;
     }
     onMouseMove(event: Konva.KonvaEventObject<MouseEvent>): boolean {
         if (this.current() == null) return false;
-        if (this.current()?.mousemove(event)) this.commit();
+        if (this.current()?.mousemove(event)) {
+            this.commit();
+        } else {
+            stageUpdated();
+        }
         return true;
     }
     commit(keepForwardHistory: boolean = false) {
         const a = this.current();
-        if (a == null) return;                 
+        if (a == null) return;
         this.history.push(a);
         if (!keepForwardHistory) this.forwardHistory.splice(0, this.forwardHistory.length);
-        this.current(null);        
-        if (debugActions) {            
+        this.current(null);
+        if (debugActions) {
             console.groupCollapsed(`applying ${a.constructor.name}`);
             console.log('action', a);
             a.apply();
             let sa = this.stateHistory[this.stateHistory.length - 1];
             let sb = fullState();
-            this.stateHistory.push(sb);            
+            this.stateHistory.push(sb);
             a.undo();
             let s = fullState();
-            if (JSON.stringify(sa) != JSON.stringify(s)) {                   
+            if (JSON.stringify(sa) != JSON.stringify(s)) {
                 console.error('undo changes state');
                 console.group('details');
                 console.log(diffString(sa, s));
@@ -78,9 +92,9 @@ export class Actions {
             }
             a.apply();
             s = fullState();
-            if (JSON.stringify(sb) != JSON.stringify(s)) {                
-                console.error('redo changes state');                
-                console.group('details');                
+            if (JSON.stringify(sb) != JSON.stringify(s)) {
+                console.error('redo changes state');
+                console.group('details');
                 console.log('diff', diffString(sb, s));
                 console.log('expected state', sb);
                 console.log('actual state', s);
@@ -91,17 +105,18 @@ export class Actions {
         } else {
             console.log(`applying ${a.constructor.name}`);
             a.apply();
-        }        
-        this.save();        
+        }
+        stageUpdated();
+        this.save();
     }
     undo() {
-        let a = this.history.pop();  
-        if (a == null) return;        
+        let a = this.history.pop();        
+        if (a == null) return;
         if (debugActions) {
             console.groupCollapsed(`undo action ${a.constructor.name}`);
             // State history is [..., sa, sb], we will end up in [..., sa].
             let sb = this.stateHistory.pop();
-            let sa = this.stateHistory[this.stateHistory.length - 1];            
+            let sa = this.stateHistory[this.stateHistory.length - 1];
             console.log('action', a);
             a.undo();
             let s = fullState();
@@ -129,8 +144,9 @@ export class Actions {
         } else {
             console.log(`undo action ${a.constructor.name}`)
             a.undo();
-        }        
+        }
         this.forwardHistory.push(a);
+        stageUpdated();
     }
     redo() {
         this.cancelCurrent();
@@ -139,7 +155,10 @@ export class Actions {
     }
     cancelCurrent() {
         const a = this.current();
-        if (a != null) a.cancel();
+        if (a != null) {
+            a.cancel();
+            stageUpdated();
+        }
         this.current(null);
     }
 
@@ -155,11 +174,13 @@ export class Actions {
     load() {
         let s = localStorage.getItem("actions_history");
         if (s === null) return;
+        console.groupCollapsed('load actions');
         let h = JSON.parse(s);
         for (const data of h) {
             this.current(deserializeAction(data));
             this.commit();
         }
+        console.groupEnd();
     }
 }
 

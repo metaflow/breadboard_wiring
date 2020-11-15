@@ -25,7 +25,7 @@ const pin_length = 5;
 const label_font_size = 3;
 
 export interface IntegratedCircuitSchematicSpec {
-    type_marker? : string;
+    type_marker?: string;
     left_pins: string[];
     right_pins: string[];
     label: string;
@@ -54,17 +54,17 @@ export class IntegratedCircuitSchematic extends SelectableComponent {
         this.shapes.add(this.rect);
         for (let i = 0; i < this.left_pins.length; i++) {
             const s = this.left_pins[i];
-            const t = new Konva.Text({ 
-                text: s, 
-                fill: this.mainColor(), 
-                align: 'left', 
+            const t = new Konva.Text({
+                text: s,
+                fill: this.mainColor(),
+                align: 'left',
                 fontFamily: 'Monospace',
             });
             this.left_labels.push(t);
             this.shapes.add(t);
             if (s === "") continue;
-            const c = new Contact({ 
-                id: s, 
+            const c = new Contact({
+                id: s,
                 offset: new PhysicalPoint(- pin_length, (i + 1) * contact_height).plain(),
             });
             this.contacts.push(this.addChild(c));
@@ -72,23 +72,23 @@ export class IntegratedCircuitSchematic extends SelectableComponent {
         }
         for (let i = 0; i < this.right_pins.length; i++) {
             const s = this.right_pins[i];
-            const t = new Konva.Text({ 
-                text: s, 
-                fill: this.mainColor(), 
-                align: 'right', 
+            const t = new Konva.Text({
+                text: s,
+                fill: this.mainColor(),
+                align: 'right',
                 fontFamily: 'Monospace',
             });
             this.right_labels.push(t);
             this.shapes.add(t);
             if (s === "") continue;
-            const c = new Contact({ 
-                id: s, 
+            const c = new Contact({
+                id: s,
                 offset: new PhysicalPoint(width + pin_length, (i + 1) * contact_height).plain()
             });
             this.contacts.push(this.addChild(c));
-            this.pin_lines.push(new Konva.Line({ 
-                points: [0, 0, 0, 0], 
-                stroke: this.mainColor() 
+            this.pin_lines.push(new Konva.Line({
+                points: [0, 0, 0, 0],
+                stroke: this.mainColor()
             }));
         }
         for (const x of this.pin_lines) this.shapes.add(x);
@@ -151,7 +151,7 @@ export class IntegratedCircuitSchematic extends SelectableComponent {
             right_pins: this.right_pins,
             label: this.name.text(),
             super: super.spec(),
-        } as IntegratedCircuitSchematicSpec;        
+        } as IntegratedCircuitSchematicSpec;
     }
     materialized(b?: boolean): boolean {
         // debugger;

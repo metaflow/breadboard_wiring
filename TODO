@@ -1,8 +1,6 @@
 ("todo list" extension format)
 
-- move editor to a separate repo
-- make contact capture clicks in a bigger area than itself
-- when adding wire - click on contact should complete the wire
+- 
 - change cursor when moving a component
 - dark theme
 - save / load history and schematic

@@ -1,7 +1,7 @@
 import { IntegratedCircuitSchematic } from "../components/IC_schematic";
 import { Action, actionDeserializers } from "../action";
 import { KonvaEventObject } from "konva/types/Node";
-import { PhysicalPoint, PlainPoint } from "../stage";
+import { PhysicalPoint, PlainPoint, stage } from "../stage";
 import { all } from "../address";
 import { Component } from "../components/component";
 import { WirePoint } from "../components/wire";
@@ -50,6 +50,7 @@ export class MoveSelectionAction implements Action {
             this.moveICs.push(new MoveIcSchematicAction(ic, from));
         }
         this.selection = selectionAddresses();
+        stage()!.container()!.setAttribute('style', 'cursor: move');
     }
     apply(): void {
         this.movePoints.to = this.to;
@@ -58,6 +59,7 @@ export class MoveSelectionAction implements Action {
             a.to = this.to;
             a.apply();
         }
+        stage()!.container()!.setAttribute('style', 'cursor: auto');
     }
     undo(): void {
         this.movePoints.undo();

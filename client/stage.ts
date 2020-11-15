@@ -220,4 +220,7 @@ export function fullState(): StageState {
     return z;
 }
 
- 
+export function stageUpdated() {
+    defaultLayer()?.batchDraw();
+    actionLayer()?.batchDraw();
+}
