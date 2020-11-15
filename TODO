@@ -6,7 +6,6 @@
 - change cursor when moving a component
 - dark theme
 - save / load history and schematic
-- bug: two non-aux wire points occupying same place. Only one should remain
 - fix start / end wire point
 - save / load schematic w/o history
 - show / hide helper points when cursor is near the wire

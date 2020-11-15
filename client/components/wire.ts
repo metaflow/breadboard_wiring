@@ -177,8 +177,13 @@ export function removeRedundantPoints(s: WirePointSpec[]): WirePointSpec[] {
         let pj = new PhysicalPoint(s[j].offset);
         let k = j + 1;
         const pk = new PhysicalPoint(s[k].offset);
+        // pi -- pj -- pk
         const ji = pi.clone().sub(pj);
         const jk = pk.clone().sub(pj);
+        if (ji.length() < 0.1 || jk.length() < 0.1) {
+            j = k;
+            continue;
+        }
         const cosa = ji.dot(jk) / ji.length() / jk.length();
         if (cosa < -0.99) {
             j = k;
