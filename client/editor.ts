@@ -1,7 +1,7 @@
 import Konva from 'konva';
 import hotkeys from 'hotkeys-js';
 import { appActions } from './action';
-import { stage, defaultLayer, actionLayer, gridAlignment } from './stage';
+import { stage, defaultLayer, actionLayer, gridAlignment, fullState, clearStage } from './stage';
 import { SelectAction } from './actions/select_action';
 import { ic74x245 } from './components/74x245';
 import { PlaceComponentAction } from './actions/add_ic_action';
@@ -10,6 +10,7 @@ import { selection } from './components/selectable_component';
 import { DeleteSelectionAction } from './actions/delete_action';
 import { backgroundColor } from './theme';
 import { MoveSelectionAction } from './actions/move_selection';
+import { typeGuard } from './utils';
 
 (window as any).add245 = function () {
   appActions.current(new PlaceComponentAction(new ic74x245()));
@@ -32,7 +33,46 @@ import { MoveSelectionAction } from './actions/move_selection';
 
 (window as any).moveSelection = function() {
   appActions.current(new MoveSelectionAction());
+};
+
+interface EditorFile {
+  state: any;
+  history: any;
 }
+
+(window as any).downloadScene = function() {
+  var a: EditorFile = {
+      state: fullState(),
+      history: appActions.serialize(),
+    },
+    text = JSON.stringify(a),
+    blob = new Blob([text], { type: 'text/plain' }),
+    anchor = document.createElement('a');
+
+  anchor.download = "myscheme.bbw";
+  anchor.href = (window.webkitURL || window.URL).createObjectURL(blob);
+  anchor.dataset.downloadurl = ['text/plain', anchor.download, anchor.href].join(':');
+  anchor.click();
+};
+
+const fileSelector = document.getElementById('file-selector') as HTMLInputElement;
+fileSelector?.addEventListener('change', (event: Event) => {
+  const fileList = fileSelector.files;
+  if (fileList == null) return;
+  const file = fileList.item(0);
+  if (!file) return;
+  const reader = new FileReader();
+  reader.addEventListener('load', (event) => {
+    const s = event.target?.result;
+    if (typeGuard(s, 'string')) {
+      let f = JSON.parse(s) as EditorFile;
+      clearStage();
+      appActions.load(f.history);
+      fileSelector.value = '';
+    }
+  });
+  reader.readAsText(file);
+});
 
 function deleteSelection() {
   appActions.current(new DeleteSelectionAction());

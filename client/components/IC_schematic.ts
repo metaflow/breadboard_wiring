@@ -11,7 +11,7 @@ import { foregroundColor } from "../theme";
 const marker = 'IntegratedCircuitSchematic';
 
 componentDeserializers.push(function (data: any): (IntegratedCircuitSchematic | null) {
-    if (data['type_marker'] !== marker) {
+    if (data['typeMarker'] !== marker) {
         return null
     }
     return new IntegratedCircuitSchematic(data['spec'] as IntegratedCircuitSchematicSpec);
@@ -25,7 +25,7 @@ const pin_length = 5;
 const label_font_size = 3;
 
 export interface IntegratedCircuitSchematicSpec {
-    type_marker?: string;
+    typeMarker?: string;
     left_pins: string[];
     right_pins: string[];
     label: string;
@@ -146,7 +146,7 @@ export class IntegratedCircuitSchematic extends SelectableComponent {
     }
     spec(): any {
         return {
-            type_marker: marker,
+            typeMarker: marker,
             left_pins: this.left_pins,
             right_pins: this.right_pins,
             label: this.name.text(),

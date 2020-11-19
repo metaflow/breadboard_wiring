@@ -3,6 +3,7 @@ import { Contact } from './components/contact';
 import { roots } from './address';
 import { Component } from './components/component';
 import { selectionAddresses } from './components/selectable_component';
+import { typeGuard } from './utils';
 
 let _stage: Konva.Stage | null = null;
 let _gridAlignment: number | null = null;
@@ -218,6 +219,16 @@ export function fullState(): StageState {
         z.roots.push((roots.get(k) as Component).spec());
     });
     return z;
+}
+
+export function clearStage() {
+    roots.forEach(v => {
+        if (typeGuard(v, Component)) {
+            v.remove();
+        } else {
+            console.error(v, 'is not a component cannot delete');
+        }
+    })
 }
 
 export function stageUpdated() {

@@ -1,5 +1,5 @@
 import Konva from 'konva';
-import { fullState, StageState, stageUpdated } from './stage';
+import { clearStage, fullState, StageState, stageUpdated } from './stage';
 import { diffString } from 'json-diff';
 
 export const actionDeserializers: { (data: any): (Action | null) }[] = [];
@@ -27,8 +27,8 @@ const debugActions = true;
 
 export class Actions {
     private _current: Action | null = null;
-    private readonly history: Action[] = [];
-    private readonly forwardHistory: Action[] = [];
+    private history: Action[] = [];
+    private forwardHistory: Action[] = [];
     stateHistory: StageState[] = [];
     constructor() {
         this.stateHistory.push(fullState());
@@ -71,7 +71,7 @@ export class Actions {
         const a = this.current();
         if (a == null) return;
         this.history.push(a);
-        if (!keepForwardHistory) this.forwardHistory.splice(0, this.forwardHistory.length);
+        if (!keepForwardHistory) this.forwardHistory = [];
         this.current(null);
         if (debugActions) {
             console.groupCollapsed(`applying ${a.constructor.name}`);
@@ -161,22 +161,31 @@ export class Actions {
         }
         this.current(null);
     }
-
-    save() {
+    save() {        
+        localStorage.setItem('actions_history', JSON.stringify(this.serialize()));
+    }
+    serialize(): any[] {
         let h: any[] = [];
         for (const a of this.history) {
             const s = a.serialize();
             if (s == null) continue;
             h.push(s);
         }
-        localStorage.setItem('actions_history', JSON.stringify(h));
+        return h;
     }
-    load() {
-        let s = localStorage.getItem("actions_history");
-        if (s === null) return;
+    load(history?: any) {
+        if (!history) {
+            let s = localStorage.getItem("actions_history");
+            if (s === null) return;            
+            history = JSON.parse(s);
+        }
+        clearStage();
+        this.history = [];
+        this.forwardHistory = [];
+        this.stateHistory = [];
+        this.stateHistory.push(fullState());
         console.groupCollapsed('load actions');
-        let h = JSON.parse(s);
-        for (const data of h) {
+        for (const data of history) {
             this.current(deserializeAction(data));
             this.commit();
         }

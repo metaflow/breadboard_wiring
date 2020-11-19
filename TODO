@@ -1,6 +1,6 @@
 ("todo list" extension format)
 
-- 
+- display if any error occured (not only in console)
 - change cursor when moving a component
 - dark theme
 - save / load history and schematic

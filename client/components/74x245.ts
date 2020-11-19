@@ -4,14 +4,14 @@ import { componentDeserializers } from "./component";
 const marker = 'ic74x245';
 
 componentDeserializers.push(function (data: any): (ic74x245 | null) {
-    if (data['type_marker'] !== marker) {
+    if (data['typeMarker'] !== marker) {
         return null
     }
     return new ic74x245(data as ic74x245Spec);
 });
 
 interface ic74x245Spec {
-    type_marker: string;
+    typeMarker: string;
     super?: IntegratedCircuitSchematicSpec;
 };
 
@@ -25,7 +25,7 @@ export class ic74x245 extends IntegratedCircuitSchematic {
     }
     spec(): any {
         return {
-            type_marker: marker,
+            typeMarker: marker,
             super: super.spec(),
         } as ic74x245Spec;
     }
