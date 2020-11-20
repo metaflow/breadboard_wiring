@@ -26,4 +26,16 @@ a {
 
 #container {
     box-shadow: 0 0 0 1px $border;
+    width: 700px;
+    height: 700px;
+}
+
+#work-area {
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
+    #log {
+        flex-grow: 1;
+        box-shadow: 0 0 0 1px $border;
+    }
 }

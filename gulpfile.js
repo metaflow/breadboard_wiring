@@ -65,10 +65,10 @@ function scripts(watch) {
 
 gulp.task('sass', compile_sass);
 gulp.task('default', function () { scripts(false); });
-gulp.task('watch', function () {
+gulp.task('watch', function () {    
     theme_sass();
     compile_sass();
-    scripts(true);
+    scripts(true);    
     livereload();
     livereload.listen();
     gulp.watch(['theme.json'], theme_sass);
