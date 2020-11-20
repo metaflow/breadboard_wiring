@@ -1,4 +1,5 @@
-@import "./theme.scss";
+@import './reset.scss';
+@import './theme.scss';
 
 @function map-deep-get($map, $keys...) {
     @each $key in $keys {
