@@ -1,5 +1,5 @@
 import { Component } from "./component";
-import { typeGuard } from "../utils";
+import { error, typeGuard } from "../utils";
 import { getTypedByAddress } from "../address";
 import theme from '../../theme.json';
 
@@ -46,7 +46,7 @@ export function selectionAddresses(s?: string[]): string[] {
         s.forEach(a => {
             const t = getTypedByAddress(SelectableComponent, a);
             if (t === null) {
-                console.error('cannot find', a, 'of type SelectableComponent');
+                error('cannot find', a, 'of type SelectableComponent');
                 return;
             } 
             t.selected(true);

@@ -1,7 +1,7 @@
 import Konva from 'konva';
 import hotkeys from 'hotkeys-js';
 import { appActions } from './action';
-import { stage, defaultLayer, actionLayer, gridAlignment, fullState, clearStage } from './stage';
+import { stage, defaultLayer, actionLayer, gridAlignment, fullState, clearStage, stageUpdated, PlainPoint, Point, PhysicalPoint, ScreenPoint } from './stage';
 import { SelectAction } from './actions/select_action';
 import { ic74x245 } from './components/74x245';
 import { PlaceComponentAction } from './actions/add_ic_action';
@@ -95,8 +95,31 @@ document.getElementById('container')?.addEventListener('contextmenu', e => {
 stage()?.add(defaultLayer(new Konva.Layer()));
 stage()?.add(actionLayer(new Konva.Layer()));
 
+let draggingScene = false;
+let draggingOrigin = new ScreenPoint();
+let initialOffset = new ScreenPoint();
+
 stage()?.on('mousemove', function (e: Konva.KonvaEventObject<MouseEvent>) {
   appActions.onMouseMove(e);
+  if (draggingScene) {
+    console.log(e.evt);
+    const sx = defaultLayer()?.scaleX();
+    if (!sx) return;
+    let d = ScreenPoint.cursor().sub(draggingOrigin).s(-1/sx).add(initialOffset);
+    // TODO: make drag a part of actions, merge action.ts with stage.ts, update calculations of screen point, affect actions level too
+    defaultLayer()?.offsetX(d.getX());
+    defaultLayer()?.offsetY(d.getY());
+    stageUpdated(); // TODO: rename to "redraw".
+  }
+});
+
+stage()?.on('wheel', function(e : Konva.KonvaEventObject<WheelEvent>) {
+  let d = (e.evt.deltaY < 0) ? 0.9 : 1.1;
+  let x = defaultLayer()?.scaleX();
+  if (!x) return;
+  defaultLayer()?.scaleX(x * d);
+  defaultLayer()?.scaleY(x * d);
+  stageUpdated();
 });
 
 // function log(style: string, m: string) {
@@ -114,15 +137,24 @@ stage()?.on('mousedown', function (e) {
   if (appActions.onMouseDown(e)) {
     return;
   }
-  // No action.  
-  if (e.evt.button != 0 && selection().length > 0) {
+  // Deselect on right click.
+  console.log(ScreenPoint.cursor());
+  if (e.evt.button == 2 && selection().length > 0) {
     const a = new SelectAction();
     appActions.current(a);
     appActions.commit();
   }
+  if (e.evt.button == 1) {
+    draggingScene = true;
+    draggingOrigin = ScreenPoint.cursor();
+    initialOffset = new ScreenPoint(defaultLayer()?.offsetX(), defaultLayer()?.offsetY());
+  }
 });
 
-stage()?.on('mouseup', function(e) { appActions.onMouseUp(e); });
+stage()?.on('mouseup', function(e) {
+  appActions.onMouseUp(e); 
+  draggingScene = false;
+});
 
 hotkeys('esc', function (e) {
   e.preventDefault();
