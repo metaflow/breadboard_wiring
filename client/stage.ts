@@ -3,7 +3,7 @@ import { Contact } from './components/contact';
 import { roots } from './address';
 import { Component } from './components/component';
 import { selectionAddresses } from './components/selectable_component';
-import { typeGuard } from './utils';
+import { error, typeGuard } from './utils';
 
 let _stage: Konva.Stage | null = null;
 let _gridAlignment: number | null = null;
@@ -34,7 +34,7 @@ export abstract class Point {
         if (typeof v === 'number') {
             this.setX(v);
         } else {
-            console.error(v, 'is not a valid init value for point');
+            error(v, 'is not a valid init value for point');
         }
         if (y == undefined) y = 0;
         this.setY(y);
@@ -226,7 +226,7 @@ export function clearStage() {
         if (typeGuard(v, Component)) {
             v.remove();
         } else {
-            console.error(v, 'is not a component cannot delete');
+            error(v, 'is not a component cannot delete');
         }
     })
 }

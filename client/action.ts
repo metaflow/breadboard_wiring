@@ -1,6 +1,7 @@
 import Konva from 'konva';
 import { clearStage, fullState, StageState, stageUpdated } from './stage';
 import { diffString } from 'json-diff';
+import { error } from './utils';
 
 export const actionDeserializers: { (data: any): (Action | null) }[] = [];
 
@@ -9,7 +10,7 @@ export function deserializeAction(data: any): Action {
         const a = d(data);
         if (a !== null) return a;
     }
-    console.error('cannot deserialize action', data);
+    error('cannot deserialize action', data);
     throw new Error('cannot deserialize action');
 }
 
@@ -83,7 +84,7 @@ export class Actions {
             a.undo();
             let s = fullState();
             if (JSON.stringify(sa) != JSON.stringify(s)) {
-                console.error('undo changes state');
+                error('undo changes state');
                 console.group('details');
                 console.log(diffString(sa, s));
                 console.log('expected state', sa);
@@ -93,7 +94,7 @@ export class Actions {
             a.apply();
             s = fullState();
             if (JSON.stringify(sb) != JSON.stringify(s)) {
-                console.error('redo changes state');
+                error('redo changes state');
                 console.group('details');
                 console.log('diff', diffString(sb, s));
                 console.log('expected state', sb);
@@ -122,7 +123,7 @@ export class Actions {
             let s = fullState();
             if (JSON.stringify(sa) != JSON.stringify(s)) {
                 console.groupEnd();
-                console.error('undo state does not match recorded');
+                error('undo state does not match recorded');
                 console.group('details');
                 console.log('diff', diffString(sa, s));
                 console.log('expected state', sa);
@@ -132,7 +133,7 @@ export class Actions {
             s = fullState();
             if (JSON.stringify(sb) != JSON.stringify(s)) {
                 console.groupEnd();
-                console.error('redo state does not match');
+                error('redo state does not match');
                 console.group('details');
                 console.log('diff', diffString(sb, s));
                 console.log('expected state', sb);

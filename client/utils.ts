@@ -20,3 +20,17 @@ export function typeGuard<T extends PrimitiveOrConstructor>(o: any, className: T
     }
     return o instanceof localPrimitiveOrConstructor;
 }
+
+export function error(...args: any) {
+    console.error(...args);
+    const c = document.getElementById("error-bar");
+    if (!c) return;
+    c.classList.remove('hidden');    
+    c.innerText = 'Error occured. See console for the details';
+}
+
+export function clearError() {
+    const c = document.getElementById("error-bar");
+    if (!c) return;
+    c.classList.add('hidden');
+}

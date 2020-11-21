@@ -9,7 +9,7 @@ import { AddWireAction } from './actions/add_wire';
 import { selection } from './components/selectable_component';
 import { DeleteSelectionAction } from './actions/delete_action';
 import { MoveSelectionAction } from './actions/move_selection';
-import { typeGuard } from './utils';
+import { error, typeGuard } from './utils';
 import theme from '../theme.json';
 
 (window as any).add245 = function () {

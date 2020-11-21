@@ -2,7 +2,7 @@ import { Addressable, address, addAddressRoot, removeAddressRoot, newAddress } f
 import Konva from "konva";
 import { PhysicalPoint, PlainPoint } from "../stage";
 import assertExists from "ts-assert-exists";
-import { typeGuard } from "../utils";
+import { error, typeGuard } from "../utils";
 import theme from '../../theme.json';
 
 export const componentDeserializers: { (data: any): (Component | null) }[] = [];
@@ -81,7 +81,7 @@ export class Component implements Addressable {
     }
     address(): string {
         if (!this._materialized) {
-            console.error(this, 'is not materialized');
+            error(this, 'is not materialized');
         }
         return address(this);
     }
@@ -154,6 +154,6 @@ export function deserializeComponent(data: any): (Component | null) {
         let c = d(data);
         if (c !== null) return c;
     }
-    console.error('no deserializer accepted', data);
+    error('none of deserializers accepted', data);
     return null;
 }

@@ -1,5 +1,5 @@
 import { Component } from "./components/component";
-import { typeGuard } from "./utils";
+import { error, typeGuard } from "./utils";
 
 // TODO: maybe make it a part of component?
 export interface Addressable {
@@ -21,7 +21,7 @@ export function addAddressRoot(r: Addressable) {
 
 export function removeAddressRoot(id: string) {
     if (!roots.has(id)) {
-        console.error(`address root "${id}" does not exist`);
+        error(`address root "${id}" does not exist`);
         return;
     }
     roots.delete(id);
@@ -30,7 +30,7 @@ export function removeAddressRoot(id: string) {
 export function getTypedByAddress<T>(q: { new(...args: any[]): T }, address?: string): T | null {
     let t = getByAddress(address);
     if (typeGuard(t, q)) return t as T;
-    console.error(t, 'is not an instance of', q);
+    error(t, 'is not an instance of', q);
     return null;
 }
 
@@ -40,18 +40,18 @@ export function copy<T>(v: T): T {
 
 export function getByAddress(address?: string): any | null {
     if (address == null) {
-        console.error('passed address is null', address);
+        error('passed address is null', address);
         return null;
     }
     const parts = address.split(':');
     let t: Addressable | null | undefined = roots.get(parts[0]);
     if (t == null) {
-        console.error('address root', parts[0], 'not found', address);
+        error('address root', parts[0], 'not found', address);
     }
     for (let i = 1; i < parts.length && t != null; i++) {
         t = t.addressChild(parts[i]);
         if (t == null) {
-            console.error('address child', parts[i], 'not found', address);
+            error('address child', parts[i], 'not found', address);
         }
     }
     if (t === undefined) return null;
@@ -83,7 +83,7 @@ export function address(a: Addressable | null): string {
     const o = a;
     let id = a.id();
     if (id == null) {
-        console.error(a, 'id is not set');
+        error(a, 'id is not set');
         return '';
     }
     let z = id;    
@@ -93,13 +93,13 @@ export function address(a: Addressable | null): string {
         a = t;
         id = a.id();
         if (id == null) {
-            console.error(a, 'id is not set');
+            error(a, 'id is not set');
             return '';
         }
         t = t.addressParent();
     }
     if (!roots.has(id)) {
-        console.error('address', z, 'of', o, 'does not starts from the root');
+        error('address', z, 'of', o, 'does not starts from the root');
     }
     return z;
 }
