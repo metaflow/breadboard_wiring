@@ -5,7 +5,7 @@ import { actionLayer, defaultLayer, PhysicalPoint, PlainPoint } from "../stage";
 import { getTypedByAddress } from "../address";
 import assertExists from "ts-assert-exists";
 import { deserializeComponent, Component } from "../components/component";
-import { activeColor } from "../theme";
+import theme from '../../theme.json';
 
 const marker = 'MoveIcSchematicAction';
 
@@ -39,7 +39,7 @@ export class MoveIcSchematicAction implements Action {
         this.ic = s;
         this.originalOffset = this.ic.offset();
         this.actionIc = assertExists(deserializeComponent(s.spec()));
-        this.actionIc.mainColor(activeColor);
+        this.actionIc.mainColor(theme.active);
         this.ic.hide();
         this.actionIc.show(actionLayer());
     }

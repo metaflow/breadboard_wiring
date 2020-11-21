@@ -3,7 +3,7 @@ import { scale, PhysicalPoint } from '../stage';
 import { Contact } from './contact';
 import { Component, ComponentSpec } from './component';
 import assertExists from 'ts-assert-exists';
-import { breadBoardColor, foregroundColor } from '../theme';
+import theme from '../../theme.json';
 
 const p_width = 170.5;
 const p_height = 63.1;
@@ -32,8 +32,8 @@ export class Breadboard extends Component {
             }
         }
         this.rect = new Konva.Rect({            
-            fill: breadBoardColor,
-            stroke: foregroundColor,
+            fill: theme.breadboard,
+            stroke: theme.foreground,
             strokeWidth: 1,
         });
         this.shapes.add(this.rect);

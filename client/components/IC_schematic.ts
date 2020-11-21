@@ -4,9 +4,9 @@ import { scale, pointAsNumber, PhysicalPoint } from "../stage";
 import { Contact } from "./contact";
 import { appActions } from "../action";
 import { MoveSelectionAction } from "../actions/move_selection";
-import { SelectableComponent } from "./selectable_component";
+import { SelectableComponent, selection } from "./selectable_component";
 import { SelectAction } from "../actions/select_action";
-import { foregroundColor } from "../theme";
+import theme from '../../theme.json';
 
 const marker = 'IntegratedCircuitSchematic';
 
@@ -47,7 +47,7 @@ export class IntegratedCircuitSchematic extends SelectableComponent {
         this.left_pins = spec.left_pins;
         this.right_pins = spec.right_pins;
         this.rect = new Konva.Rect({
-            stroke: foregroundColor,
+            stroke: theme.foreground,
             strokeWidth: 1,
             name: 'selectable',
         });
@@ -166,10 +166,12 @@ export class IntegratedCircuitSchematic extends SelectableComponent {
         const f = (e: Konva.KonvaEventObject<MouseEvent>) => {
             e.cancelBubble = true;
             if (appActions.onMouseDown(e)) return;
-            const a = new SelectAction();
-            a.newSelection = [o.address()];
-            appActions.current(a);
-            appActions.commit();
+            if (!this.selected()) {
+                const a = new SelectAction();
+                a.newSelection = [o.address()];
+                appActions.current(a);
+                appActions.commit();
+            }            
             appActions.current(new MoveSelectionAction());
         };
         this.rect.on('mousedown', f);

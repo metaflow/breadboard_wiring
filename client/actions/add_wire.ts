@@ -3,7 +3,7 @@ import { Wire, removeRedundantPoints, addHelperPoints, WirePointSpec } from '../
 import { Action, actionDeserializers } from '../action';
 import { actionLayer, defaultLayer, pointAsNumber, scale, PhysicalPoint, PlainPoint, closesetContact } from '../stage';
 import { newAddress } from '../address';
-import { activeColor } from '../theme';
+import theme from '../../theme.json';
 
 const marker = 'AddWireAction';
 
@@ -27,18 +27,18 @@ export class AddWireAction implements Action {
     constructor(spec?: AddWireActionSpec) {
         this.line = new Konva.Line({
             points: [],
-            stroke: activeColor,
+            stroke: theme.active,
             strokeWidth: 3,
             lineCap: 'round',
             lineJoin: 'round',
         });
         this.startMarker = new Konva.Circle({
             radius: scale(),
-            fill: activeColor,
+            fill: theme.active,
         });
         this.endMarker = new Konva.Circle({
             radius: scale(),
-            fill: activeColor,
+            fill: theme.active,
         })
         if (spec != null) {
             this.points = spec.points.map(p => new PhysicalPoint(p.x, p.y));

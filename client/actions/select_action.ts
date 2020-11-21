@@ -2,7 +2,7 @@ import { Action, actionDeserializers } from "../action";
 import Konva from "konva";
 import { stage, actionLayer, ScreenPoint } from "../stage";
 import { selectionAddresses } from "../components/selectable_component";
-import { selectionColor } from "../theme";
+import theme from '../../theme.json';
 
 const marker = 'SelectAction';
 
@@ -58,8 +58,7 @@ export class SelectAction implements Action {
         this.rect = new Konva.Rect({
             x: pos.x,
             y: pos.y,
-            // fill: selectionColor,
-            stroke: selectionColor,
+            stroke: theme.selection,
             strokeWidth: 1,
         });
         actionLayer()?.add(this.rect);

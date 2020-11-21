@@ -1,6 +1,7 @@
 extends layout
 
 block content
+  #error-bar error occured
   #toolbar
     button(onclick='clearActionsHistory()') clear history
     button(onclick='add245()') 245
@@ -10,8 +11,5 @@ block content
     button(onclick='downloadScene()') save
     input(type="file" id="file-selector" multiple)
   #work-area
-    #container
-    #log
-      p line 1
-      p anothe line
+    #container    
   script(src='/gen/bundle.js')

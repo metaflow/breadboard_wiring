@@ -8,9 +8,9 @@ import { PlaceComponentAction } from './actions/add_ic_action';
 import { AddWireAction } from './actions/add_wire';
 import { selection } from './components/selectable_component';
 import { DeleteSelectionAction } from './actions/delete_action';
-import { backgroundColor } from './theme';
 import { MoveSelectionAction } from './actions/move_selection';
 import { typeGuard } from './utils';
+import theme from '../theme.json';
 
 (window as any).add245 = function () {
   appActions.current(new PlaceComponentAction(new ic74x245()));
@@ -86,7 +86,7 @@ stage(new Konva.Stage({
   height: 700,
 }));
 
-stage()!.container().style.backgroundColor = backgroundColor;
+stage()!.container().style.backgroundColor = theme.backgroud;
 
 document.getElementById('container')?.addEventListener('contextmenu', e => {
   e.preventDefault()
@@ -98,6 +98,16 @@ stage()?.add(actionLayer(new Konva.Layer()));
 stage()?.on('mousemove', function (e: Konva.KonvaEventObject<MouseEvent>) {
   appActions.onMouseMove(e);
 });
+
+// function log(style: string, m: string) {
+//   const p = document.createElement('p');
+//   p.classList.add(style);
+//   p.innerText = m;
+//   document.getElementById('log')?.appendChild(p);
+// }
+
+// for (let i = 0; i < 10; i++) log("error", "stage()?.on('mousemove', function (e: Konva.KonvaEventObject<MouseEvent>)");
+// for (let i = 0; i < 10; i++) log("info", "stage()?.on('mousemove', function (e: Konva.KonvaEventObject<MouseEvent>)");
 
 stage()?.on('mousedown', function (e) {
   e.evt.preventDefault(); // Disable scroll on middle button click.

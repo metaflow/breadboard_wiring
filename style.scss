@@ -8,12 +8,15 @@
     @return $map;
 }
 
-$background: map-deep-get($theme, "colors", "editor_background");
-$border: map-deep-get($theme, "colors", "editorWidget_border");
+$background: map-deep-get($theme, "backgroud");
+$forground: map-deep-get($theme, "foreground");
+$border: map-deep-get($theme, "gray3");
+$error: map-deep-get($theme, "error");
 
 body {
     padding: 50px;
     font: 14px "Lucida Console", Monaco, monospace;
+    color: $forground;
     background-color: $background;
 }
 
@@ -35,8 +38,8 @@ a {
     display: flex;
     flex-direction: row;
     align-items: stretch;
-    #log {
-        flex-grow: 1;
-        box-shadow: 0 0 0 1px $border;
-    }
+}
+
+#error-bar {
+    color: $error;
 }

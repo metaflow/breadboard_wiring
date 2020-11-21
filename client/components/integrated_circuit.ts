@@ -3,7 +3,7 @@ import Konva from "konva";
 import { scale, pointAsNumber, PhysicalPoint } from "../stage";
 import { newAddress } from "../address";
 import { Contact } from "./contact";
-import { foregroundColor } from "../theme";
+import theme from '../../theme.json';
 
 const gap = 1;
 const height = 2.54 * 2;
@@ -30,14 +30,14 @@ export class IntegratedCircuit extends Component {
         super(spec.super);
         this.pins = spec.pins;
         this.rect = new Konva.Rect({
-            stroke: foregroundColor,
+            stroke: theme.foreground,
             strokeWidth: 1,
         });
         this.shapes.add(this.rect);
         for (const s of this.pins) {
             const t = new Konva.Text({ 
                 text: s, 
-                fill: foregroundColor,
+                fill: theme.foreground,
             });
             this.labels.push(t);
             // spec.layer.add(t);

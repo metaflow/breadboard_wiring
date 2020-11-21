@@ -8,7 +8,7 @@ import { MoveWirePointAction } from '../actions/move_wire_point';
 import { selectionByType, SelectableComponent } from './selectable_component';
 import { MoveSelectionAction } from '../actions/move_selection';
 import e from 'express';
-import { activeColor, foregroundColor, helperColor, selectionColor } from '../theme';
+import theme from '../../theme.json';
 
 export interface WirePointSpec extends ComponentSpec {
     helper: boolean;
@@ -80,7 +80,7 @@ export class WirePoint extends SelectableComponent {
         } else {
             this.selectionRect.dash([]);
         }
-        this.selectionRect.stroke(this._selected ? selectionColor : (this.helper ? helperColor : foregroundColor));
+        this.selectionRect.stroke(this._selected ? theme.selection : theme.helper);
     }
     wire(): Wire {
         return this.parent() as Wire;
@@ -108,13 +108,11 @@ export class Wire extends Component {
         super(spec);
         this.line = new Konva.Line({
             points: [],
-            stroke: 'blue',
             strokeWidth: 1,
             lineCap: 'round',
             lineJoin: 'round',
         });
         this.pointsSpec(spec?.points);
-        // this._points = spec?.points.map(x => new WirePoint(x)) || [];
         this.shapes.add(this.line);
         this.updateLayout();
     }
