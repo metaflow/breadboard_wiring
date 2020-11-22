@@ -188,5 +188,6 @@ export function clearStage() {
 }
 
 export function stageUpdated() {
-    defaultLayer()?.batchDraw();
+    stage()?.batchDraw();
+    // defaultLayer()?.batchDraw();
 }

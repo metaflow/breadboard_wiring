@@ -1,9 +1,7 @@
 ("todo list" extension format)
 
-- display if any error occured (not only in console)
-- change cursor when moving a component
-- dark theme
-- save / load history and schematic
+- change cursor when offsetting the layer
+- save / load history, schematic and display state
 - fix start / end wire point
 - save / load schematic w/o history
 - show / hide helper points when cursor is near the wire
@@ -27,7 +25,6 @@
 - click and move IC should be a one action
 - add breadboard
 - move breadboard (one in relation to another)
-- offset and scale of layer
 
 scenario:
 - draw a scrematic, with LED, ground and other

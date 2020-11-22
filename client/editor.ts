@@ -82,8 +82,8 @@ function deleteSelection() {
 // first we need to create a stage
 stage(new Konva.Stage({
   container: 'container',   // id of container <div>
-  width: 700,
-  height: 700,
+  width: window.screen.width,
+  height: window.screen.height,
 }));
 
 stage()!.container().style.backgroundColor = theme.backgroud;
