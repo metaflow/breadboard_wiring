@@ -1,6 +1,6 @@
 import Konva from "konva";
-import { appActions } from "../action";
-import { addContact, removeContact } from "../stage";
+import { workspace } from "../workspace";
+import { addContact, removeContact } from "../workspace";
 import { ComponentSpec } from "./component";
 import { AddWireAction } from "../actions/add_wire";
 import { SelectableComponent } from "./selectable_component";
@@ -33,10 +33,11 @@ export class Contact extends SelectableComponent {
     }
     setupEvents() {
         const o = this;
-        this.circle.on('mousedown', function (e) {
+        this.circle.on('mousedown', function (e) {            
+            if (workspace.onMouseDown(e)) return;
+            if (e.evt.button != 0) return;
             e.cancelBubble = true;
-            if (appActions.onMouseDown(e)) return;
-            appActions.current(new AddWireAction({
+            workspace.current(new AddWireAction({
                 typeMarker: 'AddWireAction',
                 points: [o.absolutePosition().plain()],
             }));

@@ -1,6 +1,6 @@
 import { Action, actionDeserializers } from "../action";
 import Konva from "konva";
-import { stage, Point, defaultLayer } from "../stage";
+import { stage, Point, currentLayer } from "../workspace";
 import { selectionAddresses } from "../components/selectable_component";
 import theme from '../../theme.json';
 
@@ -40,7 +40,7 @@ export class SelectAction implements Action {
         this.rect.width(pos.x - this.rect.x());
         this.rect.height(pos.y - this.rect.y());
         const r = this.rect.getClientRect(null);
-        var shapes = stage()?.find('.selectable');
+        var shapes = stage().find('.selectable');
         if (shapes == null) return true;
         var selected = shapes.toArray().filter((shape) => {
             return Konva.Util.haveIntersection(r, shape.getClientRect());
@@ -61,7 +61,7 @@ export class SelectAction implements Action {
             stroke: theme.selection,
             strokeWidth: 1,
         });
-        defaultLayer()?.add(this.rect);
+        currentLayer()?.add(this.rect);
         return false;
     }
     mouseup(event: Konva.KonvaEventObject<MouseEvent>): boolean {

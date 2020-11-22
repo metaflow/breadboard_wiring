@@ -1,7 +1,7 @@
 import { IntegratedCircuitSchematic } from "../components/IC_schematic";
 import { Action, actionDeserializers } from "../action";
 import { KonvaEventObject } from "konva/types/Node";
-import { Point, PlainPoint, stage } from "../stage";
+import { Point, PlainPoint, stage } from "../workspace";
 import { all } from "../address";
 import { Component } from "../components/component";
 import { WirePoint } from "../components/wire";

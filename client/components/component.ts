@@ -1,6 +1,6 @@
 import { Addressable, address, addAddressRoot, removeAddressRoot, newAddress } from "../address";
 import Konva from "konva";
-import { Point, PlainPoint } from "../stage";
+import { Point, PlainPoint } from "../workspace";
 import assertExists from "ts-assert-exists";
 import { error, typeGuard } from "../utils";
 import theme from '../../theme.json';

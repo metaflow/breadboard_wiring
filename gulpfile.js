@@ -39,7 +39,7 @@ function scripts(watch) {
         debug: true, // Setting to false removes the source mapping data.
         entries: [
             // TS files to transpile and bundle.
-            'client/editor.ts',
+            'client/main.ts',
         ],
         cache: {},
         packageCache: {}

@@ -1,6 +1,6 @@
 import { Action, actionDeserializers } from "../action";
 import Konva from "konva";
-import { defaultLayer } from "../stage";
+import { currentLayer } from "../workspace";
 import { clearSelection, selection, selectionAddresses } from "../components/selectable_component";
 import { deserializeComponent } from "../components/component";
 
@@ -38,7 +38,7 @@ export class DeleteSelectionAction implements Action {
             const c = deserializeComponent(d);
             if (c == null) return;
             c.updateLayout();
-            c.show(defaultLayer());
+            c.show(currentLayer());
             c.materialized(true);
         })
         selectionAddresses(this.prevSelection);

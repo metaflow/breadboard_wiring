@@ -1,5 +1,6 @@
 ("todo list" extension format)
 
+- display wire helpers only close to the wire
 - change cursor when offsetting the layer
 - save / load history, schematic and display state
 - fix start / end wire point

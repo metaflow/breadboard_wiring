@@ -1,6 +1,6 @@
 import { Action, actionDeserializers } from '../action';
 import Konva from 'konva';
-import { defaultLayer, Point, PlainPoint } from '../stage';
+import { currentLayer, Point, PlainPoint } from '../workspace';
 import { Wire, WirePoint, WirePointSpec, removeRedundantPoints, addHelperPoints } from '../components/wire';
 import { getByAddress, copy, all } from '../address';
 import assertExists from 'ts-assert-exists';
@@ -115,7 +115,7 @@ export class MoveWirePointAction implements Action {
       s.auxWire?.pointsSpec(w.pointsSpec());
       s.auxWire?.mainColor(theme.active);
       w.hide();
-      s.auxWire?.show(defaultLayer());
+      s.auxWire?.show(currentLayer());
     }
     if (origin === undefined) origin = Point.cursor();
     this.from = origin;
@@ -138,7 +138,7 @@ export class MoveWirePointAction implements Action {
       const w = getByAddress(s.address) as Wire;
       let x = moveSingleWire(dxy, s);
       w.pointsSpec(x);
-      w.show(defaultLayer());
+      w.show(currentLayer());
       s.auxWire?.hide();
     }
   }

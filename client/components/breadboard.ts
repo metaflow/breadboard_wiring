@@ -1,5 +1,5 @@
 import Konva from 'konva';
-import { Point } from '../stage';
+import { Point } from '../workspace';
 import { Contact } from './contact';
 import { Component, ComponentSpec } from './component';
 import assertExists from 'ts-assert-exists';

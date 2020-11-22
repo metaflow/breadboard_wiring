@@ -1,7 +1,7 @@
 import Konva from 'konva';
 import { Wire, removeRedundantPoints, addHelperPoints, WirePointSpec } from '../components/wire';
 import { Action, actionDeserializers } from '../action';
-import { defaultLayer, pointAsNumber, Point, PlainPoint, closesetContact } from '../stage';
+import { currentLayer, pointAsNumber, Point, PlainPoint, closesetContact } from '../workspace';
 import { newAddress } from '../address';
 import theme from '../../theme.json';
 
@@ -47,9 +47,9 @@ export class AddWireAction implements Action {
                 this.endMarker.position(this.points[spec.points.length - 1]);
             }
         }
-        defaultLayer()?.add(this.line);
-        defaultLayer()?.add(this.startMarker);
-        defaultLayer()?.add(this.endMarker);
+        currentLayer()?.add(this.line);
+        currentLayer()?.add(this.startMarker);
+        currentLayer()?.add(this.endMarker);
     }
     mouseup(event: Konva.KonvaEventObject<MouseEvent>): boolean {
         return false;
@@ -72,7 +72,7 @@ export class AddWireAction implements Action {
         });
         this.wire.updateLayout();
         this.wire.materialized(true);
-        this.wire.show(defaultLayer()); 
+        this.wire.show(currentLayer()); 
         this.removeHelpers();
     }
     removeHelpers() {

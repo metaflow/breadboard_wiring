@@ -1,8 +1,8 @@
 import Konva from 'konva';
-import { pointAsNumber, Point, closesetContact } from '../stage';
+import { pointAsNumber, Point, closesetContact } from '../workspace';
 import { newAddress } from '../address';
 import { Component, ComponentSpec } from './component';
-import { appActions } from '../action';
+import { workspace } from '../workspace';
 import { MoveWirePointAction } from '../actions/move_wire_point';
 import { SelectableComponent } from './selectable_component';
 import { MoveSelectionAction } from '../actions/move_selection';
@@ -47,13 +47,13 @@ export class WirePoint extends SelectableComponent {
         });
         const point = this;
         this.selectionRect.on('mousedown', function (e) {            
-            if (appActions.onMouseDown(e)) return;
+            if (workspace.onMouseDown(e)) return;
             if (e.evt.button != 0) return;
             e.cancelBubble = true;
             if (point.selected()) {
-                appActions.current(new MoveSelectionAction());
+                workspace.current(new MoveSelectionAction());
             } else {
-                appActions.current(new MoveWirePointAction([point], Point.cursor()));
+                workspace.current(new MoveWirePointAction([point], Point.cursor()));
             }
         });
         this.shapes.add(this.selectionRect);

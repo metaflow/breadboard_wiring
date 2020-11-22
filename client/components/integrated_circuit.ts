@@ -1,6 +1,6 @@
 import { Component, ComponentSpec } from "./component";
 import Konva from "konva";
-import { pointAsNumber, Point } from "../stage";
+import { pointAsNumber, Point } from "../workspace";
 import { newAddress } from "../address";
 import { Contact } from "./contact";
 import theme from '../../theme.json';

@@ -1,7 +1,7 @@
 import { IntegratedCircuitSchematic } from "../components/IC_schematic";
 import { Action, actionDeserializers } from "../action";
 import { KonvaEventObject } from "konva/types/Node";
-import { defaultLayer, Point, PlainPoint } from "../stage";
+import { currentLayer, Point, PlainPoint } from "../workspace";
 import { getTypedByAddress } from "../address";
 import assertExists from "ts-assert-exists";
 import { deserializeComponent, Component } from "../components/component";
@@ -41,13 +41,13 @@ export class MoveIcSchematicAction implements Action {
         this.actionIc = assertExists(deserializeComponent(s.spec()));
         this.actionIc.mainColor(theme.active);
         this.ic.hide();
-        this.actionIc.show(defaultLayer());
+        this.actionIc.show(currentLayer());
     }
     apply(): void {
         const d = this.to.clone().sub(this.from);
         this.ic.offset(this.originalOffset.clone().add(d).alignToGrid());
         this.ic.updateLayout();
-        this.ic.show(defaultLayer());
+        this.ic.show(currentLayer());
         this.actionIc.hide();
     }
     undo(): void {
@@ -70,7 +70,7 @@ return false;
         return true;
     }
     cancel(): void {
-        this.ic.show(defaultLayer());
+        this.ic.show(currentLayer());
         this.actionIc.hide();
     }
     serialize() {

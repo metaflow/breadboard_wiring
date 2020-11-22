@@ -1,8 +1,8 @@
 import { componentDeserializers, ComponentSpec } from "./component";
 import Konva from "konva";
-import { pointAsNumber, Point } from "../stage";
+import { pointAsNumber, Point } from "../workspace";
 import { Contact } from "./contact";
-import { appActions } from "../action";
+import { workspace } from "../workspace";
 import { MoveSelectionAction } from "../actions/move_selection";
 import { SelectableComponent } from "./selectable_component";
 import { SelectAction } from "../actions/select_action";
@@ -170,16 +170,16 @@ export class IntegratedCircuitSchematic extends SelectableComponent {
     setupEvents() {
         const o = this;
         const f = (e: Konva.KonvaEventObject<MouseEvent>) => {
-            if (appActions.onMouseDown(e)) return;
+            if (workspace.onMouseDown(e)) return;
             if (e.evt.button != 0) return;
             e.cancelBubble = true;
             if (!this.selected()) {
                 const a = new SelectAction();
                 a.newSelection = [o.address()];
-                appActions.current(a);
-                appActions.commit();
+                workspace.current(a);
+                workspace.commitAction();
             }
-            appActions.current(new MoveSelectionAction());
+            workspace.current(new MoveSelectionAction());
         };
         this.rect.on('mousedown', f);
         this.right_labels.forEach(x => x.on('mousedown', f));
