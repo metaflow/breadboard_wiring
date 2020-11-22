@@ -46,9 +46,10 @@ export class WirePoint extends SelectableComponent {
             strokeWidth: 0.5,
         });
         const point = this;
-        this.selectionRect.on('mousedown', function (e) {
-            e.cancelBubble = true;
+        this.selectionRect.on('mousedown', function (e) {            
             if (appActions.onMouseDown(e)) return;
+            if (e.evt.button != 0) return;
+            e.cancelBubble = true;
             if (point.selected()) {
                 appActions.current(new MoveSelectionAction());
             } else {

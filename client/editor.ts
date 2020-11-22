@@ -113,11 +113,14 @@ stage()?.on('mousemove', function (e: Konva.KonvaEventObject<MouseEvent>) {
 });
 
 stage()?.on('wheel', function(e : Konva.KonvaEventObject<WheelEvent>) {
-  let d = (e.evt.deltaY < 0) ? 0.9 : 1.1;
+  let d = (e.evt.deltaY < 0) ? (1/1.1) : 1.1;
   let x = defaultLayer()?.scaleX();
   if (!x) return;
-  defaultLayer()?.scaleX(x * d);
-  defaultLayer()?.scaleY(x * d);
+  let c = Point.cursor();
+  x *= d;
+  defaultLayer()?.scaleX(x);
+  defaultLayer()?.scaleY(x);
+  defaultLayer()?.offset(c.sub(Point.cursor()).add(new Point(defaultLayer()?.offset())));
   stageUpdated();
 });
 
