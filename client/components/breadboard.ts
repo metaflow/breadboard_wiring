@@ -1,5 +1,5 @@
 import Konva from 'konva';
-import { scale, PhysicalPoint } from '../stage';
+import { Point } from '../stage';
 import { Contact } from './contact';
 import { Component, ComponentSpec } from './component';
 import assertExists from 'ts-assert-exists';
@@ -25,7 +25,7 @@ export class Breadboard extends Component {
                     (i == 0 || ((i - 1) % 6 == 0) || i == 62)) continue;
                 const c = new Contact({
                     id: letters[j] + (i + 1), 
-                    offset: new PhysicalPoint(left + i * p_contact, top + j * p_contact).plain(),
+                    offset: new Point(left + i * p_contact, top + j * p_contact).plain(),
                 });
                 this.addChild(c);
                 this.contacts.set(assertExists(c.id()), c);
@@ -41,8 +41,8 @@ export class Breadboard extends Component {
     }
     updateLayout(): void {
         super.updateLayout();
-        this.rect.position(this.absolutePosition().screen());
-        this.rect.height(p_height * scale());
-        this.rect.width(p_width * scale());
+        this.rect.position(this.absolutePosition());
+        this.rect.height(p_height);
+        this.rect.width(p_width);
     }
 }

@@ -14,129 +14,89 @@ export class PlainPoint {
 };
 
 // just in case: https://stackoverflow.com/questions/34098023/typescript-self-referencing-return-type-for-static-methods-in-inheriting-classe?rq=1
-export abstract class Point {
-    // Properties don't named 'x' and 'y' to mismatch from Konva's Vector2d so that physical point cannot be displayed on screen.
-    _x: number = 0;
-    _y: number = 0;
-    constructor(v?: number | Point | PlainPoint, y?: number) {
-        if (v == undefined) v = 0;
+export class Point implements Konva.Vector2d {
+    x: number = 0;
+    y: number = 0;
+    constructor(v?: number | Point | PlainPoint | null, y?: number) {
+        if (v == null) v = 0;
         if (v instanceof Point) {
-            this.setX(v._x);
-            this.setY(v._y);
+            this.x = v.x;
+            this.y = v.y;
             return;
         }
         const a = v as any;
         if (a.x != null && a.y != null) {
-            this.setX(a.x);
-            this.setY(a.y);
+            this.x = a.x;
+            this.y = a.y;
             return;
         }
         if (typeof v === 'number') {
-            this.setX(v);
+            this.x = v;
         } else {
             error(v, 'is not a valid init value for point');
         }
         if (y == undefined) y = 0;
-        this.setY(y);
+        this.y = y;
     }
     align(a: number | null): this {
         if (a == null) return this;
-        this.setX(Math.round(this._x / a) * a);
-        this.setY(Math.round(this._y / a) * a);
+        this.x = Math.round(this.x / a) * a;
+        this.y = Math.round(this.y / a) * a;
         return this;
     }
     clone(): this {
-        return new (this.constructor as any)(this._x, this._y);
+        return new (this.constructor as any)(this.x, this.y);
     }
     s(v: number): this {
-        this.setX(this._x * v);
-        this.setY(this._y * v);
+        this.x = this.x * v;
+        this.y = this.y * v;
         return this;
     }
-    setX(x: number) {
-        this._x = x;
-    }
-    setY(y: number) {
-        this._y = y;
-    }
     sub(other: this): this {
-        this.setX(this._x - other._x);
-        this.setY(this._y - other._y);
+        this.x = this.x - other.x;
+        this.y = this.y - other.y;
         return this;
     }
     add(other: this): this {
-        this.setX(this._x + other._x);
-        this.setY(this._y + other._y);
+        this.x = this.x + other.x;
+        this.y = this.y + other.y;
         return this;
     }
-    getX(): number {
-        return this._x;
-    }
-    getY(): number {
-        return this._y;
-    }
+    // Can be removed?
     plain() {
-        return { x: this._x, y: this._y } as PlainPoint;
+        return { x: this.x, y: this.y } as PlainPoint;
     }
     distance(other: this): number {    
-        const dx = this._x - other._x;
-        const dy = this._y - other._y;
+        const dx = this.x - other.x;
+        const dy = this.y - other.y;
         return Math.sqrt(dx * dx + dy * dy);
     }
     closeTo(other: this): boolean {
         return this.distance(other) < 0.1;
     }
     atan2(): number {
-        return Math.atan2(this._x, this._y);
+        return Math.atan2(this.x, this.y);
     }
     dot(o: this): number {
-        return this._x * o._x + this._y * o._y; 
+        return this.x * o.x + this.y * o.y; 
     }
     length(): number {
-        return Math.sqrt(this._x * this._x + this._y * this._y);
+        return Math.sqrt(this.x * this.x + this.y * this.y);
     }
-};
-
-export class ScreenPoint extends Point implements Konva.Vector2d {
-    x: number;
-    y: number;
-    constructor(v?: number | Point | PlainPoint, y?: number) {
-        super(v, y);
-        this.x = this._x;
-        this.y = this._y;
-    }
-    static cursor(): ScreenPoint {
+    static screenCursor(): Point {
         let pos = stage()?.getPointerPosition()
         if (pos == null) pos = { x: 0, y: 0 };
-        return new ScreenPoint(pos.x, pos.y);
+        return new Point(stage()?.getPointerPosition());
     }
-    physical(): PhysicalPoint {
-        return new PhysicalPoint(this.clone().s(1.0 / scale()));
-    }
-    setX(x: number) {
-        super.setX(x);
-        this.x = this._x;
-    }
-    setY(y: number) {
-        super.setY(y);
-        this.y = this._y;
-    }
-}
-
-export class PhysicalPoint extends Point {
-    constructor(v?: number | Point | PlainPoint, y?: number) {
-        super(v, y);
-    }
-    screen(): ScreenPoint {
-        return new ScreenPoint(this.clone().s(scale()));
-    }
-    static cursor(): PhysicalPoint {
-        return ScreenPoint.cursor().physical();
+    static cursor(): Point {
+        let pos = stage()?.getPointerPosition()
+        if (pos == null) pos = { x: 0, y: 0 };
+        return new Point(defaultLayer()?.getTransform().copy().invert().point(pos));
     }
     alignToGrid(): this {
         return this.align(gridAlignment());
     }
-}
+};
 
 export function gridAlignment(v?: number | null): number | null {
     if (v !== undefined) _gridAlignment = v;
@@ -148,12 +108,8 @@ export function stage(s?: Konva.Stage): Konva.Stage | null {
     return _stage;
 }
 
-export function scale(): number {
-    return 4;
-}
-
-export function pointAsNumber(xy: Point): [number, number] { // TODO: move to Point
-    return [xy._x, xy._y];
+export function pointAsNumber(xy: Point): [number, number] { // TODO: move to Point(if used).
+    return [xy.x, xy.y];
 }
 
 const contacts = new Map<string, Contact>();
@@ -165,9 +121,9 @@ export function removeContact(c: Contact) {
     contacts.delete(c.address());
 }
 
-export function closesetContact(xy?: PhysicalPoint): Contact | null {
+export function closesetContact(xy?: Point): Contact | null {
     if (xy === undefined) {
-        xy = PhysicalPoint.cursor();
+        xy = Point.cursor();
     }
     let z: Contact | null = null;
     let dz = 0;
@@ -190,17 +146,17 @@ export function defaultLayer(layer?: Konva.Layer): Konva.Layer | null {
     return _defaultLayer;
 }
 
-let _actionLayer: Konva.Layer | null;
-export function actionLayer(layer?: Konva.Layer): Konva.Layer | null {
-    if (layer !== undefined) {
-        _actionLayer = layer;
-        layer.setAttr('name', 'action');
-    }
-    return _actionLayer;
-}
+// let _actionLayer: Konva.Layer | null;
+// export function actionLayer(layer?: Konva.Layer): Konva.Layer | null {
+//     if (layer !== undefined) {
+//         _actionLayer = layer;
+//         layer.setAttr('name', 'action');
+//     }
+//     return _actionLayer;
+// }
 
 export function layerByName(name: string): Konva.Layer | null {
-    if (name === 'action') return actionLayer();
+    // if (name === 'action') return actionLayer();
     return defaultLayer();
 }
 
@@ -233,5 +189,4 @@ export function clearStage() {
 
 export function stageUpdated() {
     defaultLayer()?.batchDraw();
-    actionLayer()?.batchDraw();
 }

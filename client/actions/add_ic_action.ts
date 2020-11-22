@@ -1,7 +1,7 @@
 import { Action, actionDeserializers } from "../action";
 import { KonvaEventObject } from "konva/types/Node";
 import { Component, deserializeComponent } from "../components/component";
-import { actionLayer, defaultLayer, PhysicalPoint, PlainPoint } from "../stage";
+import { defaultLayer, Point, PlainPoint } from "../stage";
 import theme from '../../theme.json';
 
 const marker = 'PlaceComponentAction';
@@ -18,18 +18,18 @@ actionDeserializers.push(function(data: any): Action|null {
     let c = deserializeComponent(s.component_spec);
     if (c == null) return null;
     let z = new PlaceComponentAction(c);
-    z.xy = new PhysicalPoint(s.offset);
+    z.xy = new Point(s.offset);
     return z;
 });
 
 export class PlaceComponentAction implements Action {
-    xy: PhysicalPoint = new PhysicalPoint();
+    xy: Point = new Point();
     component: Component;
     constructor(component: Component) {
         this.component = component;
         this.component.mainColor(theme.active);
         this.component.updateLayout();
-        this.component.show(actionLayer());
+        this.component.show(defaultLayer());
     }
     apply(): void {
         this.component.offset(this.xy);
@@ -43,7 +43,7 @@ export class PlaceComponentAction implements Action {
         this.component.hide();
     }
     mousemove(event: KonvaEventObject<MouseEvent>): boolean {        
-        this.xy = PhysicalPoint.cursor().alignToGrid();
+        this.xy = Point.cursor().alignToGrid();
         this.component.offset(this.xy);
         this.component.updateLayout();
         return false;

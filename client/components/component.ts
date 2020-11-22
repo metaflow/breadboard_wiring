@@ -1,6 +1,6 @@
 import { Addressable, address, addAddressRoot, removeAddressRoot, newAddress } from "../address";
 import Konva from "konva";
-import { PhysicalPoint, PlainPoint } from "../stage";
+import { Point, PlainPoint } from "../stage";
 import assertExists from "ts-assert-exists";
 import { error, typeGuard } from "../utils";
 import theme from '../../theme.json';
@@ -18,12 +18,12 @@ export class Component implements Addressable {
     shapes = new Konva.Group();
     _mainColor = theme.foreground;
     typeMarker: string = 'Component';
-    _offset = new PhysicalPoint();
+    _offset = new Point();
     _id: string|undefined;
     _materialized = false; // If this component really "exists" and accessabe from the address root.
     constructor(spec?: ComponentSpec) {
         if (spec != undefined) {
-            this._offset = new PhysicalPoint(spec.offset);
+            this._offset = new Point(spec.offset);
             this._id = spec.id;
         }
     }
@@ -91,13 +91,13 @@ export class Component implements Addressable {
         }
         return this._id;
     }
-    offset(v?: PhysicalPoint): PhysicalPoint {
+    offset(v?: Point): Point {
         if (v != undefined) {
             this._offset = v.clone();
         }
         return this._offset.clone();
     }
-    absolutePosition(): PhysicalPoint {
+    absolutePosition(): Point {
         if (this._parent != null) return this._parent.absolutePosition().add(this.offset());
         return this.offset();
     }

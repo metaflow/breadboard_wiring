@@ -1,6 +1,6 @@
 import { Action, actionDeserializers } from '../action';
 import Konva from 'konva';
-import { actionLayer, defaultLayer, PhysicalPoint, PlainPoint } from '../stage';
+import { defaultLayer, Point, PlainPoint } from '../stage';
 import { Wire, WirePoint, WirePointSpec, removeRedundantPoints, addHelperPoints } from '../components/wire';
 import { getByAddress, copy, all } from '../address';
 import assertExists from 'ts-assert-exists';
@@ -13,9 +13,9 @@ const marker = 'MoveWirePointAction';
 actionDeserializers.push(function (data: any): Action | null {
   if (data['typeMarker'] !== marker) return null;
   const s: MoveWirePointActionSpec = data;
-  let z = new MoveWirePointAction(s.points.map(a => getByAddress(a)), new PhysicalPoint(s.from));
+  let z = new MoveWirePointAction(s.points.map(a => getByAddress(a)), new Point(s.from));
   z.selection = s.selection;
-  z.to = new PhysicalPoint(s.to);
+  z.to = new Point(s.to);
   return z;
 });
 
@@ -35,7 +35,7 @@ interface SingleWireMove {
   auxWire?: Wire;
 };
 
-function moveSingleWire(dxy: PhysicalPoint, s: SingleWireMove): WirePointSpec[] {
+function moveSingleWire(dxy: Point, s: SingleWireMove): WirePointSpec[] {
   const w = assertExists(s.auxWire);
   let z: WirePointSpec[] = [];
   w.points.forEach(p => p.remove());
@@ -48,7 +48,7 @@ function moveSingleWire(dxy: PhysicalPoint, s: SingleWireMove): WirePointSpec[] 
     const a = s.affectedPointsIds.indexOf(assertExists(p.id)) != -1;
     if (p.helper && !a) continue;
     affected.push(a);
-    fixed.push(contacts.some(c => c.absolutePosition().closeTo(new PhysicalPoint(p.offset))));
+    fixed.push(contacts.some(c => c.absolutePosition().closeTo(new Point(p.offset))));
     z.push(copy(p));
   }
   for (let i = 0; i < z.length; i++) {
@@ -57,7 +57,7 @@ function moveSingleWire(dxy: PhysicalPoint, s: SingleWireMove): WirePointSpec[] 
       nextHorizontal.push(z[i].offset.y == z[i + 1].offset.y);
     }
     if (affected[i]) {
-      z[i].offset = new PhysicalPoint(z[i].offset).add(dxy).alignToGrid().plain();
+      z[i].offset = new Point(z[i].offset).add(dxy).alignToGrid().plain();
     }
   }
   for (let i = 0; i < z.length; i++) {
@@ -91,10 +91,10 @@ function moveSingleWire(dxy: PhysicalPoint, s: SingleWireMove): WirePointSpec[] 
 export class MoveWirePointAction implements Action {
   states: SingleWireMove[] = [];
   affectedPointsAddresses: string[];
-  from: PhysicalPoint;
-  to: PhysicalPoint;
+  from: Point;
+  to: Point;
   selection: string[];
-  constructor(points: WirePoint[], origin?: PhysicalPoint) {
+  constructor(points: WirePoint[], origin?: Point) {
     this.selection = selectionAddresses();
     this.affectedPointsAddresses = points.map(p => p.address());
     const uniqAdresses = Array.from(new Set<string>(points.map(p => p.parent()?.address()!)));
@@ -115,9 +115,9 @@ export class MoveWirePointAction implements Action {
       s.auxWire?.pointsSpec(w.pointsSpec());
       s.auxWire?.mainColor(theme.active);
       w.hide();
-      s.auxWire?.show(actionLayer());
+      s.auxWire?.show(defaultLayer());
     }
-    if (origin === undefined) origin = PhysicalPoint.cursor();
+    if (origin === undefined) origin = Point.cursor();
     this.from = origin;
     this.to = origin;
   }
@@ -149,7 +149,7 @@ export class MoveWirePointAction implements Action {
     selectionAddresses(this.selection);
   }
   mousemove(event: Konva.KonvaEventObject<MouseEvent>): boolean {
-    this.to = PhysicalPoint.cursor();
+    this.to = Point.cursor();
     const dxy = this.to.clone().sub(this.from);
     for (const s of this.states) {
       const sp = moveSingleWire(dxy, s);
@@ -161,7 +161,7 @@ export class MoveWirePointAction implements Action {
     return false;
   }
   mouseup(event: Konva.KonvaEventObject<MouseEvent>): boolean {
-    this.to = PhysicalPoint.cursor(); // TODO: cursor().physical() instead.
+    this.to = Point.cursor(); // TODO: cursor().physical() instead.
     return true;
   }
   cancel(): void {

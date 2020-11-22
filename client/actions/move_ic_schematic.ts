@@ -1,7 +1,7 @@
 import { IntegratedCircuitSchematic } from "../components/IC_schematic";
 import { Action, actionDeserializers } from "../action";
 import { KonvaEventObject } from "konva/types/Node";
-import { actionLayer, defaultLayer, PhysicalPoint, PlainPoint } from "../stage";
+import { defaultLayer, Point, PlainPoint } from "../stage";
 import { getTypedByAddress } from "../address";
 import assertExists from "ts-assert-exists";
 import { deserializeComponent, Component } from "../components/component";
@@ -13,8 +13,8 @@ actionDeserializers.push(function (data: any): Action | null {
   if (data['typeMarker'] !== marker) return null;
   const s: MoveIcSchematicActionSpec = data;
   const ic = assertExists(getTypedByAddress(IntegratedCircuitSchematic, s.ic_address));
-  let z = new MoveIcSchematicAction(ic, new PhysicalPoint(s.from));
-  z.to = new PhysicalPoint(s.to);
+  let z = new MoveIcSchematicAction(ic, new Point(s.from));
+  z.to = new Point(s.to);
   return z;
 });
 
@@ -27,13 +27,13 @@ interface MoveIcSchematicActionSpec {
 }
 
 export class MoveIcSchematicAction implements Action {
-    from: PhysicalPoint;
-    to: PhysicalPoint;
-    originalOffset: PhysicalPoint;
+    from: Point;
+    to: Point;
+    originalOffset: Point;
     ic: IntegratedCircuitSchematic;
     actionIc: Component;
-    constructor(s: IntegratedCircuitSchematic, from?: PhysicalPoint) {
-        if (from == undefined) from = PhysicalPoint.cursor();
+    constructor(s: IntegratedCircuitSchematic, from?: Point) {
+        if (from == undefined) from = Point.cursor();
         this.from = from;
         this.to = from;
         this.ic = s;
@@ -41,7 +41,7 @@ export class MoveIcSchematicAction implements Action {
         this.actionIc = assertExists(deserializeComponent(s.spec()));
         this.actionIc.mainColor(theme.active);
         this.ic.hide();
-        this.actionIc.show(actionLayer());
+        this.actionIc.show(defaultLayer());
     }
     apply(): void {
         const d = this.to.clone().sub(this.from);
@@ -55,7 +55,7 @@ export class MoveIcSchematicAction implements Action {
         this.ic.updateLayout();
     }
     mousemove(event: KonvaEventObject<MouseEvent>): boolean {
-        this.to = PhysicalPoint.cursor();
+        this.to = Point.cursor();
         const d = this.to.clone().sub(this.from);
         let xy = this.originalOffset.clone().add(d).alignToGrid();
         this.actionIc.offset(xy);
@@ -66,7 +66,7 @@ export class MoveIcSchematicAction implements Action {
 return false;
     }
     mouseup(event: KonvaEventObject<MouseEvent>): boolean {
-        this.to = PhysicalPoint.cursor();
+        this.to = Point.cursor();
         return true;
     }
     cancel(): void {

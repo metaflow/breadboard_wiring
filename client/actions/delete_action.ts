@@ -1,6 +1,6 @@
 import { Action, actionDeserializers } from "../action";
 import Konva from "konva";
-import { stage, actionLayer, ScreenPoint, defaultLayer } from "../stage";
+import { defaultLayer } from "../stage";
 import { clearSelection, selection, selectionAddresses } from "../components/selectable_component";
 import { deserializeComponent } from "../components/component";
 

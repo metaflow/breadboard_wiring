@@ -1,6 +1,5 @@
 import { Action, actionDeserializers, deserializeAction } from "../action";
 import { KonvaEventObject } from "konva/types/Node";
-import { actionLayer } from "../stage";
 
 const marker = 'CompoundAction';
 

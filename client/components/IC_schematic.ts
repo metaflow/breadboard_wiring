@@ -1,10 +1,10 @@
 import { componentDeserializers, ComponentSpec } from "./component";
 import Konva from "konva";
-import { scale, pointAsNumber, PhysicalPoint } from "../stage";
+import { pointAsNumber, Point } from "../stage";
 import { Contact } from "./contact";
 import { appActions } from "../action";
 import { MoveSelectionAction } from "../actions/move_selection";
-import { SelectableComponent, selection } from "./selectable_component";
+import { SelectableComponent } from "./selectable_component";
 import { SelectAction } from "../actions/select_action";
 import theme from '../../theme.json';
 
@@ -17,12 +17,13 @@ componentDeserializers.push(function (data: any): (IntegratedCircuitSchematic | 
     return new IntegratedCircuitSchematic(data['spec'] as IntegratedCircuitSchematicSpec);
 });
 
-const gap = 1;
-const width = 20;
-const contact_height = 5;
-const contact_label_width = 5;
-const pin_length = 5;
-const label_font_size = 3;
+// Increase values so wires shouldn't be <1 width.
+const gap = 3;
+const width = 60;
+const contact_height = 15;
+const contact_label_width = 15;
+const pin_length = 15;
+const label_font_size = 9;
 
 export interface IntegratedCircuitSchematicSpec {
     typeMarker?: string;
@@ -65,10 +66,12 @@ export class IntegratedCircuitSchematic extends SelectableComponent {
             if (s === "") continue;
             const c = new Contact({
                 id: s,
-                offset: new PhysicalPoint(- pin_length, (i + 1) * contact_height).plain(),
+                offset: new Point(- pin_length, (i + 1) * contact_height).plain(),
             });
             this.contacts.push(this.addChild(c));
-            this.pin_lines.push(new Konva.Line({ points: [0, 0, 0, 0], stroke: this.mainColor() }));
+            this.pin_lines.push(new Konva.Line({
+                points: [],
+            }));
         }
         for (let i = 0; i < this.right_pins.length; i++) {
             const s = this.right_pins[i];
@@ -83,12 +86,11 @@ export class IntegratedCircuitSchematic extends SelectableComponent {
             if (s === "") continue;
             const c = new Contact({
                 id: s,
-                offset: new PhysicalPoint(width + pin_length, (i + 1) * contact_height).plain()
+                offset: new Point(width + pin_length, (i + 1) * contact_height).plain()
             });
             this.contacts.push(this.addChild(c));
             this.pin_lines.push(new Konva.Line({
-                points: [0, 0, 0, 0],
-                stroke: this.mainColor()
+                points: [],
             }));
         }
         for (const x of this.pin_lines) this.shapes.add(x);
@@ -99,49 +101,53 @@ export class IntegratedCircuitSchematic extends SelectableComponent {
     }
     updateLayout() {
         super.updateLayout();
-        let [x, y] = pointAsNumber(this.absolutePosition().screen());
+        let [x, y] = pointAsNumber(this.absolutePosition());
         this.rect.x(x);
-        this.rect.y(y);
+        this.rect.y(y);        
         const pins = Math.max(this.left_pins.length, this.right_pins.length);
-        this.rect.height(((pins + 1) * contact_height) * scale());
-        this.rect.width(width * scale());
+        this.rect.height(((pins + 1) * contact_height));
+        this.rect.width(width);
         this.rect.stroke(this.mainColor());
         for (const a of this.left_labels) {
-            a.fontSize(label_font_size * scale());
-            a.width(contact_height * scale());
+            a.fontSize(label_font_size);
+            a.width(contact_height);
             a.fill(this.mainColor());
         }
         for (const a of this.right_labels) {
-            a.fontSize(label_font_size * scale());
-            a.width(contact_height * scale());
+            a.fontSize(label_font_size);
+            a.width(contact_height);
             a.fill(this.mainColor());
         }
         let j = 0;
+        this.pin_lines.forEach(pl => {
+            pl.stroke(this.mainColor());
+            pl.strokeWidth(1);
+        })
         for (let i = 0; i < this.left_pins.length; i++) {
-            this.left_labels[i].width(contact_label_width * scale());
-            this.left_labels[i].x(x + gap * scale());
-            this.left_labels[i].y(y + ((i + 1) * contact_height - 0.5 * label_font_size) * scale());
+            this.left_labels[i].width(contact_label_width);
+            this.left_labels[i].x(x + gap);
+            this.left_labels[i].y(y + ((i + 1) * contact_height - 0.5 * label_font_size));
             if (this.left_pins[i] === "") continue;
-            const cxy = this.contacts[j].absolutePosition().screen();
-            cxy.setX(cxy.getX());
+            const cxy = this.contacts[j].absolutePosition().plain();
+            // cxy.setX(cxy.x);
             this.pin_lines[j].points([cxy.x, cxy.y, x, cxy.y]);
             this.pin_lines[j].stroke(this.mainColor());
             j++;
         }
         for (let i = 0; i < this.right_pins.length; i++) {
-            this.right_labels[i].width(contact_label_width * scale())
-            this.right_labels[i].x(x + (width - gap - contact_label_width) * scale());
-            this.right_labels[i].y(y + ((i + 1) * contact_height - 0.5 * label_font_size) * scale());
+            this.right_labels[i].width(contact_label_width)
+            this.right_labels[i].x(x + (width - gap - contact_label_width));
+            this.right_labels[i].y(y + ((i + 1) * contact_height - 0.5 * label_font_size));
             if (this.right_pins[i] === "") continue;
-            const cxy = this.contacts[j].absolutePosition().screen();
+            const cxy = this.contacts[j].absolutePosition().plain();
             this.pin_lines[j].points([cxy.x, cxy.y, this.rect.x() + this.rect.width(), cxy.y]);
             this.pin_lines[j].stroke(this.mainColor());
             j++;
         }
-        this.name.x(x - pin_length * scale());
-        this.name.y(y - (label_font_size * 2) * scale());
-        this.name.width(this.rect.width() + 2 * pin_length * scale());
-        this.name.fontSize(label_font_size * scale());
+        this.name.x(x - pin_length);
+        this.name.y(y - (label_font_size * 2));
+        this.name.width(this.rect.width() + 2 * pin_length);
+        this.name.fontSize(label_font_size);
         this.name.fill(this.mainColor());
     }
     spec(): any {

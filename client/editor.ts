@@ -1,7 +1,7 @@
 import Konva from 'konva';
 import hotkeys from 'hotkeys-js';
 import { appActions } from './action';
-import { stage, defaultLayer, actionLayer, gridAlignment, fullState, clearStage, stageUpdated, PlainPoint, Point, PhysicalPoint, ScreenPoint } from './stage';
+import { stage, defaultLayer, gridAlignment, fullState, clearStage, stageUpdated, Point } from './stage';
 import { SelectAction } from './actions/select_action';
 import { ic74x245 } from './components/74x245';
 import { PlaceComponentAction } from './actions/add_ic_action';
@@ -9,7 +9,7 @@ import { AddWireAction } from './actions/add_wire';
 import { selection } from './components/selectable_component';
 import { DeleteSelectionAction } from './actions/delete_action';
 import { MoveSelectionAction } from './actions/move_selection';
-import { error, typeGuard } from './utils';
+import { typeGuard } from './utils';
 import theme from '../theme.json';
 
 (window as any).add245 = function () {
@@ -93,22 +93,21 @@ document.getElementById('container')?.addEventListener('contextmenu', e => {
 });
 
 stage()?.add(defaultLayer(new Konva.Layer()));
-stage()?.add(actionLayer(new Konva.Layer()));
+defaultLayer()?.scaleX(2);
+defaultLayer()?.scaleY(2);
 
 let draggingScene = false;
-let draggingOrigin = new ScreenPoint();
-let initialOffset = new ScreenPoint();
+let draggingOrigin = new Point();
+let initialOffset = new Point();
 
 stage()?.on('mousemove', function (e: Konva.KonvaEventObject<MouseEvent>) {
   appActions.onMouseMove(e);
   if (draggingScene) {
-    console.log(e.evt);
     const sx = defaultLayer()?.scaleX();
     if (!sx) return;
-    let d = ScreenPoint.cursor().sub(draggingOrigin).s(-1/sx).add(initialOffset);
-    // TODO: make drag a part of actions, merge action.ts with stage.ts, update calculations of screen point, affect actions level too
-    defaultLayer()?.offsetX(d.getX());
-    defaultLayer()?.offsetY(d.getY());
+    let p = Point.screenCursor().sub(draggingOrigin).s(-1/sx).add(initialOffset);
+    // TODO: make drag a part of actions, merge action.ts with stage.ts
+    defaultLayer()?.offset(p);
     stageUpdated(); // TODO: rename to "redraw".
   }
 });
@@ -122,23 +121,12 @@ stage()?.on('wheel', function(e : Konva.KonvaEventObject<WheelEvent>) {
   stageUpdated();
 });
 
-// function log(style: string, m: string) {
-//   const p = document.createElement('p');
-//   p.classList.add(style);
-//   p.innerText = m;
-//   document.getElementById('log')?.appendChild(p);
-// }
-
-// for (let i = 0; i < 10; i++) log("error", "stage()?.on('mousemove', function (e: Konva.KonvaEventObject<MouseEvent>)");
-// for (let i = 0; i < 10; i++) log("info", "stage()?.on('mousemove', function (e: Konva.KonvaEventObject<MouseEvent>)");
-
 stage()?.on('mousedown', function (e) {
   e.evt.preventDefault(); // Disable scroll on middle button click.
   if (appActions.onMouseDown(e)) {
     return;
   }
   // Deselect on right click.
-  console.log(ScreenPoint.cursor());
   if (e.evt.button == 2 && selection().length > 0) {
     const a = new SelectAction();
     appActions.current(a);
@@ -146,8 +134,8 @@ stage()?.on('mousedown', function (e) {
   }
   if (e.evt.button == 1) {
     draggingScene = true;
-    draggingOrigin = ScreenPoint.cursor();
-    initialOffset = new ScreenPoint(defaultLayer()?.offsetX(), defaultLayer()?.offsetY());
+    draggingOrigin = Point.screenCursor();
+    initialOffset = new Point(defaultLayer()?.offsetX(), defaultLayer()?.offsetY());
   }
 });
 
@@ -175,5 +163,5 @@ hotkeys('del', function (e) {
   deleteSelection();
 });
 
-gridAlignment(5); // TODO: make grid algnment change an action.
+gridAlignment(15);
 appActions.load();

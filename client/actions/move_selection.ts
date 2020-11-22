@@ -1,7 +1,7 @@
 import { IntegratedCircuitSchematic } from "../components/IC_schematic";
 import { Action, actionDeserializers } from "../action";
 import { KonvaEventObject } from "konva/types/Node";
-import { PhysicalPoint, PlainPoint, stage } from "../stage";
+import { Point, PlainPoint, stage } from "../stage";
 import { all } from "../address";
 import { Component } from "../components/component";
 import { WirePoint } from "../components/wire";
@@ -15,9 +15,9 @@ const marker = 'MoveSelectionAction';
 actionDeserializers.push(function (data: any): Action | null {
     if (data['typeMarker'] !== marker) return null;
     const s: MoveSelectionActionSpec = data;
-    let z = new MoveSelectionAction(new PhysicalPoint(s.from));
+    let z = new MoveSelectionAction(new Point(s.from));
     z.selection = s.selection;
-    z.to = new PhysicalPoint(s.to);
+    z.to = new Point(s.to);
     return z;
 });
 
@@ -29,13 +29,13 @@ interface MoveSelectionActionSpec {
 }
 
 export class MoveSelectionAction implements Action {
-    from: PhysicalPoint;
-    to: PhysicalPoint;
+    from: Point;
+    to: Point;
     moveICs: MoveIcSchematicAction[] = [];
     movePoints: MoveWirePointAction;
     selection: string[];
-    constructor(from?: PhysicalPoint) {
-        if (from == undefined) from = PhysicalPoint.cursor();
+    constructor(from?: Point) {
+        if (from == undefined) from = Point.cursor();
         this.from = from;
         this.to = from;
         const points = selectionByType(WirePoint);
@@ -66,7 +66,7 @@ export class MoveSelectionAction implements Action {
         this.moveICs.forEach(a => a.undo());
     }
     mousemove(event: KonvaEventObject<MouseEvent>): boolean {
-        this.to = PhysicalPoint.cursor();
+        this.to = Point.cursor();
         this.movePoints.mousemove(event);
         for (const a of this.moveICs) a.mousemove(event);
         return false;
@@ -75,7 +75,7 @@ export class MoveSelectionAction implements Action {
         return false;
     }
     mouseup(event: KonvaEventObject<MouseEvent>): boolean {
-        this.to = PhysicalPoint.cursor();
+        this.to = Point.cursor();
         this.movePoints.mouseup(event);
         for (const a of this.moveICs) a.mouseup(event);
         return true;

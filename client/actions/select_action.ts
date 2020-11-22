@@ -1,6 +1,6 @@
 import { Action, actionDeserializers } from "../action";
 import Konva from "konva";
-import { stage, actionLayer, ScreenPoint } from "../stage";
+import { stage, Point, defaultLayer } from "../stage";
 import { selectionAddresses } from "../components/selectable_component";
 import theme from '../../theme.json';
 
@@ -36,7 +36,7 @@ export class SelectAction implements Action {
     }
     mousemove(event: Konva.KonvaEventObject<MouseEvent>): boolean {
         if (this.rect == null) return false;
-        let pos = ScreenPoint.cursor();
+        let pos = Point.cursor();
         this.rect.width(pos.x - this.rect.x());
         this.rect.height(pos.y - this.rect.y());
         const r = this.rect.getClientRect(null);
@@ -54,19 +54,19 @@ export class SelectAction implements Action {
         return false;
     }
     mousedown(event: Konva.KonvaEventObject<MouseEvent>): boolean {
-        let pos = ScreenPoint.cursor();
+        let pos = Point.cursor();
         this.rect = new Konva.Rect({
             x: pos.x,
             y: pos.y,
             stroke: theme.selection,
             strokeWidth: 1,
         });
-        actionLayer()?.add(this.rect);
+        defaultLayer()?.add(this.rect);
         return false;
     }
     mouseup(event: Konva.KonvaEventObject<MouseEvent>): boolean {
         if (this.rect == null) return false;
-        let pos = ScreenPoint.cursor();
+        let pos = Point.cursor();
         this.rect.width(pos.x - this.rect.x());
         this.rect.height(pos.y - this.rect.y());
         this.rect.remove();
