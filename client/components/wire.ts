@@ -1,5 +1,5 @@
 import Konva from 'konva';
-import { pointAsNumber, Point, closesetContact } from '../workspace';
+import { pointAsNumber, Point, closesetContact, currentLayer, stage } from '../workspace';
 import { newAddress } from '../address';
 import { Component, ComponentSpec } from './component';
 import { workspace } from '../workspace';
@@ -36,6 +36,7 @@ After moving all points in wire we should check wire self-intersections to remov
 export class WirePoint extends SelectableComponent {
     selectableInterface: true = true;
     selectionRect: Konva.Rect;
+    visible: boolean = false; // TODO: ake visibility a port of component.
     _selected: boolean = false;
     helper: boolean;
     constructor(spec: WirePointSpec) {
@@ -47,15 +48,18 @@ export class WirePoint extends SelectableComponent {
         });
         const point = this;
         this.selectionRect.on('mousedown', function (e) {            
-            if (workspace.onMouseDown(e)) return;
+            if (workspace.currentAction()) {
+                workspace.onMouseDown(e);
+                return;
+            }
             if (e.evt.button != 0) return;
             e.cancelBubble = true;
             if (point.selected()) {
-                workspace.current(new MoveSelectionAction());
+                workspace.currentAction(new MoveSelectionAction());
             } else {
-                workspace.current(new MoveWirePointAction([point], Point.cursor()));
+                workspace.currentAction(new MoveWirePointAction([point], Point.cursor()));
             }
-        });
+        });        
         this.shapes.add(this.selectionRect);
         this.updateLayout();
     }
@@ -67,9 +71,10 @@ export class WirePoint extends SelectableComponent {
         return z;
     }
     updateLayout() {
+        console.log('update point layout', this.visible);
         super.updateLayout();
         const d = wirePointSize / 2;
-        let xy = this.absolutePosition().sub(new Point(d, d));
+        let xy = this.absolutePosition().sub(new Point(d, d));        
         this.selectionRect.x(xy.x);
         this.selectionRect.y(xy.y);
         this.selectionRect.width(wirePointSize);
@@ -81,6 +86,7 @@ export class WirePoint extends SelectableComponent {
             this.selectionRect.dash([]);
         }
         this.selectionRect.stroke(this._selected ? theme.selection : theme.helper);
+        this.selectionRect.visible(this.visible);
     }
     wire(): Wire {
         return this.parent() as Wire;
@@ -111,6 +117,22 @@ export class Wire extends Component {
             strokeWidth: wireWidth,
             lineCap: 'round',
             lineJoin: 'round',
+            hitStrokeWidth: 15,
+        });
+        const w = this;
+        this.line.on('mouseover', function () {
+            for (const p of w.points) {
+                p.visible = true;
+            }
+            w.updateLayout();
+            stage().batchDraw();
+        });
+        this.line.on('mouseout', function () {
+            for (const p of w.points) {
+                p.visible = false;
+            }
+            w.updateLayout();
+            stage().batchDraw();
         });
         this.pointsSpec(spec?.points);
         this.shapes.add(this.line);
@@ -144,8 +166,10 @@ export class Wire extends Component {
             }
             o.points = [];
             pp.forEach(x => {
-                if (x != null) o.points.push(x);
-            });
+                if (x != null) {
+                    o.points.push(x);
+                }
+            });            
             o.updateLayout();
         }
         return o.points.map(p => p.spec());

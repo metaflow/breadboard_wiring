@@ -34,10 +34,13 @@ export class Contact extends SelectableComponent {
     setupEvents() {
         const o = this;
         this.circle.on('mousedown', function (e) {            
-            if (workspace.onMouseDown(e)) return;
+            if (workspace.currentAction()) {
+                workspace.onMouseDown(e);
+                return;
+            }
             if (e.evt.button != 0) return;
             e.cancelBubble = true;
-            workspace.current(new AddWireAction({
+            workspace.currentAction(new AddWireAction({
                 typeMarker: 'AddWireAction',
                 points: [o.absolutePosition().plain()],
             }));

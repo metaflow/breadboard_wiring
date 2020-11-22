@@ -1,9 +1,8 @@
 ("todo list" extension format)
 
-- display wire helpers only close to the wire
+- display wire helpers only close to the wire: now hovering point will hide it
 - change cursor when offsetting the layer
 - save / load history, schematic and display state
-- fix start / end wire point
 - save / load schematic w/o history
 - show / hide helper points when cursor is near the wire
 - check that deletion of wire point deletes

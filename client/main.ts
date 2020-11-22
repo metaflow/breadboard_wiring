@@ -13,7 +13,7 @@ import { typeGuard } from './utils';
 import theme from '../theme.json';
 
 (window as any).add245 = function () {
-  workspace.current(new PlaceComponentAction(new ic74x245()));
+  workspace.currentAction(new PlaceComponentAction(new ic74x245()));
 };
 
 (window as any).clearActionsHistory = function () {
@@ -22,17 +22,17 @@ import theme from '../theme.json';
 };
 
 (window as any).addOrthogonal = function() {
-  workspace.current(new AddWireAction());
+  workspace.currentAction(new AddWireAction());
 };
 
 (window as any).toolSelect = function() {
-  workspace.current(new SelectAction());
+  workspace.currentAction(new SelectAction());
 };
 
 (window as any).deleteSelection = deleteSelection;
 
 (window as any).moveSelection = function() {
-  workspace.current(new MoveSelectionAction());
+  workspace.currentAction(new MoveSelectionAction());
 };
 
 
@@ -65,7 +65,7 @@ fileSelector?.addEventListener('change', (event: Event) => {
 });
 
 function deleteSelection() {
-  workspace.current(new DeleteSelectionAction());
+  workspace.currentAction(new DeleteSelectionAction());
   workspace.commitAction();
 }
 

@@ -170,16 +170,19 @@ export class IntegratedCircuitSchematic extends SelectableComponent {
     setupEvents() {
         const o = this;
         const f = (e: Konva.KonvaEventObject<MouseEvent>) => {
-            if (workspace.onMouseDown(e)) return;
+            if (workspace.currentAction()) {
+                workspace.onMouseDown(e);
+                return;
+            }
             if (e.evt.button != 0) return;
             e.cancelBubble = true;
             if (!this.selected()) {
                 const a = new SelectAction();
                 a.newSelection = [o.address()];
-                workspace.current(a);
+                workspace.currentAction(a);
                 workspace.commitAction();
             }
-            workspace.current(new MoveSelectionAction());
+            workspace.currentAction(new MoveSelectionAction());
         };
         this.rect.on('mousedown', f);
         this.right_labels.forEach(x => x.on('mousedown', f));

@@ -183,27 +183,27 @@ export class Workspace {
     constructor() {
         this.stateHistory.push(this.componentsState());
     }
-    current(a?: Action | null): Action | null {
+    currentAction(a?: Action | null): Action | null {
         if (a !== undefined) {
             this._current = a;
             stage().batchDraw();
         }
         return this._current;
     }
-    onMouseDown(e: Konva.KonvaEventObject<MouseEvent>): boolean {
+    onMouseDown(e: Konva.KonvaEventObject<MouseEvent>) {
         e.evt.preventDefault(); // Disable scroll on middle button click.
-        if (this.current() != null) {
-            if (this.current()?.mousedown(e)) {
+        if (this.currentAction() != null) {
+            if (this.currentAction()?.mousedown(e)) {
                 this.commitAction();
             } else {
                 stage().batchDraw();
             }
-            return false;
+            return;
         }
         // Deselect on right click.
         if (e.evt.button == 2 && selection().length > 0) {
             const a = new SelectAction();
-            workspace.current(a);
+            workspace.currentAction(a);
             workspace.commitAction();
         }
         if (e.evt.button == 1) {
@@ -211,11 +211,10 @@ export class Workspace {
             this.draggingOrigin = Point.screenCursor();
             this.initialOffset = new Point(currentLayer()?.offsetX(), currentLayer()?.offsetY());
         }
-        return true;
     }
     onMouseUp(event: Konva.KonvaEventObject<MouseEvent>) {
-        if (this.current() != null) {
-            if (this.current()?.mouseup(event)) {
+        if (this.currentAction() != null) {
+            if (this.currentAction()?.mouseup(event)) {
                 this.commitAction();
             } else {
                 stage().batchDraw();
@@ -237,14 +236,14 @@ export class Workspace {
         stage().batchDraw();
         workspace.delayedPersistInLocalHistory();
     }    
-    onMouseMove(event: Konva.KonvaEventObject<MouseEvent>): boolean {
-        if (this.current() != null) {
-            if (this.current()?.mousemove(event)) {
+    onMouseMove(event: Konva.KonvaEventObject<MouseEvent>) {
+        if (this.currentAction() != null) {
+            if (this.currentAction()?.mousemove(event)) {
                 this.commitAction();
             } else {
                 stage().batchDraw();
             }
-            return false;
+            return;
         }
         if (this.draggingScene) {
             const sx = currentLayer()?.scaleX();
@@ -254,14 +253,13 @@ export class Workspace {
             stage().batchDraw();
             workspace.delayedPersistInLocalHistory();
         }
-        return true;
     }
     commitAction(keepForwardHistory: boolean = false) {
-        const a = this.current();
+        const a = this.currentAction();
         if (a == null) return;
         this.history.push(a);
         if (!keepForwardHistory) this.forwardHistory = [];
-        this.current(null);
+        this.currentAction(null);
         if (this.debugActions) {
             console.groupCollapsed(`applying ${a.constructor.name}`);
             console.log('action', a);
@@ -339,16 +337,16 @@ export class Workspace {
     }
     redo() {
         this.cancelCurrent();
-        this.current(this.forwardHistory.pop());
+        this.currentAction(this.forwardHistory.pop());
         this.commitAction(true);
     }
     cancelCurrent() {
-        const a = this.current();
+        const a = this.currentAction();
         if (a != null) {
             a.cancel();
             stage().batchDraw();
         }
-        this.current(null);
+        this.currentAction(null);
     }
     persistInLocalHistory() {
         if (this.loading) return;
@@ -384,13 +382,14 @@ export class Workspace {
         this.stateHistory.push(this.componentsState());
         console.groupCollapsed('load actions');
         for (const data of history) {
-            this.current(deserializeAction(data));
+            this.currentAction(deserializeAction(data));
             this.commitAction();
         }
         console.groupEnd();
     }
     deserialize(s: any) {
         console.log('load workspace', s);
+        document.title = 'scheme';
         const ws = s as WorkspaceState;
         this.clearComponents();
         this.deserializeActions(ws.history);
