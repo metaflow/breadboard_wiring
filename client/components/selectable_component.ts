@@ -17,7 +17,8 @@ export class SelectableComponent extends Component {
                 } else {
                     _selection.delete(this);
                 }                
-            }            
+            }
+            this.needsLayoutUpdate(true);
         }
         
         return this._selected;

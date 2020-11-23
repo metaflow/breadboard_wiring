@@ -21,6 +21,7 @@ export class Component implements Addressable {
     _offset = new Point();
     _id: string|undefined;
     _materialized = false; // If this component really "exists" and accessabe from the address root.
+    _dirtyLayout = false;
     constructor(spec?: ComponentSpec) {
         if (spec != undefined) {
             this._offset = new Point(spec.offset);
@@ -122,7 +123,15 @@ export class Component implements Addressable {
         this.children.delete(id);
     }
     updateLayout() {
+        this._dirtyLayout = false;
         this.children.forEach(c => c.updateLayout());
+    }
+    needsLayoutUpdate(v?: boolean): boolean {
+        if (v !== undefined) {
+            this._dirtyLayout = v;
+            this.parent()?.needsLayoutUpdate(v);
+        }
+        return this._dirtyLayout;
     }
     mainColor(color?: string): string {
         if (color !== undefined) {
@@ -147,7 +156,7 @@ export class Component implements Addressable {
             }
         });
         return z;
-    }
+    }    
 }
 
 export function deserializeComponent(data: any): (Component | null) {

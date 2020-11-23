@@ -6,7 +6,6 @@ import { SelectAction } from './actions/select_action';
 import { ic74x245 } from './components/74x245';
 import { PlaceComponentAction } from './actions/add_ic_action';
 import { AddWireAction } from './actions/add_wire';
-import { selection } from './components/selectable_component';
 import { DeleteSelectionAction } from './actions/delete_action';
 import { MoveSelectionAction } from './actions/move_selection';
 import { typeGuard } from './utils';
@@ -34,8 +33,6 @@ import theme from '../theme.json';
 (window as any).moveSelection = function() {
   workspace.currentAction(new MoveSelectionAction());
 };
-
-
 
 (window as any).downloadScene = function() {
   var text = JSON.stringify(workspace.serialize()),

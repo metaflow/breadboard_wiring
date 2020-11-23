@@ -1,8 +1,5 @@
 ("todo list" extension format)
 
-- rectangular select should be a default action
-- change cursor when offsetting the layer
-- save / load history, schematic and display state
 - save / load schematic w/o history
 - show / hide helper points when cursor is near the wire
 - check that deletion of wire point deletes

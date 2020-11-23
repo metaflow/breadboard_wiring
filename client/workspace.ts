@@ -186,7 +186,7 @@ export class Workspace {
     currentAction(a?: Action | null): Action | null {
         if (a !== undefined) {
             this._current = a;
-            stage().batchDraw();
+            this.redraw();
         }
         return this._current;
     }
@@ -196,11 +196,16 @@ export class Workspace {
             if (this.currentAction()?.mousedown(e)) {
                 this.commitAction();
             } else {
-                stage().batchDraw();
+                this.redraw();
             }
             return;
+        }        
+        if (e.evt.button == 0) {
+            const a = new SelectAction();
+            workspace.currentAction(a);
+            a.mousedown(e);
         }
-        // Deselect on right click.
+        // Deselect on right click.        
         if (e.evt.button == 2 && selection().length > 0) {
             const a = new SelectAction();
             workspace.currentAction(a);
@@ -217,7 +222,7 @@ export class Workspace {
             if (this.currentAction()?.mouseup(event)) {
                 this.commitAction();
             } else {
-                stage().batchDraw();
+                this.redraw();
             }
             return true;
         }
@@ -233,7 +238,7 @@ export class Workspace {
         currentLayer()?.scaleX(x);
         currentLayer()?.scaleY(x);
         currentLayer()?.offset(c.sub(Point.cursor()).add(new Point(currentLayer()?.offset())));
-        stage().batchDraw();
+        this.redraw();
         workspace.delayedPersistInLocalHistory();
     }    
     onMouseMove(event: Konva.KonvaEventObject<MouseEvent>) {
@@ -241,7 +246,7 @@ export class Workspace {
             if (this.currentAction()?.mousemove(event)) {
                 this.commitAction();
             } else {
-                stage().batchDraw();
+                this.redraw();
             }
             return;
         }
@@ -250,7 +255,7 @@ export class Workspace {
             if (!sx) return true;
             let p = Point.screenCursor().sub(this.draggingOrigin).s(-1 / sx).add(this.initialOffset);
             currentLayer()?.offset(p);
-            stage().batchDraw();
+            this.redraw();
             workspace.delayedPersistInLocalHistory();
         }
     }
@@ -293,7 +298,7 @@ export class Workspace {
             console.log(`applying ${a.constructor.name}`);
             a.apply();
         }
-        stage().batchDraw();
+        this.redraw();
         this.persistInLocalHistory();
     }
     undo() {
@@ -333,7 +338,7 @@ export class Workspace {
             a.undo();
         }
         this.forwardHistory.push(a);
-        stage().batchDraw();
+        this.redraw();
     }
     redo() {
         this.cancelCurrent();
@@ -344,7 +349,7 @@ export class Workspace {
         const a = this.currentAction();
         if (a != null) {
             a.cancel();
-            stage().batchDraw();
+            this.redraw();
         }
         this.currentAction(null);
     }
@@ -435,6 +440,13 @@ export class Workspace {
                 error(v, 'is not a component cannot delete');
             }
         })
+    }
+    redraw() {
+        roots.forEach(v => {
+            if (typeGuard(v, Component)) {
+                if (v.needsLayoutUpdate()) v.updateLayout();
+            }});
+        stage().batchDraw();
     }
 }
 

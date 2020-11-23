@@ -129,34 +129,34 @@ export class Wire extends Component {
         const w = this;
         this.line.on('mouseover', function () {
             w.hoverWire = true;
-            w.updateLayout();
-            stage().batchDraw();
+            w.needsLayoutUpdate();
+            workspace.redraw();
         });
         this.line.on('mouseout', function () {
             w.hoverWire = false;
-            w.updateLayout();
-            stage().batchDraw();
+            w.needsLayoutUpdate();
+            workspace.redraw();
         });
         this.pointsSpec(spec?.points);
         this.shapes.add(this.line);
         this.updateLayout();
-    }    
-    updateLayout() {        
+    }
+    updateLayout() {
         const pp: number[] = [];
         for (const p of this.points) {
             if (p.helper) continue;
             pp.push(...pointAsNumber(p.absolutePosition()));
-        }        
+        }
         this.line.points(pp);
         this.line.strokeWidth(wireWidth);
         this.line.stroke(this.mainColor());
         for (const p of this.points) {
-            p.visible = this.hoverWire || this.hoverPoint || this.alwaysShowPoints;
+            p.visible = this.hoverWire || this.hoverPoint || this.alwaysShowPoints || p.selected();
         }
         super.updateLayout();
     }
     pointsSpec(v?: WirePointSpec[]): WirePointSpec[] {
-        let o = this;        
+        let o = this;
         if (v !== undefined) {
             this.hoverPoint = false;
             o.points.forEach(p => p.remove());
@@ -178,7 +178,7 @@ export class Wire extends Component {
             o.updateLayout();
         }
         return o.points.map(p => p.spec());
-    }    
+    }
     spec(): any {
         return {
             points: this.pointsSpec(),
@@ -186,10 +186,10 @@ export class Wire extends Component {
             id: this._id,
         } as WireSpec;
     }
-    onPointEvent(eventType: string) {        ;
+    onPointEvent(eventType: string) {
         this.hoverPoint = eventType == 'mouseover';
-        this.updateLayout();
-        stage().batchDraw();
+        this.needsLayoutUpdate();
+        workspace.redraw();
     }
 }
 
