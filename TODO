@@ -1,6 +1,6 @@
 ("todo list" extension format)
 
-- display wire helpers only close to the wire: now hovering point will hide it
+- rectangular select should be a default action
 - change cursor when offsetting the layer
 - save / load history, schematic and display state
 - save / load schematic w/o history

@@ -1,5 +1,5 @@
 import Konva from 'konva';
-import { pointAsNumber, Point, closesetContact, currentLayer, stage } from '../workspace';
+import { pointAsNumber, Point, closesetContact, stage } from '../workspace';
 import { newAddress } from '../address';
 import { Component, ComponentSpec } from './component';
 import { workspace } from '../workspace';
@@ -7,6 +7,7 @@ import { MoveWirePointAction } from '../actions/move_wire_point';
 import { SelectableComponent } from './selectable_component';
 import { MoveSelectionAction } from '../actions/move_selection';
 import theme from '../../theme.json';
+import { typeGuard } from '../utils';
 
 export interface WirePointSpec extends ComponentSpec {
     helper: boolean;
@@ -47,7 +48,7 @@ export class WirePoint extends SelectableComponent {
             strokeWidth: 0.5,
         });
         const point = this;
-        this.selectionRect.on('mousedown', function (e) {            
+        this.selectionRect.on('mousedown', function (e) {
             if (workspace.currentAction()) {
                 workspace.onMouseDown(e);
                 return;
@@ -59,7 +60,11 @@ export class WirePoint extends SelectableComponent {
             } else {
                 workspace.currentAction(new MoveWirePointAction([point], Point.cursor()));
             }
-        });        
+        });
+        this.selectionRect.on('mouseover mouseout', function (e: any) {
+            const wire = point.parent();
+            if (typeGuard(wire, Wire)) wire.onPointEvent(e.type);
+        });
         this.shapes.add(this.selectionRect);
         this.updateLayout();
     }
@@ -71,10 +76,9 @@ export class WirePoint extends SelectableComponent {
         return z;
     }
     updateLayout() {
-        console.log('update point layout', this.visible);
         super.updateLayout();
         const d = wirePointSize / 2;
-        let xy = this.absolutePosition().sub(new Point(d, d));        
+        let xy = this.absolutePosition().sub(new Point(d, d));
         this.selectionRect.x(xy.x);
         this.selectionRect.y(xy.y);
         this.selectionRect.width(wirePointSize);
@@ -110,6 +114,9 @@ export interface WireSpec extends ComponentSpec {
 export class Wire extends Component {
     line: Konva.Line;
     points: WirePoint[] = [];
+    private hoverWire = false;
+    private hoverPoint = false;
+    alwaysShowPoints = false;
     constructor(spec?: WireSpec) {
         super(spec);
         this.line = new Konva.Line({
@@ -121,37 +128,37 @@ export class Wire extends Component {
         });
         const w = this;
         this.line.on('mouseover', function () {
-            for (const p of w.points) {
-                p.visible = true;
-            }
+            w.hoverWire = true;
             w.updateLayout();
             stage().batchDraw();
         });
         this.line.on('mouseout', function () {
-            for (const p of w.points) {
-                p.visible = false;
-            }
+            w.hoverWire = false;
             w.updateLayout();
             stage().batchDraw();
         });
         this.pointsSpec(spec?.points);
         this.shapes.add(this.line);
         this.updateLayout();
-    }
-    updateLayout() {
-        super.updateLayout();
+    }    
+    updateLayout() {        
         const pp: number[] = [];
         for (const p of this.points) {
             if (p.helper) continue;
             pp.push(...pointAsNumber(p.absolutePosition()));
-        }
+        }        
         this.line.points(pp);
         this.line.strokeWidth(wireWidth);
         this.line.stroke(this.mainColor());
+        for (const p of this.points) {
+            p.visible = this.hoverWire || this.hoverPoint || this.alwaysShowPoints;
+        }
+        super.updateLayout();
     }
     pointsSpec(v?: WirePointSpec[]): WirePointSpec[] {
-        let o = this;
+        let o = this;        
         if (v !== undefined) {
+            this.hoverPoint = false;
             o.points.forEach(p => p.remove());
             // Create points in two passes: first with known IDs, then new ones.
             let pp = v.map(x => {
@@ -166,20 +173,23 @@ export class Wire extends Component {
             }
             o.points = [];
             pp.forEach(x => {
-                if (x != null) {
-                    o.points.push(x);
-                }
-            });            
+                if (x != null) o.points.push(x);
+            });
             o.updateLayout();
         }
         return o.points.map(p => p.spec());
-    }
+    }    
     spec(): any {
         return {
             points: this.pointsSpec(),
             offset: this._offset.plain(),
             id: this._id,
         } as WireSpec;
+    }
+    onPointEvent(eventType: string) {        ;
+        this.hoverPoint = eventType == 'mouseover';
+        this.updateLayout();
+        stage().batchDraw();
     }
 }
 
@@ -230,7 +240,7 @@ export function addHelperPoints(s: WirePointSpec[]): WirePointSpec[] {
     for (let k = 0; k < s.length; k++) {
         if (k > 0) {
             z.push({
-                offset: new Point(s[k-1].offset).add(new Point(s[k].offset)).s(0.5).plain(),
+                offset: new Point(s[k - 1].offset).add(new Point(s[k].offset)).s(0.5).plain(),
                 helper: true,
             });
         }

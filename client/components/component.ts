@@ -73,6 +73,7 @@ export class Component implements Addressable {
         c.materialized(this.materialized());
         return c;
     }
+    // TODO: do we need this separation beween adressable and component?
     addressParent(): Addressable | null {
         return this.parent();
     }
