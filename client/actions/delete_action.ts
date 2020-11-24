@@ -26,7 +26,7 @@ export class DeleteSelectionAction implements Action {
     newSelection: string[] = [];
     components: any[];
     constructor() {
-        this.components = selection().map(c => c.spec());
+        this.components = selection().map(c => c.serialize());
         this.prevSelection = selectionAddresses();
     }
     apply(): void {

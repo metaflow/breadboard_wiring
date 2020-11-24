@@ -21,7 +21,7 @@ export class Component implements Addressable {
     _offset = new Point();
     _id: string|undefined;
     _materialized = false; // If this component really "exists" and accessabe from the address root.
-    _dirtyLayout = false;
+    _dirtyLayout = true;
     constructor(spec?: ComponentSpec) {
         if (spec != undefined) {
             this._offset = new Point(spec.offset);
@@ -104,6 +104,7 @@ export class Component implements Addressable {
         return this.offset();
     }
     show(layer: Konva.Layer | null) {
+        if (this._dirtyLayout) this.updateLayout();
         this.shapes.moveTo(layer);
         this.children.forEach(c => c.show(layer));
     }
@@ -140,7 +141,7 @@ export class Component implements Addressable {
         }
         return this._mainColor;
     }
-    spec(): any {
+    serialize(): any {
         const z: ComponentSpec = {
             id: this._id,
             offset: this._offset.plain(),
@@ -159,11 +160,11 @@ export class Component implements Addressable {
     }    
 }
 
-export function deserializeComponent(data: any): (Component | null) {
+export function deserializeComponent(data: any): Component { // TODO: check call places and remove null checks.
     for (const d of componentDeserializers) {
         let c = d(data);
         if (c !== null) return c;
     }
     error('none of deserializers accepted', data);
-    return null;
+    throw new Error('none of deserializers accepted');
 }

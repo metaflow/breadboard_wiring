@@ -48,7 +48,7 @@ export class IntegratedCircuitSchematic extends SelectableComponent {
         this.left_pins = spec.left_pins;
         this.right_pins = spec.right_pins;
         this.rect = new Konva.Rect({
-            stroke: theme.foreground,
+            stroke: this.mainColor(),
             strokeWidth: 1,
             name: 'selectable',
         });
@@ -150,13 +150,13 @@ export class IntegratedCircuitSchematic extends SelectableComponent {
         this.name.fontSize(label_font_size);
         this.name.fill(this.mainColor());
     }
-    spec(): any {
+    serialize(): any {
         return {
             typeMarker: marker,
             left_pins: this.left_pins,
             right_pins: this.right_pins,
             label: this.name.text(),
-            super: super.spec(),
+            super: super.serialize(),
         } as IntegratedCircuitSchematicSpec;
     }
     materialized(b?: boolean): boolean {

@@ -38,7 +38,7 @@ export class MoveIcSchematicAction implements Action {
         this.to = from;
         this.ic = s;
         this.originalOffset = this.ic.offset();
-        this.actionIc = assertExists(deserializeComponent(s.spec()));
+        this.actionIc = assertExists(deserializeComponent(s.serialize()));
         this.actionIc.mainColor(theme.active);
         this.ic.hide();
         this.actionIc.show(currentLayer());

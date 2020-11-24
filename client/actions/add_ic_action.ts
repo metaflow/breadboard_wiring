@@ -17,7 +17,9 @@ actionDeserializers.push(function(data: any): Action|null {
     const s: PlaceComponentActionSpec = data;
     let c = deserializeComponent(s.component_spec);
     if (c == null) return null;
-    let z = new PlaceComponentAction(c);
+    let z = {
+
+    } as PlaceComponentAction();
     z.xy = new Point(s.offset);
     return z;
 });
@@ -60,7 +62,7 @@ export class PlaceComponentAction implements Action {
     serialize(): any {
         const z: PlaceComponentActionSpec = {
             typeMarker: marker,
-            component_spec: this.component.spec(),
+            component_spec: this.component.serialize(),
             offset: this.xy.plain(),
         };
         return z;

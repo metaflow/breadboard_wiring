@@ -1,7 +1,7 @@
 import Konva from 'konva';
 import { pointAsNumber, Point, closesetContact, stage } from '../workspace';
 import { newAddress } from '../address';
-import { Component, ComponentSpec } from './component';
+import { Component, componentDeserializers, ComponentSpec } from './component';
 import { workspace } from '../workspace';
 import { MoveWirePointAction } from '../actions/move_wire_point';
 import { SelectableComponent } from './selectable_component';
@@ -95,7 +95,7 @@ export class WirePoint extends SelectableComponent {
     wire(): Wire {
         return this.parent() as Wire;
     }
-    spec(): any {
+    serialize(): any {
         return {
             address: this.materialized() ? this.address() : undefined,
             helper: this.helper,
@@ -108,8 +108,19 @@ export class WirePoint extends SelectableComponent {
 const wireWidth = 1;
 
 export interface WireSpec extends ComponentSpec {
+    typeMarker: string;
     points: WirePointSpec[];
 }
+
+const marker = 'Wire';
+
+componentDeserializers.push(function (data: any): (Wire | null) {
+    if (data['typeMarker'] !== marker) {
+        return null
+    }
+    return new Wire(data['spec'] as WireSpec);
+});
+
 
 export class Wire extends Component {
     line: Konva.Line;
@@ -177,10 +188,11 @@ export class Wire extends Component {
             });
             o.updateLayout();
         }
-        return o.points.map(p => p.spec());
+        return o.points.map(p => p.serialize());
     }
-    spec(): any {
+    serialize(): any {
         return {
+            typeMarker: marker,
             points: this.pointsSpec(),
             offset: this._offset.plain(),
             id: this._id,

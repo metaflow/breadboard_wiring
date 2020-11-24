@@ -23,10 +23,10 @@ export class ic74x245 extends IntegratedCircuitSchematic {
             label: "74x245"
         });
     }
-    spec(): any {
+    serialize(): any {
         return {
             typeMarker: marker,
-            super: super.spec(),
+            super: super.serialize(),
         } as ic74x245Spec;
     }
 }

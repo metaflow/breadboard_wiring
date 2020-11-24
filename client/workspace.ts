@@ -1,7 +1,7 @@
 import Konva from 'konva';
 import { Contact } from './components/contact';
-import { roots } from './address';
-import { Component } from './components/component';
+import { addAddressRoot, roots } from './address';
+import { Component, deserializeComponent } from './components/component';
 import { selection, selectionAddresses } from './components/selectable_component';
 import { error, typeGuard } from './utils';
 import { Action, deserializeAction } from './action';
@@ -154,14 +154,14 @@ export function currentLayer(layer?: Konva.Layer): Konva.Layer | null {
 }
 
 export interface StageState {
-    roots: any[];
-    selection: string[];
+    roots: any[] | undefined;
+    selection: string[] | undefined;
 }
 
 interface WorkspaceState {
-    components: any;
-    history: any[];
-    view: any;
+    components: StageState | undefined;
+    history: any[] | undefined;
+    view: any | undefined;
 }
 
 interface ViewState {
@@ -173,13 +173,13 @@ export class Workspace {
     private draggingScene = false;
     private draggingOrigin = new Point();
     private initialOffset = new Point();
-    private debugActions = true;
+    private debugActions = false;
     private _current: Action | null = null;
     private history: Action[] = [];
     private forwardHistory: Action[] = [];
     private loading = false;
     stateHistory: StageState[] = [];
-    persistTimeout: number|undefined;
+    persistTimeout: number | undefined;
     constructor() {
         this.stateHistory.push(this.componentsState());
     }
@@ -199,7 +199,7 @@ export class Workspace {
                 this.redraw();
             }
             return;
-        }        
+        }
         if (e.evt.button == 0) {
             const a = new SelectAction();
             workspace.currentAction(a);
@@ -230,7 +230,7 @@ export class Workspace {
         return true;
     }
     onMouseWheel(e: Konva.KonvaEventObject<WheelEvent>) {
-        let d = (e.evt.deltaY < 0) ? (1/1.1) : 1.1;
+        let d = (e.evt.deltaY < 0) ? (1 / 1.1) : 1.1;
         let x = currentLayer()?.scaleX();
         if (!x) return;
         let c = Point.cursor();
@@ -240,7 +240,7 @@ export class Workspace {
         currentLayer()?.offset(c.sub(Point.cursor()).add(new Point(currentLayer()?.offset())));
         this.redraw();
         workspace.delayedPersistInLocalHistory();
-    }    
+    }
     onMouseMove(event: Konva.KonvaEventObject<MouseEvent>) {
         if (this.currentAction() != null) {
             if (this.currentAction()?.mousemove(event)) {
@@ -360,7 +360,7 @@ export class Workspace {
     private delayedPersistInLocalHistory() {
         window.clearTimeout(this.persistTimeout);
         const w = this;
-        this.persistTimeout = window.setTimeout(function() {
+        this.persistTimeout = window.setTimeout(function () {
             w.persistInLocalHistory();
         }, 500);
     }
@@ -380,12 +380,14 @@ export class Workspace {
         }
         return h;
     }
-    deserializeActions(history: any) {
+    deserializeActions(history: any[] | undefined) {
         this.history = [];
-        this.forwardHistory = [];
+        this.forwardHistory = []; // TODO: store forward history too.
         this.stateHistory = [];
         this.stateHistory.push(this.componentsState());
         console.groupCollapsed('load actions');
+        // TODO: catch all browser errors.
+        if (history != undefined) { }
         for (const data of history) {
             this.currentAction(deserializeAction(data));
             this.commitAction();
@@ -394,12 +396,44 @@ export class Workspace {
     }
     deserialize(s: any) {
         console.log('load workspace', s);
+        // TODO: make it a "reset or clear".
+        this.history = [];
+        this.forwardHistory = []; // TODO: store forward history too.
+        this.stateHistory = [];
+        this.clearComponents();        
         document.title = 'scheme';
         const ws = s as WorkspaceState;
-        this.clearComponents();
-        this.deserializeActions(ws.history);
-        this.deserializeView(ws.view);
-        // TODO: load components if history is empty.
+        if (ws.components !== undefined && ws.components.roots != null && (ws.history === undefined || !this.debugActions)) {
+            ws.components.roots.forEach((a: any) => {
+                const c = deserializeComponent(a);
+                c.show(currentLayer());
+                c.materialized(true);
+            });
+            selectionAddresses(s.selection);
+            console.log(this.componentsState(), currentLayer());
+        }
+        this.stateHistory.push(this.componentsState());
+        if (ws.history != undefined) {
+            const h = ws.history.map(d => deserializeAction(d));
+            if (this.debugActions) {                
+                console.groupCollapsed('load actions');
+                // TODO: catch all browser errors.
+                h.forEach(a => {
+                    this.currentAction(a);
+                    this.commitAction();
+                });
+                console.groupEnd();
+            } else {
+                this.history = h;
+            }
+        }
+        // TODO: make currentLayer() assert instead of returning null.
+        if (ws.view != undefined) {
+            currentLayer()?.offset(ws.view.offset);
+            currentLayer()?.scaleX(ws.view.scale);
+            currentLayer()?.scaleY(ws.view.scale);
+        }
+        this.redraw();
     }
     componentsState(): StageState {
         let z: StageState = {
@@ -408,10 +442,10 @@ export class Workspace {
         }
         const keys = Array.from(roots.keys());
         keys.sort().forEach(k => {
-            z.roots.push((roots.get(k) as Component).spec());
+            z.roots?.push((roots.get(k) as Component).serialize());
         });
         return z;
-    }
+    }  
     serialize(): WorkspaceState {
         return {
             components: this.componentsState(),
@@ -426,12 +460,6 @@ export class Workspace {
             offset: currentLayer()?.offset()!,
         }
     }
-    private deserializeView(v: ViewState) {
-        // TODO: make currentLayer() assert instead of returning null.
-        currentLayer()?.offset(v.offset);
-        currentLayer()?.scaleX(v.scale);
-        currentLayer()?.scaleY(v.scale);
-    }
     private clearComponents() {
         roots.forEach(v => {
             if (typeGuard(v, Component)) {
@@ -445,7 +473,8 @@ export class Workspace {
         roots.forEach(v => {
             if (typeGuard(v, Component)) {
                 if (v.needsLayoutUpdate()) v.updateLayout();
-            }});
+            }
+        });
         stage().batchDraw();
     }
 }

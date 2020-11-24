@@ -13,6 +13,7 @@ export function deserializeAction(data: any): Action {
 }
 
 export interface Action {
+    begin(): void;
     apply(): void;
     undo(): void;
     mousemove(event: Konva.KonvaEventObject<MouseEvent>): boolean;

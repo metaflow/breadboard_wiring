@@ -1,7 +1,7 @@
 ("todo list" extension format)
 
 - save / load schematic w/o history
-- show / hide helper points when cursor is near the wire
+    - implement action.begin() that will start action instead of ctor
 - check that deletion of wire point deletes
 - schematic
     - move IC
@@ -31,4 +31,3 @@ scenario:
 - moving part auto-move wires
 - mark connections that does not exist / missing on schematic
 - assign height layers to wires, mark potential itersections between wires, show only wires of one layer
-

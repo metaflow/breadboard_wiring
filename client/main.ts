@@ -35,7 +35,9 @@ import theme from '../theme.json';
 };
 
 (window as any).downloadScene = function() {
-  var text = JSON.stringify(workspace.serialize()),
+  let w = workspace.serialize();
+  delete w.history;
+  var text = JSON.stringify(w),
     blob = new Blob([text], { type: 'text/plain' }),
     anchor = document.createElement('a');
   anchor.download = "scheme.bbw";
