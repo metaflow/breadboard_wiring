@@ -21,18 +21,28 @@ interface SelectActionSpec {
     newSelection: string[];
 }
 
-export class SelectAction implements Action {
+export class SelectAction extends Action {
     rect: Konva.Rect | null = null;
-    prevSelection: string[];
+    prevSelection: string[] = [];
     newSelection: string[] = [];
     constructor() {
+        super();
+    }
+    begin() {
+        super.begin();
         this.prevSelection = selectionAddresses();
     }
-    apply(): void {
+    apply() {
+        super.apply();
         selectionAddresses(this.newSelection);
     }
-    undo(): void {
+    undo() {
+        super.undo();
         selectionAddresses(this.prevSelection);
+    }
+    cancel(): void {
+        super.cancel();
+        this.rect?.remove();
     }
     mousemove(event: Konva.KonvaEventObject<MouseEvent>): boolean {
         if (this.rect == null) return false;
@@ -71,9 +81,6 @@ export class SelectAction implements Action {
         this.rect.height(pos.y - this.rect.y());
         this.rect.remove();
         return true;
-    }
-    cancel(): void {
-        this.rect?.remove();
     }
     serialize() {
         let z: SelectActionSpec = {

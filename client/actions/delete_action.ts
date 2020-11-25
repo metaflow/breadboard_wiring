@@ -21,19 +21,25 @@ interface DeleteSelectionActionSpec {
     components: any[];
 }
 
-export class DeleteSelectionAction implements Action {
-    prevSelection: string[];
+export class DeleteSelectionAction extends Action {
+    prevSelection: string[] = [];
     newSelection: string[] = [];
-    components: any[];
+    components: any[] = [];
     constructor() {
+        super();
+    }
+    begin() {
+        super.begin();
         this.components = selection().map(c => c.serialize());
         this.prevSelection = selectionAddresses();
     }
     apply(): void {
+        super.apply();
         selection().forEach(c => c.remove());
         clearSelection();
     }
     undo(): void {
+        super.undo();
         this.components.forEach(d => {
             const c = deserializeComponent(d);
             if (c == null) return;
@@ -52,7 +58,6 @@ export class DeleteSelectionAction implements Action {
     mouseup(event: Konva.KonvaEventObject<MouseEvent>): boolean {
         return true;
     }
-    cancel(): void {}
     serialize() {
         let z: DeleteSelectionActionSpec = {
             typeMarker: marker,

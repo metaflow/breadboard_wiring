@@ -35,7 +35,7 @@ export class Component implements Addressable {
         if (b && this._parent == null) {
             if (this.id() == null) this.id(newAddress());
             addAddressRoot(this);
-        }
+        }        
         this.children.forEach(c => c.materialized(b));
         if (!b) {
             if (this._parent == null) {

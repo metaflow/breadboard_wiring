@@ -13,17 +13,20 @@ actionDeserializers.push(function (data: any): Action | null {
     return new CompoundAction((data as CompoundActionSpec).actions.map(a => deserializeAction(a)));
 });
 
-export class CompoundAction implements Action {
+export class CompoundAction extends Action {
     actions: Action[];
     done: boolean[];
     constructor(actions: Action[]) {        
+        super();
         this.actions = actions;
         this.done = actions.map(_ => false);
     }
     apply(): void {
+        super.apply();
         this.actions.forEach(a => a.apply());
     }
     undo(): void {
+        super.undo();
         this.actions.reverse();
         this.actions.forEach(a => a.undo());
         this.actions.reverse();
@@ -53,6 +56,7 @@ export class CompoundAction implements Action {
         return this.done.some(b => !b);
     }
     cancel(): void {
+        super.cancel();
         this.actions.forEach(a => a.cancel());
     }
     serialize() {

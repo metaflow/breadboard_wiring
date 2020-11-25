@@ -17,23 +17,26 @@ actionDeserializers.push(function(data: any): Action|null {
     const s: PlaceComponentActionSpec = data;
     let c = deserializeComponent(s.component_spec);
     if (c == null) return null;
-    let z = {
-
-    } as PlaceComponentAction();
+    let z = new PlaceComponentAction(c);
     z.xy = new Point(s.offset);
     return z;
 });
 
-export class PlaceComponentAction implements Action {
+export class PlaceComponentAction extends Action {
     xy: Point = new Point();
     component: Component;
     constructor(component: Component) {
-        this.component = component;
+        super();
+        this.component = component;        
+    }
+    begin() {
+        super.begin();
         this.component.mainColor(theme.active);
         this.component.updateLayout();
         this.component.show(currentLayer());
     }
     apply(): void {
+        super.apply();
         this.component.offset(this.xy);
         this.component.mainColor(theme.foreground);
         this.component.updateLayout();
@@ -41,8 +44,13 @@ export class PlaceComponentAction implements Action {
         this.component.materialized(true);
     }
     undo(): void {
+        super.undo();
         this.component.materialized(false);
         this.component.hide();
+    }
+    cancel(): void {
+        super.cancel();
+        this.undo();
     }
     mousemove(event: KonvaEventObject<MouseEvent>): boolean {        
         this.xy = Point.cursor().alignToGrid();
@@ -55,9 +63,6 @@ export class PlaceComponentAction implements Action {
     }
     mouseup(event: KonvaEventObject<MouseEvent>): boolean {
         return false;
-    }
-    cancel(): void {
-        this.undo();
     }
     serialize(): any {
         const z: PlaceComponentActionSpec = {

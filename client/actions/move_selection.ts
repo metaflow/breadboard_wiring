@@ -9,6 +9,7 @@ import { selectionByType, selectionAddresses } from "../components/selectable_co
 import { Contact } from "../components/contact";
 import { MoveWirePointAction } from "./move_wire_point";
 import { MoveIcSchematicAction } from "./move_ic_schematic";
+import assertExists from "ts-assert-exists";
 
 const marker = 'MoveSelectionAction';
 
@@ -28,16 +29,20 @@ interface MoveSelectionActionSpec {
     selection: string[];
 }
 
-export class MoveSelectionAction implements Action {
+export class MoveSelectionAction extends Action {
     from: Point;
     to: Point;
     moveICs: MoveIcSchematicAction[] = [];
-    movePoints: MoveWirePointAction;
-    selection: string[];
+    movePoints: MoveWirePointAction|undefined;
+    selection: string[] = [];
     constructor(from?: Point) {
+        super();
         if (from == undefined) from = Point.cursor();
         this.from = from;
-        this.to = from;
+        this.to = from;        
+    }
+    begin() {
+        super.begin();
         const points = selectionByType(WirePoint);
         const ics = selectionByType(IntegratedCircuitSchematic);
         const cc = ics.flatMap((c: Component) => c.descendants(Contact));
@@ -45,16 +50,19 @@ export class MoveSelectionAction implements Action {
             return cc.some((c: Contact) =>  c.absolutePosition().closeTo(p.absolutePosition()));
         });
         points.push(...(attached.filter((p: WirePoint) => points.indexOf(p) == -1)));
-        this.movePoints = new MoveWirePointAction(points, from);
+        this.movePoints = new MoveWirePointAction(points, this.from);
         for (const ic of ics) {
-            this.moveICs.push(new MoveIcSchematicAction(ic, from));
+            this.moveICs.push(new MoveIcSchematicAction(ic, this.from));
         }
         this.selection = selectionAddresses();
         stage()!.container()!.setAttribute('style', 'cursor: move');
+        // TODO: cancel should clear created actions?
     }
     apply(): void {
-        this.movePoints.to = this.to;
-        this.movePoints.apply();
+        super.apply();
+        assertExists(this.movePoints);
+        this.movePoints!.to = this.to;
+        this.movePoints?.apply();
         for (const a of this.moveICs) {
             a.to = this.to;
             a.apply();
@@ -62,12 +70,13 @@ export class MoveSelectionAction implements Action {
         stage()!.container()!.setAttribute('style', 'cursor: auto');
     }
     undo(): void {
-        this.movePoints.undo();
+        super.undo();
+        this.movePoints?.undo();
         this.moveICs.forEach(a => a.undo());
     }
     mousemove(event: KonvaEventObject<MouseEvent>): boolean {
         this.to = Point.cursor();
-        this.movePoints.mousemove(event);
+        this.movePoints?.mousemove(event);
         for (const a of this.moveICs) a.mousemove(event);
         return false;
     }
@@ -76,12 +85,13 @@ export class MoveSelectionAction implements Action {
     }
     mouseup(event: KonvaEventObject<MouseEvent>): boolean {
         this.to = Point.cursor();
-        this.movePoints.mouseup(event);
+        this.movePoints?.mouseup(event);
         for (const a of this.moveICs) a.mouseup(event);
         return true;
     }
     cancel(): void {
-        this.movePoints.cancel();
+        super.cancel();
+        this.movePoints?.cancel();
         this.moveICs.forEach(a => a.cancel());
     }
     serialize() {

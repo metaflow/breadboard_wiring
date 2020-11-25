@@ -1,7 +1,9 @@
 ("todo list" extension format)
 
 - save / load schematic w/o history
-    - implement action.begin() that will start action instead of ctor
+    - call begin() from workspace
+    - check that cancel properly destroys objects
+    - add checks that state is consistent after calling action methods
 - check that deletion of wire point deletes
 - schematic
     - move IC

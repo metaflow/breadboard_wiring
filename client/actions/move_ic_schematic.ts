@@ -26,40 +26,47 @@ interface MoveIcSchematicActionSpec {
   ic_address: string;
 }
 
-export class MoveIcSchematicAction implements Action {
-    from: Point;
-    to: Point;
+export class MoveIcSchematicAction extends Action {
+    from: Point|undefined;
+    to: Point|undefined;
     originalOffset: Point;
     ic: IntegratedCircuitSchematic;
-    actionIc: Component;
+    actionIc: Component|undefined;
     constructor(s: IntegratedCircuitSchematic, from?: Point) {
-        if (from == undefined) from = Point.cursor();
+        super();    
         this.from = from;
         this.to = from;
         this.ic = s;
-        this.originalOffset = this.ic.offset();
-        this.actionIc = assertExists(deserializeComponent(s.serialize()));
+        this.originalOffset = this.ic.offset();     
+    }
+    begin() {
+        super.begin();
+        if (this.from == undefined) this.from = this.to = Point.cursor();
+        this.actionIc = deserializeComponent(this.ic.serialize());
+        // TODO: cancel should remove actionIc
         this.actionIc.mainColor(theme.active);
         this.ic.hide();
-        this.actionIc.show(currentLayer());
+        this.actionIc.show(currentLayer());        
     }
     apply(): void {
-        const d = this.to.clone().sub(this.from);
+        super.apply();
+        const d = this.to?.clone().sub(this.from!)!;
         this.ic.offset(this.originalOffset.clone().add(d).alignToGrid());
         this.ic.updateLayout();
         this.ic.show(currentLayer());
-        this.actionIc.hide();
+        this.actionIc?.hide();
     }
     undo(): void {
+        super.undo();
         this.ic.offset(this.originalOffset);
         this.ic.updateLayout();
     }
     mousemove(event: KonvaEventObject<MouseEvent>): boolean {
         this.to = Point.cursor();
-        const d = this.to.clone().sub(this.from);
+        const d = this.to.clone().sub(this.from!);
         let xy = this.originalOffset.clone().add(d).alignToGrid();
-        this.actionIc.offset(xy);
-        this.actionIc.updateLayout();
+        this.actionIc?.offset(xy);
+        this.actionIc?.updateLayout();
         return false;
     }
     mousedown(event: KonvaEventObject<MouseEvent>): boolean {
@@ -70,14 +77,15 @@ return false;
         return true;
     }
     cancel(): void {
+        super.cancel();
         this.ic.show(currentLayer());
-        this.actionIc.hide();
+        this.actionIc?.hide();
     }
     serialize() {
         const z: MoveIcSchematicActionSpec = {
             typeMarker: marker, 
-            from: this.from.plain(),
-            to: this.to.plain(),
+            from: this.from!.plain(),
+            to: this.to!.plain(),
             ic_address: this.ic.address(),   
         };
         return z;

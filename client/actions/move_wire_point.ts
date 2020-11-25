@@ -2,7 +2,7 @@ import { Action, actionDeserializers } from '../action';
 import Konva from 'konva';
 import { currentLayer, Point, PlainPoint, stage } from '../workspace';
 import { Wire, WirePoint, WirePointSpec, removeRedundantPoints, addHelperPoints } from '../components/wire';
-import { getByAddress, copy, all } from '../address';
+import { getByAddress, copy, all, getTypedByAddress } from '../address';
 import assertExists from 'ts-assert-exists';
 import { selectionAddresses } from '../components/selectable_component';
 import { Contact } from '../components/contact';
@@ -88,16 +88,24 @@ function moveSingleWire(dxy: Point, s: SingleWireMove): WirePointSpec[] {
   return z;
 }
 
-export class MoveWirePointAction implements Action {
+export class MoveWirePointAction extends Action {
   states: SingleWireMove[] = [];
   affectedPointsAddresses: string[];
-  from: Point;
-  to: Point;
-  selection: string[];
-  constructor(points: WirePoint[], origin?: Point) {
-    this.selection = selectionAddresses();
+  from: Point|undefined;
+  to: Point|undefined;
+  selection: string[] = [];
+  constructor(points: WirePoint[], origin?: Point) { 
+    super();
     this.affectedPointsAddresses = points.map(p => p.address());
-    const uniqAdresses = Array.from(new Set<string>(points.map(p => p.parent()?.address()!)));
+    this.from = origin;
+    this.to = origin;
+  }
+  begin() {
+    super.begin();
+    if (this.from === undefined) this.from = this.to = Point.cursor();
+    this.selection = selectionAddresses();
+    const points = this.affectedPointsAddresses.map(a => getTypedByAddress(WirePoint, a)!)
+    const uniqAdresses = Array.from(new Set<string>(points.map(a => a.parent()?.address()!)));
     for (const a of uniqAdresses) {
       const w = getByAddress(a) as Wire;
       const s: SingleWireMove = {
@@ -118,23 +126,21 @@ export class MoveWirePointAction implements Action {
       w.hide();
       s.auxWire?.show(currentLayer());
     }
-    if (origin === undefined) origin = Point.cursor();
-    this.from = origin;
-    this.to = origin;
   }
   serialize() {
     const z: MoveWirePointActionSpec = {
       typeMarker: marker,
       points: this.affectedPointsAddresses,
-      from: this.from.plain(),
-      to: this.to.plain(),
+      from: this.from!.plain(),
+      to: this.to!.plain(),
       states: this.states,
       selection: this.selection,
     };
     return z;
   }
-  apply(): void {
-    const dxy = this.to.clone().sub(this.from);
+  apply() {
+    super.apply();
+    const dxy = this.to!.clone().sub(this.from!);
     for (const s of this.states) {
       const w = getByAddress(s.address) as Wire;
       let x = moveSingleWire(dxy, s);
@@ -143,7 +149,8 @@ export class MoveWirePointAction implements Action {
       w.show(currentLayer());
     }
   }
-  undo(): void {
+  undo() {
+    super.undo();
     for (const w of this.states) {
       (getByAddress(w.address) as Wire).pointsSpec(w.originalPoints);
     }
@@ -151,7 +158,7 @@ export class MoveWirePointAction implements Action {
   }
   mousemove(event: Konva.KonvaEventObject<MouseEvent>): boolean {
     this.to = Point.cursor();
-    const dxy = this.to.clone().sub(this.from);
+    const dxy = this.to.clone().sub(this.from!);
     for (const s of this.states) {
       const sp = moveSingleWire(dxy, s);
       s.auxWire?.pointsSpec(sp);

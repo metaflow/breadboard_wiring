@@ -12,13 +12,39 @@ export function deserializeAction(data: any): Action {
     throw new Error('cannot deserialize action');
 }
 
-export interface Action {
-    begin(): void;
-    apply(): void;
-    undo(): void;
-    mousemove(event: Konva.KonvaEventObject<MouseEvent>): boolean;
-    mousedown(event: Konva.KonvaEventObject<MouseEvent>): boolean;
-    mouseup(event: Konva.KonvaEventObject<MouseEvent>): boolean;
-    cancel(): void;
-    serialize(): any;
+export abstract class Action {    
+    state: 'init' | 'active' | 'applied' | 'ready' | 'cancelled';
+    /* 
+ http://asciiflow.com/
+ *init - begin() -> active - apply() -> applied
+                      |         |          |
+                   cancel()  *ready  <-  undo()
+                      |
+                      v
+                  cancelled
+    */
+    constructor() {
+        this.state = 'init';
+    }
+    begin() {
+        if (this.state != 'init') throw new Error(`action state must be init ${this}`);
+        this.state = 'active';
+    }
+    apply() {
+        if (this.state != 'ready' && this.state != 'active') throw new Error(`action state must be init or active ${this}`);
+        this.state = 'applied';
+        // TODO: check in workspace that after such actions state changes. 
+    }
+    undo() {
+        if (this.state != 'applied') throw new Error(`action state must be applied ${this}`);
+        this.state = 'ready';
+    }
+    cancel() {
+        if (this.state != 'active') throw new Error(`action state must be active ${this}`);
+        this.state = 'cancelled';
+    }
+    abstract mousemove(event: Konva.KonvaEventObject<MouseEvent>): boolean;
+    abstract mousedown(event: Konva.KonvaEventObject<MouseEvent>): boolean;
+    abstract mouseup(event: Konva.KonvaEventObject<MouseEvent>): boolean;
+    abstract serialize(): any;
 }

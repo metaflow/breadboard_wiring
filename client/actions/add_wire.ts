@@ -17,14 +17,21 @@ actionDeserializers.push(function (data: any): Action | null {
     return new AddWireAction(data);
 });
 
-export class AddWireAction implements Action {
+export class AddWireAction extends Action {
     wire: Wire | null = null;
-    line: Konva.Line;
-    startMarker: Konva.Circle;
-    endMarker: Konva.Circle;
+    line: Konva.Line|undefined;
+    startMarker: Konva.Circle|undefined;
+    endMarker: Konva.Circle|undefined;
     points: Point[] = [];
 
     constructor(spec?: AddWireActionSpec) {
+        super();
+        if (spec != null) {
+            this.points = spec.points.map(p => new Point(p.x, p.y));
+        }
+    }
+    begin() {
+        super.begin();
         this.line = new Konva.Line({
             points: [],
             stroke: theme.active,
@@ -40,12 +47,9 @@ export class AddWireAction implements Action {
             radius: 1,
             fill: theme.active,
         })
-        if (spec != null) {
-            this.points = spec.points.map(p => new Point(p.x, p.y));
-            if (this.points.length > 0) {
-                this.startMarker.position(this.points[0]);
-                this.endMarker.position(this.points[spec.points.length - 1]);
-            }
+        if (this.points.length > 0) {
+            this.startMarker.position(this.points[0]);
+            this.endMarker.position(this.points[this.points.length - 1]);
         }
         currentLayer()?.add(this.line);
         currentLayer()?.add(this.startMarker);
@@ -55,6 +59,7 @@ export class AddWireAction implements Action {
         return false;
     }
     apply() {
+        super.apply();
         let specs: WirePointSpec[] = [];
         for (const p of this.points) {
             let s: WirePointSpec = {
@@ -65,30 +70,28 @@ export class AddWireAction implements Action {
         }
         specs = removeRedundantPoints(specs);
         specs = addHelperPoints(specs);
-        this.wire = new Wire({
-            id: newAddress(),
-            offset: new PlainPoint(),
-            points: specs,
-        });
-        this.wire.updateLayout();
+        this.wire = new Wire();
+        this.wire.id(newAddress());
+        this.wire.pointsSpec(specs);
         this.wire.materialized(true);
-        this.wire.show(currentLayer()); 
+        this.wire.show(currentLayer());
         this.removeHelpers();
     }
     removeHelpers() {
-        this.line.remove();
-        this.startMarker.remove();
-        this.endMarker.remove();
+        this.line?.remove();
+        this.startMarker?.remove();
+        this.endMarker?.remove();
     }
     undo() {
+        super.undo();
         if (this.wire == null) return;
         this.wire.materialized(false);
         this.wire.hide();
     }
     mousemove(event: Konva.KonvaEventObject<MouseEvent>): boolean {
-        this.endMarker.position(Point.cursor().alignToGrid());
+        this.endMarker?.position(Point.cursor().alignToGrid());
         if (this.points.length == 0) {
-            this.startMarker.position(Point.cursor().alignToGrid());
+            this.startMarker?.position(Point.cursor().alignToGrid());
             return false;
         }
         this.updateLayout();
@@ -101,7 +104,7 @@ export class AddWireAction implements Action {
         }
         const xy = Point.cursor().alignToGrid();
         pp.push(...pointAsNumber(xy));
-        this.line.points(pp);
+        this.line?.points(pp);
     }
     orthogonalCursor(): Point {
         return Point.cursor().alignToGrid();
@@ -124,9 +127,10 @@ export class AddWireAction implements Action {
         this.points.push(xy);
         const c = closesetContact(xy);
         // Complete action if clicked on contact.
-        return (this.points.length >=2 && c != null && c.absolutePosition().closeTo(xy));
+        return (this.points.length >= 2 && c != null && c.absolutePosition().closeTo(xy));
     }
     cancel(): void {
+        super.cancel();
         this.removeHelpers();
     }
     serialize() {

@@ -380,20 +380,6 @@ export class Workspace {
         }
         return h;
     }
-    deserializeActions(history: any[] | undefined) {
-        this.history = [];
-        this.forwardHistory = []; // TODO: store forward history too.
-        this.stateHistory = [];
-        this.stateHistory.push(this.componentsState());
-        console.groupCollapsed('load actions');
-        // TODO: catch all browser errors.
-        if (history != undefined) { }
-        for (const data of history) {
-            this.currentAction(deserializeAction(data));
-            this.commitAction();
-        }
-        console.groupEnd();
-    }
     deserialize(s: any) {
         console.log('load workspace', s);
         // TODO: make it a "reset or clear".
