@@ -3,7 +3,7 @@ import { Contact } from './components/contact';
 import { addAddressRoot, roots } from './address';
 import { Component, deserializeComponent } from './components/component';
 import { selection, selectionAddresses } from './components/selectable_component';
-import { error, typeGuard } from './utils';
+import { assert, error, typeGuard } from './utils';
 import { Action, deserializeAction } from './action';
 import { diffString } from 'json-diff';
 import { SelectAction } from './actions/select_action';
@@ -184,14 +184,18 @@ export class Workspace {
         this.stateHistory.push(this.componentsState());
     }
     currentAction(a?: Action | null): Action | null {
-        if (a !== undefined) {
+        if (a !== undefined) {                       
+            if (a != null) {
+                assert(this._current==null);                
+                a?.begin();
+                this.redraw();
+            }
             this._current = a;
-            this.redraw();
         }
         return this._current;
     }
     onMouseDown(e: Konva.KonvaEventObject<MouseEvent>) {
-        e.evt.preventDefault(); // Disable scroll on middle button click.
+        e.evt.preventDefault(); // Disable scroll on middle button click. TODO: check button?
         if (this.currentAction() != null) {
             if (this.currentAction()?.mousedown(e)) {
                 this.commitAction();
@@ -200,18 +204,20 @@ export class Workspace {
             }
             return;
         }
+        // Left button.
         if (e.evt.button == 0) {
             const a = new SelectAction();
             workspace.currentAction(a);
             a.mousedown(e);
         }
-        // Deselect on right click.        
+        // Right click: deselect all.
         if (e.evt.button == 2 && selection().length > 0) {
             const a = new SelectAction();
             workspace.currentAction(a);
             workspace.commitAction();
         }
-        if (e.evt.button == 1) {
+        // Middle button.
+        if (e.evt.button == 1) { 
             this.draggingScene = true;
             this.draggingOrigin = Point.screenCursor();
             this.initialOffset = new Point(currentLayer()?.offsetX(), currentLayer()?.offsetY());
@@ -267,12 +273,14 @@ export class Workspace {
         this.currentAction(null);
         if (this.debugActions) {
             console.groupCollapsed(`applying ${a.constructor.name}`);
-            console.log('action', a);
+            // console.log('action', a);
             a.apply();
+            assert(a.state=='applied');
             let sa = this.stateHistory[this.stateHistory.length - 1];
             let sb = this.componentsState();
             this.stateHistory.push(sb);
             a.undo();
+            assert(a.state=='ready');
             let s = this.componentsState();
             if (JSON.stringify(sa) != JSON.stringify(s)) {
                 error('undo changes state');
@@ -283,6 +291,7 @@ export class Workspace {
                 console.groupEnd();
             }
             a.apply();
+            assert(a.state == 'applied');
             s = this.componentsState();
             if (JSON.stringify(sb) != JSON.stringify(s)) {
                 error('redo changes state');
@@ -295,8 +304,9 @@ export class Workspace {
             console.log('new state', this.componentsState());
             console.groupEnd();
         } else {
-            console.log(`applying ${a.constructor.name}`);
+            // console.log(`applying ${a.constructor.name}`);
             a.apply();
+            assert(a.state == 'applied');
         }
         this.redraw();
         this.persistInLocalHistory();
@@ -309,8 +319,9 @@ export class Workspace {
             // State history is [..., sa, sb], we will end up in [..., sa].
             let sb = this.stateHistory.pop();
             let sa = this.stateHistory[this.stateHistory.length - 1];
-            console.log('action', a);
+            // console.log('action', a);
             a.undo();
+            assert(a.state == 'ready');
             let s = this.componentsState();
             if (JSON.stringify(sa) != JSON.stringify(s)) {
                 console.groupEnd();
@@ -321,6 +332,7 @@ export class Workspace {
                 console.log('actual state', s);
             }
             a.apply();
+            assert(a.state == 'applied');
             s = this.componentsState();
             if (JSON.stringify(sb) != JSON.stringify(s)) {
                 console.groupEnd();
@@ -331,24 +343,27 @@ export class Workspace {
                 console.log('actual state', s);
             }
             a.undo();
+            assert(a.state == 'ready');
             console.log('new state', this.componentsState());
             console.groupEnd();
         } else {
             console.log(`undo action ${a.constructor.name}`)
             a.undo();
+            assert(a.state == 'ready');
         }
         this.forwardHistory.push(a);
         this.redraw();
     }
     redo() {
-        this.cancelCurrent();
+        this.cancelCurrentAction();
         this.currentAction(this.forwardHistory.pop());
         this.commitAction(true);
     }
-    cancelCurrent() {
+    cancelCurrentAction() {
         const a = this.currentAction();
         if (a != null) {
             a.cancel();
+            assert(a.state == 'cancelled');
             this.redraw();
         }
         this.currentAction(null);
@@ -386,7 +401,7 @@ export class Workspace {
         this.history = [];
         this.forwardHistory = []; // TODO: store forward history too.
         this.stateHistory = [];
-        this.clearComponents();        
+        this.clearComponents();
         document.title = 'scheme';
         const ws = s as WorkspaceState;
         if (ws.components !== undefined && ws.components.roots != null && (ws.history === undefined || !this.debugActions)) {
@@ -399,9 +414,9 @@ export class Workspace {
             console.log(this.componentsState(), currentLayer());
         }
         this.stateHistory.push(this.componentsState());
-        if (ws.history != undefined) {
-            const h = ws.history.map(d => deserializeAction(d));
-            if (this.debugActions) {                
+        if (ws.history != undefined) {                        
+            const h = ws.history.map(d => deserializeAction(d, this.debugActions ? 'ready' : 'applied'));
+            if (this.debugActions) {
                 console.groupCollapsed('load actions');
                 // TODO: catch all browser errors.
                 h.forEach(a => {
@@ -431,7 +446,7 @@ export class Workspace {
             z.roots?.push((roots.get(k) as Component).serialize());
         });
         return z;
-    }  
+    }
     serialize(): WorkspaceState {
         return {
             components: this.componentsState(),

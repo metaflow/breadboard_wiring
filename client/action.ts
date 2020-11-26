@@ -1,24 +1,28 @@
 import Konva from 'konva';
-import { error } from './utils';
+import { assert, error } from './utils';
 
-export const actionDeserializers: { (data: any): (Action | null) }[] = [];
+export type ActionState =  'init' | 'active' | 'applied' | 'ready' | 'cancelled';
 
-export function deserializeAction(data: any): Action {
+export const actionDeserializers: { (data: any, state: ActionState): (Action | null) }[] = [];
+
+export function deserializeAction(data: any, state: ActionState): Action {
     for (const d of actionDeserializers) {
-        const a = d(data);
-        if (a !== null) return a;
+        const a = d(data, state);
+        if (a == null) continue;
+        a.state = state;
+        return a;
     }
-    error('cannot deserialize action', data);
-    throw new Error('cannot deserialize action');
+    throw error('cannot deserialize', data);
 }
 
 export abstract class Action {    
-    state: 'init' | 'active' | 'applied' | 'ready' | 'cancelled';
+    
+    state: ActionState;
     /* 
- http://asciiflow.com/
+ http://asciiflow.com/ 
  *init - begin() -> active - apply() -> applied
                       |         |          |
-                   cancel()  *ready  <-  undo()
+ x invalid         cancel()  *ready  <-  undo()
                       |
                       v
                   cancelled
@@ -27,20 +31,19 @@ export abstract class Action {
         this.state = 'init';
     }
     begin() {
-        if (this.state != 'init') throw new Error(`action state must be init ${this}`);
+        assert(this.state == 'init', this);
         this.state = 'active';
     }
     apply() {
-        if (this.state != 'ready' && this.state != 'active') throw new Error(`action state must be init or active ${this}`);
+        assert(this.state == 'ready' || this.state == 'active', this);
         this.state = 'applied';
-        // TODO: check in workspace that after such actions state changes. 
     }
     undo() {
-        if (this.state != 'applied') throw new Error(`action state must be applied ${this}`);
+        assert(this.state == 'applied', this);
         this.state = 'ready';
     }
     cancel() {
-        if (this.state != 'active') throw new Error(`action state must be active ${this}`);
+        assert(this.state == 'active', this);
         this.state = 'cancelled';
     }
     abstract mousemove(event: Konva.KonvaEventObject<MouseEvent>): boolean;

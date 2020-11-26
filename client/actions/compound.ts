@@ -1,4 +1,4 @@
-import { Action, actionDeserializers, deserializeAction } from "../action";
+import { Action, actionDeserializers, ActionState, deserializeAction } from "../action";
 import { KonvaEventObject } from "konva/types/Node";
 
 const marker = 'CompoundAction';
@@ -8,9 +8,9 @@ interface CompoundActionSpec {
     actions: any[];
 };
 
-actionDeserializers.push(function (data: any): Action | null {
+actionDeserializers.push(function (data: any, state: ActionState): Action | null {
     if (data['typeMarker'] != marker) return null;
-    return new CompoundAction((data as CompoundActionSpec).actions.map(a => deserializeAction(a)));
+    return new CompoundAction((data as CompoundActionSpec).actions.map(a => deserializeAction(a, state)));
 });
 
 export class CompoundAction extends Action {

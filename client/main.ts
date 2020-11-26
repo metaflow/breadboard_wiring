@@ -103,7 +103,7 @@ stage().on('mouseup', function(e) {
 
 hotkeys('esc', function (e) {
   e.preventDefault();
-  workspace.cancelCurrent();
+  workspace.cancelCurrentAction();
 });
 
 hotkeys('ctrl+z', function (e) {

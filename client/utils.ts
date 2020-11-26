@@ -1,3 +1,5 @@
+import assertExists from "ts-assert-exists";
+
 interface typeMap { // for mapping from strings to types
     string: string;
     number: number;
@@ -21,12 +23,20 @@ export function typeGuard<T extends PrimitiveOrConstructor>(o: any, className: T
     return o instanceof localPrimitiveOrConstructor;
 }
 
-export function error(...args: any) {
+export function error(...args: any): Error {
     console.error(...args);
     const c = document.getElementById("error-bar");
-    if (!c) return;
-    c.classList.remove('hidden');    
-    c.innerText = 'Error occured. See console for the details';
+    if (c) {
+        c.classList.remove('hidden');
+        c.innerText = 'Error occured. See console for the details';
+    }
+    return new Error('error occured');
+}
+
+export function assert(c: boolean, ...args: any) {
+    if (c) return;
+    console.error('assertion faile', ...args);
+    throw new Error('assection failed');
 }
 
 export function clearError() {

@@ -40,10 +40,7 @@ export class Contact extends SelectableComponent {
             }
             if (e.evt.button != 0) return;
             e.cancelBubble = true;
-            workspace.currentAction(new AddWireAction({
-                typeMarker: 'AddWireAction',
-                points: [o.absolutePosition().plain()],
-            }));
+            workspace.currentAction(new AddWireAction(o.absolutePosition()));
         });
     }
     updateLayout(): void {

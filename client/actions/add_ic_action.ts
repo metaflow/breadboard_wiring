@@ -50,7 +50,8 @@ export class PlaceComponentAction extends Action {
     }
     cancel(): void {
         super.cancel();
-        this.undo();
+        this.component.materialized(false);
+        this.component.hide();
     }
     mousemove(event: KonvaEventObject<MouseEvent>): boolean {        
         this.xy = Point.cursor().alignToGrid();

@@ -186,7 +186,7 @@ export class Wire extends Component {
             pp.forEach(x => {
                 if (x != null) o.points.push(x);
             });
-            o.updateLayout();
+            o.needsLayoutUpdate(true);
         }
         return o.points.map(p => p.serialize());
     }
