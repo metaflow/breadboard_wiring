@@ -1,5 +1,5 @@
 import { IntegratedCircuitSchematic } from "../components/IC_schematic";
-import { Action, actionDeserializers } from "../action";
+import { Mutation, actionDeserializers, ActionState } from "../mutation";
 import { KonvaEventObject } from "konva/types/Node";
 import { currentLayer, Point, PlainPoint } from "../workspace";
 import { getTypedByAddress } from "../address";
@@ -9,35 +9,36 @@ import theme from '../../theme.json';
 
 const marker = 'MoveIcSchematicAction';
 
-actionDeserializers.push(function (data: any): Action | null {
-  if (data['typeMarker'] !== marker) return null;
-  const s: MoveIcSchematicActionSpec = data;
-  const ic = assertExists(getTypedByAddress(IntegratedCircuitSchematic, s.ic_address));
-  let z = new MoveIcSchematicAction(ic, new Point(s.from));
-  z.to = new Point(s.to);
-  return z;
+actionDeserializers.push(function (data: any, state: ActionState): Mutation | null {
+    if (data['typeMarker'] !== marker) return null;
+    const s: MoveIcSchematicActionSpec = data;
+    // TODO: that is not true when deserializing full history w/o applying.
+    const ic = assertExists(getTypedByAddress(IntegratedCircuitSchematic, s.ic_address));
+    let z = new MoveIcSchematicAction(ic, new Point(s.from));
+    z.to = new Point(s.to);
+    return z;
 });
 
 
 interface MoveIcSchematicActionSpec {
-  typeMarker: 'MoveIcSchematicAction';
-  from: PlainPoint;
-  to: PlainPoint;
-  ic_address: string;
+    typeMarker: 'MoveIcSchematicAction';
+    from: PlainPoint;
+    to: PlainPoint;
+    ic_address: string;
 }
 
-export class MoveIcSchematicAction extends Action {
-    from: Point|undefined;
-    to: Point|undefined;
+export class MoveIcSchematicAction extends Mutation {
+    from: Point | undefined;
+    to: Point | undefined;
     originalOffset: Point;
     ic: IntegratedCircuitSchematic;
-    actionIc: Component|undefined;
-    constructor(s: IntegratedCircuitSchematic, from?: Point) {
-        super();    
+    actionIc: Component | null = null;
+    private constructor(s: IntegratedCircuitSchematic, from?: Point) {
+        super();
         this.from = from;
         this.to = from;
         this.ic = s;
-        this.originalOffset = this.ic.offset();     
+        this.originalOffset = this.ic.offset();
     }
     begin() {
         super.begin();
@@ -46,7 +47,13 @@ export class MoveIcSchematicAction extends Action {
         // TODO: cancel should remove actionIc
         this.actionIc.mainColor(theme.active);
         this.ic.hide();
-        this.actionIc.show(currentLayer());        
+        this.actionIc.show(currentLayer());
+    }
+    cancel(): void {
+        super.cancel();
+        this.ic.show(currentLayer());
+        this.actionIc?.remove();
+        this.actionIc = null;
     }
     apply(): void {
         super.apply();
@@ -70,23 +77,18 @@ export class MoveIcSchematicAction extends Action {
         return false;
     }
     mousedown(event: KonvaEventObject<MouseEvent>): boolean {
-return false;
+        return false;
     }
     mouseup(event: KonvaEventObject<MouseEvent>): boolean {
         this.to = Point.cursor();
         return true;
     }
-    cancel(): void {
-        super.cancel();
-        this.ic.show(currentLayer());
-        this.actionIc?.hide();
-    }
     serialize() {
         const z: MoveIcSchematicActionSpec = {
-            typeMarker: marker, 
+            typeMarker: marker,
             from: this.from!.plain(),
             to: this.to!.plain(),
-            ic_address: this.ic.address(),   
+            ic_address: this.ic.address(),
         };
         return z;
     }

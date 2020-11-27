@@ -2,14 +2,19 @@ import Konva from 'konva';
 import hotkeys from 'hotkeys-js';
 import { workspace } from './workspace';
 import { stage, currentLayer, gridAlignment, Point } from './workspace';
-import { SelectAction } from './actions/select_action';
+import { SelectAction } from './mutations/select_action';
 import { ic74x245 } from './components/74x245';
-import { PlaceComponentAction } from './actions/add_ic_action';
-import { AddWireAction } from './actions/add_wire';
-import { DeleteSelectionAction } from './actions/delete_action';
-import { MoveSelectionAction } from './actions/move_selection';
-import { typeGuard } from './utils';
+import { PlaceComponentAction } from './mutations/add_ic_action';
+import { AddWireAction } from './mutations/add_wire';
+import { DeleteSelectionAction } from './mutations/delete_action';
+import { MoveSelectionAction } from './mutations/move_selection';
+import { onError, typeGuard } from './utils';
 import theme from '../theme.json';
+
+window.onerror = function myErrorHandler(errorMsg, url, lineNumber) {
+  onError(errorMsg, url, lineNumber);
+  return false;
+};
 
 (window as any).add245 = function () {
   workspace.currentAction(new PlaceComponentAction(new ic74x245()));

@@ -1,4 +1,4 @@
-import { Action, actionDeserializers } from '../action';
+import { Mutation, actionDeserializers, ActionState } from '../mutation';
 import Konva from 'konva';
 import { currentLayer, Point, PlainPoint, stage } from '../workspace';
 import { Wire, WirePoint, WirePointSpec, removeRedundantPoints, addHelperPoints } from '../components/wire';
@@ -10,7 +10,7 @@ import theme from '../../theme.json';
 
 const marker = 'MoveWirePointAction';
 
-actionDeserializers.push(function (data: any): Action | null {
+actionDeserializers.push(function (data: any, state: ActionState): Mutation | null {
   if (data['typeMarker'] !== marker) return null;
   const s: MoveWirePointActionSpec = data;
   let z = new MoveWirePointAction(s.points.map(a => getByAddress(a)), new Point(s.from));
@@ -88,13 +88,13 @@ function moveSingleWire(dxy: Point, s: SingleWireMove): WirePointSpec[] {
   return z;
 }
 
-export class MoveWirePointAction extends Action {
+export class MoveWirePointAction extends Mutation {
   states: SingleWireMove[] = [];
   affectedPointsAddresses: string[];
   from: Point|undefined;
   to: Point|undefined;
   selection: string[] = [];
-  constructor(points: WirePoint[], origin?: Point) { 
+  private constructor(points: WirePoint[], origin?: Point) { 
     super();
     this.affectedPointsAddresses = points.map(p => p.address());
     this.from = origin;

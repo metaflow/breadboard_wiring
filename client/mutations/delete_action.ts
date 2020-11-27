@@ -1,4 +1,4 @@
-import { Action, actionDeserializers } from "../action";
+import { Mutation, actionDeserializers } from "../mutation";
 import Konva from "konva";
 import { currentLayer } from "../workspace";
 import { clearSelection, selection, selectionAddresses } from "../components/selectable_component";
@@ -6,7 +6,7 @@ import { deserializeComponent } from "../components/component";
 
 const marker = 'DeleteSelectionAction';
 
-actionDeserializers.push(function (data: any): Action | null {
+actionDeserializers.push(function (data: any): Mutation | null {
     if (data['typeMarker'] !== marker) return null;
     const s: DeleteSelectionActionSpec = data;
     let z = new DeleteSelectionAction();
@@ -21,11 +21,11 @@ interface DeleteSelectionActionSpec {
     components: any[];
 }
 
-export class DeleteSelectionAction extends Action {
+export class DeleteSelectionAction extends Mutation {
     prevSelection: string[] = [];
     newSelection: string[] = [];
     components: any[] = [];
-    constructor() {
+    private constructor() {
         super();
     }
     begin() {

@@ -1,4 +1,4 @@
-import { Action, actionDeserializers } from "../action";
+import { Mutation, actionDeserializers, ActionState } from "../mutation";
 import Konva from "konva";
 import { stage, Point, currentLayer } from "../workspace";
 import { selectionAddresses } from "../components/selectable_component";
@@ -6,7 +6,7 @@ import theme from '../../theme.json';
 
 const marker = 'SelectAction';
 
-actionDeserializers.push(function (data: any): Action | null {
+actionDeserializers.push(function (data: any, state: ActionState): Mutation | null {
     if (data['typeMarker'] !== marker) return null;
     const s: SelectActionSpec = data;
     let z = new SelectAction();
@@ -21,11 +21,11 @@ interface SelectActionSpec {
     newSelection: string[];
 }
 
-export class SelectAction extends Action {
+export class SelectAction extends Mutation {
     rect: Konva.Rect | null = null;
     prevSelection: string[] = [];
     newSelection: string[] = [];
-    constructor() {
+    private constructor() {
         super();
     }
     begin() {

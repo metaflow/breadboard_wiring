@@ -1,5 +1,5 @@
 import { IntegratedCircuitSchematic } from "../components/IC_schematic";
-import { Action, actionDeserializers } from "../action";
+import { Mutation, actionDeserializers, ActionState } from "../mutation";
 import { KonvaEventObject } from "konva/types/Node";
 import { Point, PlainPoint, stage } from "../workspace";
 import { all } from "../address";
@@ -13,7 +13,7 @@ import assertExists from "ts-assert-exists";
 
 const marker = 'MoveSelectionAction';
 
-actionDeserializers.push(function (data: any): Action | null {
+actionDeserializers.push(function (data: any, state: ActionState): Mutation | null {
     if (data['typeMarker'] !== marker) return null;
     const s: MoveSelectionActionSpec = data;
     let z = new MoveSelectionAction(new Point(s.from));
@@ -29,13 +29,13 @@ interface MoveSelectionActionSpec {
     selection: string[];
 }
 
-export class MoveSelectionAction extends Action {
+export class MoveSelectionAction extends Mutation {
     from: Point;
     to: Point;
     moveICs: MoveIcSchematicAction[] = [];
     movePoints: MoveWirePointAction|undefined;
     selection: string[] = [];
-    constructor(from?: Point) {
+    private constructor(from?: Point) {
         super();
         if (from == undefined) from = Point.cursor();
         this.from = from;
@@ -51,12 +51,20 @@ export class MoveSelectionAction extends Action {
         });
         points.push(...(attached.filter((p: WirePoint) => points.indexOf(p) == -1)));
         this.movePoints = new MoveWirePointAction(points, this.from);
+        this.movePoints.begin();
         for (const ic of ics) {
-            this.moveICs.push(new MoveIcSchematicAction(ic, this.from));
+            const move = new MoveIcSchematicAction(ic, this.from);
+            move.begin();
+            this.moveICs.push(move);
         }
         this.selection = selectionAddresses();
         stage()!.container()!.setAttribute('style', 'cursor: move');
         // TODO: cancel should clear created actions?
+    }
+    cancel(): void {
+        super.cancel();
+        this.movePoints?.cancel();
+        this.moveICs.forEach(a => a.cancel());
     }
     apply(): void {
         super.apply();
@@ -88,11 +96,6 @@ export class MoveSelectionAction extends Action {
         this.movePoints?.mouseup(event);
         for (const a of this.moveICs) a.mouseup(event);
         return true;
-    }
-    cancel(): void {
-        super.cancel();
-        this.movePoints?.cancel();
-        this.moveICs.forEach(a => a.cancel());
     }
     serialize() {
         const z: MoveSelectionActionSpec = {

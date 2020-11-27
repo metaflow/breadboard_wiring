@@ -24,13 +24,17 @@ export function typeGuard<T extends PrimitiveOrConstructor>(o: any, className: T
 }
 
 export function error(...args: any): Error {
+    onError(...args);    
+    return new Error('error occured');
+}
+
+export function onError(...args: any) {
     console.error(...args);
     const c = document.getElementById("error-bar");
     if (c) {
         c.classList.remove('hidden');
         c.innerText = 'Error occured. See console for the details';
     }
-    return new Error('error occured');
 }
 
 export function assert(c: boolean, ...args: any) {

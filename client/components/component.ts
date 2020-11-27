@@ -96,6 +96,7 @@ export class Component implements Addressable {
     offset(v?: Point): Point {
         if (v != undefined) {
             this._offset = v.clone();
+            this.needsLayoutUpdate(true);
         }
         return this._offset.clone();
     }
@@ -128,7 +129,7 @@ export class Component implements Addressable {
         this.children.forEach(c => c.updateLayout());
     }
     needsLayoutUpdate(v?: boolean): boolean {
-        if (v !== undefined) {
+        if (v !== undefined && v !== this._dirtyLayout) {
             this._dirtyLayout = v;
             this.parent()?.needsLayoutUpdate(v);
         }
@@ -138,6 +139,7 @@ export class Component implements Addressable {
         if (color !== undefined) {
             this._mainColor = color;
             this.children.forEach(c => c.mainColor(color));
+            this.needsLayoutUpdate(true);
         }
         return this._mainColor;
     }

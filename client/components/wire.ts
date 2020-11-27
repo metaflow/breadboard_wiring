@@ -3,9 +3,9 @@ import { pointAsNumber, Point, closesetContact, stage } from '../workspace';
 import { newAddress } from '../address';
 import { Component, componentDeserializers, ComponentSpec } from './component';
 import { workspace } from '../workspace';
-import { MoveWirePointAction } from '../actions/move_wire_point';
+import { MoveWirePointAction } from '../mutations/move_wire_point';
 import { SelectableComponent } from './selectable_component';
-import { MoveSelectionAction } from '../actions/move_selection';
+import { MoveSelectionAction } from '../mutations/move_selection';
 import theme from '../../theme.json';
 import { typeGuard } from '../utils';
 

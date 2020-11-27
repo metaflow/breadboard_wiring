@@ -1,4 +1,4 @@
-import { Action, actionDeserializers } from "../action";
+import { Mutation, actionDeserializers, ActionState } from "../mutation";
 import { KonvaEventObject } from "konva/types/Node";
 import { Component, deserializeComponent } from "../components/component";
 import { currentLayer, Point, PlainPoint } from "../workspace";
@@ -9,37 +9,34 @@ const marker = 'PlaceComponentAction';
 interface PlaceComponentActionSpec {
     typeMarker: 'PlaceComponentAction';
     component_spec: any;
-    offset: PlainPoint;
 }
 
-actionDeserializers.push(function(data: any): Action|null {
-    if (data['typeMarker'] !== marker) return null;
-    const s: PlaceComponentActionSpec = data;
-    let c = deserializeComponent(s.component_spec);
-    if (c == null) return null;
-    let z = new PlaceComponentAction(c);
-    z.xy = new Point(s.offset);
-    return z;
-});
-
-export class PlaceComponentAction extends Action {
+export class PlaceComponentAction extends Mutation {
     xy: Point = new Point();
     component: Component;
-    constructor(component: Component) {
-        super();
+    private constructor(state: ActionState, component: Component,) {
+        super(state);
         this.component = component;        
     }
-    begin() {
-        super.begin();
-        this.component.mainColor(theme.active);
-        this.component.updateLayout();
-        this.component.show(currentLayer());
+    static start(component: Component): PlaceComponentAction {
+        const z = new PlaceComponentAction('active', component);
+        z.component.mainColor(theme.active);
+        z.component.show(currentLayer());
+        return z;
+    }
+    finish() {
+        super.finish();
+        this.component.offset(this.xy);
+        this.component.mainColor(theme.foreground);
+    }
+    static deserialize(data: any, state: ActionState): Mutation|null {
+        if (data['typeMarker'] !== marker) return null;
+        const s: PlaceComponentActionSpec = data;
+        let z = new PlaceComponentAction(state, deserializeComponent(s.component_spec));
+        return z;
     }
     apply(): void {
         super.apply();
-        this.component.offset(this.xy);
-        this.component.mainColor(theme.foreground);
-        this.component.updateLayout();
         this.component.show(currentLayer());
         this.component.materialized(true);
     }
@@ -56,7 +53,6 @@ export class PlaceComponentAction extends Action {
     mousemove(event: KonvaEventObject<MouseEvent>): boolean {        
         this.xy = Point.cursor().alignToGrid();
         this.component.offset(this.xy);
-        this.component.updateLayout();
         return false;
     }
     mousedown(event: KonvaEventObject<MouseEvent>): boolean {
@@ -74,3 +70,5 @@ export class PlaceComponentAction extends Action {
         return z;
     }
 }
+
+actionDeserializers.push(PlaceComponentAction.deserialize);

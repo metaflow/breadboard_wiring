@@ -2,7 +2,7 @@ import Konva from "konva";
 import { workspace } from "../workspace";
 import { addContact, removeContact } from "../workspace";
 import { ComponentSpec } from "./component";
-import { AddWireAction } from "../actions/add_wire";
+import { AddWireAction } from "../mutations/add_wire";
 import { SelectableComponent } from "./selectable_component";
 
 const radius = 2;

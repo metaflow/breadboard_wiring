@@ -1,6 +1,6 @@
 import Konva from 'konva';
 import { Wire, removeRedundantPoints, addHelperPoints, WirePointSpec, WireSpec } from '../components/wire';
-import { Action, actionDeserializers } from '../action';
+import { Mutation, actionDeserializers, ActionState } from '../mutation';
 import { currentLayer, pointAsNumber, Point, PlainPoint, closesetContact } from '../workspace';
 import { newAddress } from '../address';
 import theme from '../../theme.json';
@@ -15,21 +15,21 @@ interface AddWireActionSpec {
     wire: any;
 };
 
-actionDeserializers.push(function (data: any): Action | null {
+actionDeserializers.push(function (data: any, state: ActionState): Mutation | null {
     if (data['typeMarker'] != marker) return null;
     const a = new AddWireAction(data);
     a.wire = deserializeComponent(data.wire) as Wire;
     return a;
 });
 
-export class AddWireAction extends Action {
+export class AddWireAction extends Mutation {
     wire: Wire | null = null;
     line: Konva.Line | undefined;
     startMarker: Konva.Circle | undefined;
     endMarker: Konva.Circle | undefined;
     points: Point[] = [];
 
-    constructor(p?: Point) {
+    private constructor(p?: Point) {
         super();
         if (p != null) this.points.push(p);
     }

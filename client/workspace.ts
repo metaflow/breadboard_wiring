@@ -4,9 +4,9 @@ import { addAddressRoot, roots } from './address';
 import { Component, deserializeComponent } from './components/component';
 import { selection, selectionAddresses } from './components/selectable_component';
 import { assert, error, typeGuard } from './utils';
-import { Action, deserializeAction } from './action';
+import { Mutation, deserializeMutation } from './mutation';
 import { diffString } from 'json-diff';
-import { SelectAction } from './actions/select_action';
+import { SelectAction } from './mutations/select_action';
 
 let _stage: Konva.Stage | null = null;
 let _gridAlignment: number | null = null;
@@ -174,16 +174,16 @@ export class Workspace {
     private draggingOrigin = new Point();
     private initialOffset = new Point();
     private debugActions = false;
-    private _current: Action | null = null;
-    private history: Action[] = [];
-    private forwardHistory: Action[] = [];
+    private _current: Mutation | null = null;
+    private history: Mutation[] = [];
+    private forwardHistory: Mutation[] = [];
     private loading = false;
     stateHistory: StageState[] = [];
     persistTimeout: number | undefined;
     constructor() {
         this.stateHistory.push(this.componentsState());
     }
-    currentAction(a?: Action | null): Action | null {
+    currentAction(a?: Mutation | null): Mutation | null {
         if (a !== undefined) {                       
             if (a != null) {
                 assert(this._current==null);                
@@ -415,7 +415,7 @@ export class Workspace {
         }
         this.stateHistory.push(this.componentsState());
         if (ws.history != undefined) {                        
-            const h = ws.history.map(d => deserializeAction(d, this.debugActions ? 'ready' : 'applied'));
+            const h = ws.history.map(d => deserializeMutation(d, this.debugActions ? 'ready' : 'applied'));
             if (this.debugActions) {
                 console.groupCollapsed('load actions');
                 // TODO: catch all browser errors.

@@ -3,9 +3,9 @@ import Konva from "konva";
 import { pointAsNumber, Point } from "../workspace";
 import { Contact } from "./contact";
 import { workspace } from "../workspace";
-import { MoveSelectionAction } from "../actions/move_selection";
+import { MoveSelectionAction } from "../mutations/move_selection";
 import { SelectableComponent } from "./selectable_component";
-import { SelectAction } from "../actions/select_action";
+import { SelectAction } from "../mutations/select_action";
 import theme from '../../theme.json';
 
 const marker = 'IntegratedCircuitSchematic';
