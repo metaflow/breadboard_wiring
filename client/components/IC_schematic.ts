@@ -5,7 +5,7 @@ import { Contact } from "./contact";
 import { workspace } from "../workspace";
 import { MoveSelectionAction } from "../mutations/move_selection";
 import { SelectableComponent } from "./selectable_component";
-import { SelectAction } from "../mutations/select_action";
+import { SelectMutation } from "../mutations/udpate_selection";
 import theme from '../../theme.json';
 
 const marker = 'IntegratedCircuitSchematic';
@@ -177,10 +177,10 @@ export class IntegratedCircuitSchematic extends SelectableComponent {
             if (e.evt.button != 0) return;
             e.cancelBubble = true;
             if (!this.selected()) {
-                const a = new SelectAction();
+                const a = new SelectMutation();
                 a.newSelection = [o.address()];
                 workspace.currentAction(a);
-                workspace.commitAction();
+                workspace.update();
             }
             workspace.currentAction(new MoveSelectionAction());
         };

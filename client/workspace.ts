@@ -4,9 +4,9 @@ import { addAddressRoot, roots } from './address';
 import { Component, deserializeComponent } from './components/component';
 import { selection, selectionAddresses } from './components/selectable_component';
 import { assert, error, typeGuard } from './utils';
-import { Mutation, deserializeMutation } from './mutation';
+import { Mutation, deserializeMutation, Interaction } from './mutation';
 import { diffString } from 'json-diff';
-import { SelectAction } from './mutations/select_action';
+import { SelectMutation } from './mutations/udpate_selection';
 
 let _stage: Konva.Stage | null = null;
 let _gridAlignment: number | null = null;
@@ -174,7 +174,7 @@ export class Workspace {
     private draggingOrigin = new Point();
     private initialOffset = new Point();
     private debugActions = false;
-    private _current: Mutation | null = null;
+    private _currentInteraction: Interaction | null = null;
     private history: Mutation[] = [];
     private forwardHistory: Mutation[] = [];
     private loading = false;
@@ -183,38 +183,30 @@ export class Workspace {
     constructor() {
         this.stateHistory.push(this.componentsState());
     }
-    currentAction(a?: Mutation | null): Mutation | null {
-        if (a !== undefined) {                       
-            if (a != null) {
-                assert(this._current==null);                
-                a?.begin();
-                this.redraw();
-            }
-            this._current = a;
+    currentInteraction(a?: Interaction | null): Interaction | null {  // TODO: move outside of workspace?
+        if (a !== undefined) {                     
+            this._currentInteraction?.cancel();
+            this._currentInteraction = a;
         }
-        return this._current;
+        return this._currentInteraction;
     }
     onMouseDown(e: Konva.KonvaEventObject<MouseEvent>) {
         e.evt.preventDefault(); // Disable scroll on middle button click. TODO: check button?
-        if (this.currentAction() != null) {
-            if (this.currentAction()?.mousedown(e)) {
-                this.commitAction();
-            } else {
-                this.redraw();
-            }
+        if (this.currentInteraction() != null) {
+            this.currentInteraction(this.currentInteraction()?.mousedown(e));
             return;
         }
         // Left button.
         if (e.evt.button == 0) {
-            const a = new SelectAction();
+            const a = new SelectMutation();
             workspace.currentAction(a);
             a.mousedown(e);
         }
         // Right click: deselect all.
         if (e.evt.button == 2 && selection().length > 0) {
-            const a = new SelectAction();
+            const a = new SelectMutation();
             workspace.currentAction(a);
-            workspace.commitAction();
+            workspace.update();
         }
         // Middle button.
         if (e.evt.button == 1) { 
@@ -226,7 +218,7 @@ export class Workspace {
     onMouseUp(event: Konva.KonvaEventObject<MouseEvent>) {
         if (this.currentAction() != null) {
             if (this.currentAction()?.mouseup(event)) {
-                this.commitAction();
+                this.update();
             } else {
                 this.redraw();
             }
@@ -250,7 +242,7 @@ export class Workspace {
     onMouseMove(event: Konva.KonvaEventObject<MouseEvent>) {
         if (this.currentAction() != null) {
             if (this.currentAction()?.mousemove(event)) {
-                this.commitAction();
+                this.update();
             } else {
                 this.redraw();
             }
@@ -265,22 +257,17 @@ export class Workspace {
             workspace.delayedPersistInLocalHistory();
         }
     }
-    commitAction(keepForwardHistory: boolean = false) {
-        const a = this.currentAction();
-        if (a == null) return;
+    update(a: Mutation, keepForwardHistory: boolean = false) {        
         this.history.push(a);
         if (!keepForwardHistory) this.forwardHistory = [];
-        this.currentAction(null);
         if (this.debugActions) {
             console.groupCollapsed(`applying ${a.constructor.name}`);
             // console.log('action', a);
             a.apply();
-            assert(a.state=='applied');
             let sa = this.stateHistory[this.stateHistory.length - 1];
             let sb = this.componentsState();
             this.stateHistory.push(sb);
             a.undo();
-            assert(a.state=='ready');
             let s = this.componentsState();
             if (JSON.stringify(sa) != JSON.stringify(s)) {
                 error('undo changes state');
@@ -291,7 +278,6 @@ export class Workspace {
                 console.groupEnd();
             }
             a.apply();
-            assert(a.state == 'applied');
             s = this.componentsState();
             if (JSON.stringify(sb) != JSON.stringify(s)) {
                 error('redo changes state');
@@ -306,7 +292,6 @@ export class Workspace {
         } else {
             // console.log(`applying ${a.constructor.name}`);
             a.apply();
-            assert(a.state == 'applied');
         }
         this.redraw();
         this.persistInLocalHistory();
@@ -321,7 +306,6 @@ export class Workspace {
             let sa = this.stateHistory[this.stateHistory.length - 1];
             // console.log('action', a);
             a.undo();
-            assert(a.state == 'ready');
             let s = this.componentsState();
             if (JSON.stringify(sa) != JSON.stringify(s)) {
                 console.groupEnd();
@@ -332,7 +316,6 @@ export class Workspace {
                 console.log('actual state', s);
             }
             a.apply();
-            assert(a.state == 'applied');
             s = this.componentsState();
             if (JSON.stringify(sb) != JSON.stringify(s)) {
                 console.groupEnd();
@@ -343,31 +326,20 @@ export class Workspace {
                 console.log('actual state', s);
             }
             a.undo();
-            assert(a.state == 'ready');
             console.log('new state', this.componentsState());
             console.groupEnd();
         } else {
             console.log(`undo action ${a.constructor.name}`)
             a.undo();
-            assert(a.state == 'ready');
         }
         this.forwardHistory.push(a);
         this.redraw();
     }
     redo() {
-        this.cancelCurrentAction();
-        this.currentAction(this.forwardHistory.pop());
-        this.commitAction(true);
-    }
-    cancelCurrentAction() {
-        const a = this.currentAction();
-        if (a != null) {
-            a.cancel();
-            assert(a.state == 'cancelled');
-            this.redraw();
-        }
-        this.currentAction(null);
-    }
+        this.currentInteraction(null);
+        const x = this.forwardHistory.pop();
+        if (x != undefined) this.update(x, true);
+    }    
     persistInLocalHistory() {
         if (this.loading) return;
         localStorage.setItem('actions_history', JSON.stringify(this.serialize()));
@@ -421,7 +393,7 @@ export class Workspace {
                 // TODO: catch all browser errors.
                 h.forEach(a => {
                     this.currentAction(a);
-                    this.commitAction();
+                    this.update();
                 });
                 console.groupEnd();
             } else {
@@ -477,6 +449,10 @@ export class Workspace {
             }
         });
         stage().batchDraw();
+    }
+    needsRedraw() {
+        // TODO: postpone until user interaction is over. With set timeout?
+        this.redraw();
     }
 }
 

@@ -1,5 +1,6 @@
 import Konva from 'konva';
-import { assert, error } from './utils';
+import { assert, error, TypeMarker } from './utils';
+import { workspace } from './workspace';
 
 /* active - (finish) ->  ready - (apply) -> applied
          |                     ^                  |
@@ -10,15 +11,12 @@ import { assert, error } from './utils';
     "finish" completes user interaction. */
 
 // Individual actions should register here.
-export const actionDeserializers: { (data: any): (Mutation | null) }[] = [];
+export const actionDeserializers = new Map<string, { (data: any): Mutation }>();
 
 export function deserializeMutation(data: any): Mutation {
-    for (const d of actionDeserializers) {
-        const a = d(data);
-        if (a == null) continue;
-        return a;
-    }
-    throw error('cannot deserialize', data);
+    const t = data[TypeMarker];
+    assert(actionDeserializers.has(t), t);
+    return actionDeserializers.get(t)!(data)!;
 }
 
 export abstract class Mutation { 
@@ -28,6 +26,9 @@ export abstract class Mutation {
 }
 
 export abstract class Interaction {
+    constructor() {
+        workspace.currentInteraction(this);
+    }
     abstract mousemove(event: Konva.KonvaEventObject<MouseEvent>): Interaction|null;
     abstract mousedown(event: Konva.KonvaEventObject<MouseEvent>): Interaction|null;
     abstract mouseup(event: Konva.KonvaEventObject<MouseEvent>): Interaction|null;

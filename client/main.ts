@@ -2,7 +2,7 @@ import Konva from 'konva';
 import hotkeys from 'hotkeys-js';
 import { workspace } from './workspace';
 import { stage, currentLayer, gridAlignment, Point } from './workspace';
-import { SelectAction } from './mutations/select_action';
+import { SelectMutation } from './mutations/udpate_selection';
 import { ic74x245 } from './components/74x245';
 import { PlaceComponentAction } from './mutations/add_ic_action';
 import { AddWireAction } from './mutations/add_wire';
@@ -30,7 +30,7 @@ window.onerror = function myErrorHandler(errorMsg, url, lineNumber) {
 };
 
 (window as any).toolSelect = function() {
-  workspace.currentAction(new SelectAction());
+  workspace.currentAction(new SelectMutation());
 };
 
 (window as any).deleteSelection = deleteSelection;
@@ -70,7 +70,7 @@ fileSelector?.addEventListener('change', (event: Event) => {
 
 function deleteSelection() {
   workspace.currentAction(new DeleteSelectionAction());
-  workspace.commitAction();
+  workspace.update();
 }
 
 // first we need to create a stage
@@ -108,7 +108,7 @@ stage().on('mouseup', function(e) {
 
 hotkeys('esc', function (e) {
   e.preventDefault();
-  workspace.cancelCurrentAction();
+  workspace.cancelCurrentInteraction();
 });
 
 hotkeys('ctrl+z', function (e) {
