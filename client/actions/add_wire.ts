@@ -1,28 +1,10 @@
 import Konva from 'konva';
-import { Wire, removeRedundantPoints, addHelperPoints, WirePointSpec, WireSpec } from '../components/wire';
-import { Mutation, actionDeserializers, ActionState, MutationSpec, Interaction } from '../mutation';
-import { currentLayer, pointAsNumber, Point, PlainPoint, closesetContact } from '../workspace';
-import { newAddress } from '../address';
+import { removeRedundantPoints, addHelperPoints, WirePointSpec } from '../components/wire';
+import { Interaction } from '../mutation';
+import { currentLayer, pointAsNumber, Point, closesetContact } from '../workspace';
 import theme from '../../theme.json';
-import { deserializeComponent } from '../components/component';
-import assertExists from 'ts-assert-exists';
-import { assert } from '../utils';
-
-const marker = 'AddWireAction';
-
-interface AddWireActionSpec extends MutationSpec {
-    wire: any;
-};
-
-actionDeserializers.push(function (data: any, state: ActionState): Mutation | null {
-    if (data['typeMarker'] != marker) return null;
-    const a = new AddWireMutation(data);
-    a.wire = deserializeComponent(data.wire) as Wire;
-    return a;
-});
 
 export class AddWireInteraction extends Interaction {
-
     line: Konva.Line | undefined;
     startMarker: Konva.Circle | undefined;
     endMarker: Konva.Circle | undefined;
@@ -55,33 +37,31 @@ export class AddWireInteraction extends Interaction {
     }
     mousemove(event: Konva.KonvaEventObject<MouseEvent>): Interaction | null {
         this.endMarker?.position(Point.cursor().alignToGrid());
-        if (this.points.length == 0) {
-            this.startMarker?.position(Point.cursor().alignToGrid());
-            return false;
-        }
+        if (this.points.length == 0) this.startMarker?.position(Point.cursor().alignToGrid());
         this.updateLayout();
-        return false;
+        return this;
     }
     mousedown(event: Konva.KonvaEventObject<MouseEvent>): Interaction | null {
-        if (event.evt.button != 0) return this.points.length >= 2;
+        if (event.evt.button != 0) {
+            if (this.points.length >= 2) {
+                this.complete();
+                return null;
+            }            
+            return this;
+        } 
         const xy = Point.cursor().alignToGrid();
         this.points.push(xy);
         const c = closesetContact(xy);
         this.updateLayout();
         // Complete action if clicked on contact.        
         if (this.points.length >= 2 && c != null && c.absolutePosition().closeTo(xy)) {
-
+            this.complete();
+            return null;
         }
-    }
-    mouseup(event: Konva.KonvaEventObject<MouseEvent>): Interaction | null {
         return this;
     }
-    removeHelpers() {
-        this.line?.remove();
-        this.startMarker?.remove();
-        this.endMarker?.remove();
-    }
-    updateLayout() {
+    complete() {
+        this.removeHelpers();
         let specs: WirePointSpec[] = [];
         for (const p of this.points) {
             let s: WirePointSpec = {
@@ -92,9 +72,18 @@ export class AddWireInteraction extends Interaction {
         }
         specs = removeRedundantPoints(specs);
         specs = addHelperPoints(specs);
-
+    }
+    removeHelpers() {
+        this.line?.remove();
+        this.startMarker?.remove();
+        this.endMarker?.remove();
+    }
+    cancel(): void {
+        this.removeHelpers();
+    }
+    updateLayout() {
         const pp: number[] = [];
-        for (const xy of this.points) { // TODO: use spec points?
+        for (const xy of this.points) { // TODO: use spec points after optimization?
             pp.push(...pointAsNumber(xy));
         }
         const xy = Point.cursor().alignToGrid();

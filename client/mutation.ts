@@ -33,8 +33,14 @@ export abstract class Interaction {
     constructor() {
         workspace.currentInteraction(this);
     }
-    abstract mousemove(event: Konva.KonvaEventObject<MouseEvent>): Interaction|null;
-    abstract mousedown(event: Konva.KonvaEventObject<MouseEvent>): Interaction|null;
-    abstract mouseup(event: Konva.KonvaEventObject<MouseEvent>): Interaction|null;
+    mousemove(event: Konva.KonvaEventObject<MouseEvent>): Interaction|null {
+        return this;
+    }
+    mousedown(event: Konva.KonvaEventObject<MouseEvent>): Interaction|null {
+        return this;
+    }
+    mouseup(event: Konva.KonvaEventObject<MouseEvent>): Interaction|null {
+        return this;
+    }
     abstract cancel(): void;
 }

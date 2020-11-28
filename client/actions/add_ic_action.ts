@@ -35,9 +35,6 @@ export class AddComponentInteraction extends Interaction {
         workspace.update(new PlaceComponentMutation(this.component));
         return null;
     }
-    mouseup(event: KonvaEventObject<MouseEvent>): Interaction | null {
-        return this;
-    }
 }
 
 export class PlaceComponentMutation extends Mutation {

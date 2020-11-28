@@ -1,66 +1,35 @@
-import { Mutation, actionDeserializers, ActionState, deserializeMutation, MutationSpec } from "../mutation";
+import { Mutation, actionDeserializers, ActionState, deserializeMutation, MutationSpec, Interaction } from "../mutation";
 import { KonvaEventObject } from "konva/types/Node";
 
 const marker = 'CompoundAction';
 
-interface CompoundActionSpec  extends MutationSpec  {
+interface CompoundActionSpec extends MutationSpec  {
     actions: any[];
 };
 
-actionDeserializers.push(function (data: any, state: ActionState): Mutation | null {
-    if (data['typeMarker'] != marker) return null;
-    return new CompoundAction((data as CompoundActionSpec).actions.map(a => deserializeMutation(a, state)));
+actionDeserializers.set(marker, function (data: any): Mutation {
+    return new CompoundMutation((data as CompoundActionSpec).actions.map(a => deserializeMutation(a)));
 });
 
-export class CompoundAction extends Mutation {
+export class CompoundMutation extends Mutation {
     actions: Mutation[];
     done: boolean[];
-    private constructor(actions: Mutation[]) {        
+    constructor(actions: Mutation[]) {        
         super();
         this.actions = actions;
         this.done = actions.map(_ => false);
     }
     apply(): void {
-        super.apply();
         this.actions.forEach(a => a.apply());
     }
     undo(): void {
-        super.undo();
         this.actions.reverse();
         this.actions.forEach(a => a.undo());
         this.actions.reverse();
     }
-    mousemove(event: KonvaEventObject<MouseEvent>): boolean {
-        const o = this;
-        this.actions.forEach((a, i) => {
-            if (o.done[i]) return;
-            o.done[i] = a.mousemove(event);
-        });
-        return this.done.some(b => !b);
-    }
-    mousedown(event: KonvaEventObject<MouseEvent>): boolean {
-        const o = this;
-        this.actions.forEach((a, i) => {
-            if (o.done[i]) return;
-            o.done[i] = a.mousedown(event);
-        });
-        return this.done.some(b => !b);
-    }
-    mouseup(event: KonvaEventObject<MouseEvent>): boolean {
-        const o = this;
-        this.actions.forEach((a, i) => {
-            if (o.done[i]) return;
-            o.done[i] = a.mouseup(event);
-        });
-        return this.done.some(b => !b);
-    }
-    cancel(): void {
-        super.cancel();
-        this.actions.forEach(a => a.cancel());
-    }
     serialize() {
         const z: CompoundActionSpec = {
-            typeMarker: marker,
+            T: marker,
             actions: this.actions.map(a => a.serialize()),
         };
         return z;
