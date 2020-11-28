@@ -1,4 +1,4 @@
-import { Mutation, actionDeserializers } from "../mutation";
+import { Mutation, actionDeserializers, MutationSpec } from "../mutation";
 import Konva from "konva";
 import { currentLayer } from "../workspace";
 import { clearSelection, selection, selectionAddresses } from "../components/selectable_component";
@@ -15,7 +15,7 @@ actionDeserializers.push(function (data: any): Mutation | null {
     return z;
 });
 
-interface DeleteSelectionActionSpec {
+interface DeleteSelectionActionSpec extends MutationSpec {
     typeMarker: 'DeleteSelectionAction';
     prevSelection: string[];    
     components: any[];

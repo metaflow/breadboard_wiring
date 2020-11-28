@@ -6,7 +6,8 @@ import { selection, selectionAddresses } from './components/selectable_component
 import { assert, error, typeGuard } from './utils';
 import { Mutation, deserializeMutation, Interaction } from './mutation';
 import { diffString } from 'json-diff';
-import { SelectMutation } from './mutations/udpate_selection';
+import { SelectMutation } from './mutations/select';
+import { SelectInteraction } from './interactions/select';
 
 let _stage: Konva.Stage | null = null;
 let _gridAlignment: number | null = null;
@@ -198,36 +199,32 @@ export class Workspace {
         }
         // Left button.
         if (e.evt.button == 0) {
-            const a = new SelectMutation();
-            workspace.currentAction(a);
-            a.mousedown(e);
+            new SelectInteraction().mousedown(e);
+            return;
         }
         // Right click: deselect all.
         if (e.evt.button == 2 && selection().length > 0) {
-            const a = new SelectMutation();
-            workspace.currentAction(a);
-            workspace.update();
+            workspace.update(new SelectMutation(selectionAddresses(), []));
+            return;
         }
         // Middle button.
         if (e.evt.button == 1) { 
+            // TODO: convert scene dragging to interaction.
             this.draggingScene = true;
             this.draggingOrigin = Point.screenCursor();
             this.initialOffset = new Point(currentLayer()?.offsetX(), currentLayer()?.offsetY());
         }
     }
     onMouseUp(event: Konva.KonvaEventObject<MouseEvent>) {
-        if (this.currentAction() != null) {
-            if (this.currentAction()?.mouseup(event)) {
-                this.update();
-            } else {
-                this.redraw();
-            }
-            return true;
-        }
+        if (this.currentInteraction() != null) {
+            this.currentInteraction(this.currentInteraction()?.mouseup(event));
+            return;
+        }        
         this.draggingScene = false;
         return true;
     }
     onMouseWheel(e: Konva.KonvaEventObject<WheelEvent>) {
+        // TODO: add mousewheel as interaction method.
         let d = (e.evt.deltaY < 0) ? (1 / 1.1) : 1.1;
         let x = currentLayer()?.scaleX();
         if (!x) return;
@@ -240,12 +237,8 @@ export class Workspace {
         workspace.delayedPersistInLocalHistory();
     }
     onMouseMove(event: Konva.KonvaEventObject<MouseEvent>) {
-        if (this.currentAction() != null) {
-            if (this.currentAction()?.mousemove(event)) {
-                this.update();
-            } else {
-                this.redraw();
-            }
+        if (this.currentInteraction() != null) {
+            this.currentInteraction(this.currentInteraction()?.mousemove(event));
             return;
         }
         if (this.draggingScene) {
@@ -262,7 +255,6 @@ export class Workspace {
         if (!keepForwardHistory) this.forwardHistory = [];
         if (this.debugActions) {
             console.groupCollapsed(`applying ${a.constructor.name}`);
-            // console.log('action', a);
             a.apply();
             let sa = this.stateHistory[this.stateHistory.length - 1];
             let sb = this.componentsState();
@@ -290,10 +282,8 @@ export class Workspace {
             console.log('new state', this.componentsState());
             console.groupEnd();
         } else {
-            // console.log(`applying ${a.constructor.name}`);
             a.apply();
         }
-        this.redraw();
         this.persistInLocalHistory();
     }
     undo() {
@@ -333,7 +323,6 @@ export class Workspace {
             a.undo();
         }
         this.forwardHistory.push(a);
-        this.redraw();
     }
     redo() {
         this.currentInteraction(null);
@@ -387,14 +376,10 @@ export class Workspace {
         }
         this.stateHistory.push(this.componentsState());
         if (ws.history != undefined) {                        
-            const h = ws.history.map(d => deserializeMutation(d, this.debugActions ? 'ready' : 'applied'));
+            const h = ws.history.map(d => deserializeMutation(d));
             if (this.debugActions) {
                 console.groupCollapsed('load actions');
-                // TODO: catch all browser errors.
-                h.forEach(a => {
-                    this.currentAction(a);
-                    this.update();
-                });
+                h.forEach(a => this.update(a, true));
                 console.groupEnd();
             } else {
                 this.history = h;
@@ -455,6 +440,5 @@ export class Workspace {
         this.redraw();
     }
 }
-
 
 export let workspace = new Workspace();

@@ -25,6 +25,10 @@ export abstract class Mutation {
     abstract serialize(): any;
 }
 
+export interface MutationSpec {
+    T: string;
+}
+
 export abstract class Interaction {
     constructor() {
         workspace.currentInteraction(this);

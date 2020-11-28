@@ -1,10 +1,9 @@
-import { Mutation, actionDeserializers, ActionState, deserializeMutation } from "../mutation";
+import { Mutation, actionDeserializers, ActionState, deserializeMutation, MutationSpec } from "../mutation";
 import { KonvaEventObject } from "konva/types/Node";
 
 const marker = 'CompoundAction';
 
-interface CompoundActionSpec {
-    typeMarker: typeof marker;
+interface CompoundActionSpec  extends MutationSpec  {
     actions: any[];
 };
 

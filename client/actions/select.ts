@@ -1,10 +1,9 @@
-import { Interaction } from "../mutation";
+import { Mutation, actionDeserializers, Interaction } from "../mutation";
 import Konva from "konva";
 import { stage, Point, currentLayer, workspace } from "../workspace";
 import { clearSelection, selectionAddresses } from "../components/selectable_component";
-import theme from '../../theme.json';
 import { KonvaEventObject } from "konva/types/Node";
-import { SelectMutation } from "../mutations/udpate_selection";
+import theme from '../../theme.json';
 
 export class SelectInteraction extends Interaction {
     rect: Konva.Rect;
@@ -50,5 +49,40 @@ export class SelectInteraction extends Interaction {
     cancel(): void {
         this.rect.remove();
         selectionAddresses(this.prevSelection);
+    }
+}
+
+const marker = 'update_selection';
+interface UpdateSelection {
+    T: 'update_selection';
+    prevSelection: string[];
+    newSelection: string[];
+}
+
+actionDeserializers.set(marker, function (s: UpdateSelection): Mutation {
+    return new SelectMutation(s.newSelection, s.prevSelection);
+});
+
+export class SelectMutation extends Mutation {
+    prevSelection: string[] = [];
+    newSelection: string[] = [];
+    constructor(prevSelection: string[], newSelection: string[]) {
+        super();
+        this.prevSelection = prevSelection;
+        this.newSelection = newSelection;
+    }
+    apply() {
+        selectionAddresses(this.newSelection);
+    }
+    undo() {
+        selectionAddresses(this.prevSelection);
+    }
+    serialize() {
+        let z: UpdateSelection = {
+            T: marker,
+            prevSelection: this.prevSelection,
+            newSelection: this.newSelection,
+        };
+        return z;
     }
 }

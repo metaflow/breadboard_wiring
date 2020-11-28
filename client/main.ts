@@ -2,22 +2,22 @@ import Konva from 'konva';
 import hotkeys from 'hotkeys-js';
 import { workspace } from './workspace';
 import { stage, currentLayer, gridAlignment, Point } from './workspace';
-import { SelectMutation } from './mutations/udpate_selection';
+import { SelectMutation } from './mutations/select';
 import { ic74x245 } from './components/74x245';
-import { PlaceComponentAction } from './mutations/add_ic_action';
+import { PlaceComponentMutation } from './mutations/add_ic_action';
 import { AddWireAction } from './mutations/add_wire';
 import { DeleteSelectionAction } from './mutations/delete_action';
 import { MoveSelectionAction } from './mutations/move_selection';
 import { onError, typeGuard } from './utils';
 import theme from '../theme.json';
 
-window.onerror = function myErrorHandler(errorMsg, url, lineNumber) {
+window.onerror = (errorMsg, url, lineNumber) => {
   onError(errorMsg, url, lineNumber);
   return false;
 };
 
 (window as any).add245 = function () {
-  workspace.currentAction(new PlaceComponentAction(new ic74x245()));
+  workspace.currentAction(new PlaceComponentMutation(new ic74x245()));
 };
 
 (window as any).clearActionsHistory = function () {

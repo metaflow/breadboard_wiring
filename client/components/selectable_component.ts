@@ -11,16 +11,14 @@ export class SelectableComponent extends Component {
             if (this._selected != v) {
                 this._selected = v;
                 this.mainColor(v ? theme.selection : theme.foreground);
-                this.updateLayout();
+                this.needsLayoutUpdate(true);
                 if (v) {
                     _selection.add(this);
                 } else {
                     _selection.delete(this);
                 }                
             }
-            this.needsLayoutUpdate(true);
-        }
-        
+        }        
         return this._selected;
     }
     materialized(b?: boolean): boolean {

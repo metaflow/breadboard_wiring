@@ -1,5 +1,5 @@
 import { IntegratedCircuitSchematic } from "../components/IC_schematic";
-import { Mutation, actionDeserializers, ActionState } from "../mutation";
+import { Mutation, actionDeserializers, ActionState, MutationSpec } from "../mutation";
 import { KonvaEventObject } from "konva/types/Node";
 import { Point, PlainPoint, stage } from "../workspace";
 import { all } from "../address";
@@ -22,7 +22,7 @@ actionDeserializers.push(function (data: any, state: ActionState): Mutation | nu
     return z;
 });
 
-interface MoveSelectionActionSpec {
+interface MoveSelectionActionSpec extends MutationSpec  {
     typeMarker: 'MoveSelectionAction';
     from: PlainPoint;
     to: PlainPoint;

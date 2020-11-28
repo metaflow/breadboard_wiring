@@ -5,7 +5,7 @@ import { Contact } from "./contact";
 import { workspace } from "../workspace";
 import { MoveSelectionAction } from "../mutations/move_selection";
 import { SelectableComponent } from "./selectable_component";
-import { SelectMutation } from "../mutations/udpate_selection";
+import { SelectMutation } from "../mutations/select";
 import theme from '../../theme.json';
 
 const marker = 'IntegratedCircuitSchematic';

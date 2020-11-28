@@ -1,4 +1,4 @@
-import { Mutation, actionDeserializers, ActionState } from '../mutation';
+import { Mutation, actionDeserializers, ActionState, MutationSpec } from '../mutation';
 import Konva from 'konva';
 import { currentLayer, Point, PlainPoint, stage } from '../workspace';
 import { Wire, WirePoint, WirePointSpec, removeRedundantPoints, addHelperPoints } from '../components/wire';
@@ -19,7 +19,7 @@ actionDeserializers.push(function (data: any, state: ActionState): Mutation | nu
   return z;
 });
 
-interface MoveWirePointActionSpec {
+interface MoveWirePointActionSpec extends MutationSpec  {
   typeMarker: 'MoveWirePointAction';
   points: string[];
   from: PlainPoint;

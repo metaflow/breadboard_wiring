@@ -1,6 +1,6 @@
 import { Addressable, address, addAddressRoot, removeAddressRoot, newAddress } from "../address";
 import Konva from "konva";
-import { Point, PlainPoint } from "../workspace";
+import { Point, PlainPoint, workspace } from "../workspace";
 import assertExists from "ts-assert-exists";
 import { error, typeGuard } from "../utils";
 import theme from '../../theme.json';
@@ -127,10 +127,16 @@ export class Component implements Addressable {
     updateLayout() {
         this._dirtyLayout = false;
         this.children.forEach(c => c.updateLayout());
-    }
+    }    
     needsLayoutUpdate(v?: boolean): boolean {
         if (v !== undefined && v !== this._dirtyLayout) {
             this._dirtyLayout = v;
+            const p = this.parent();
+            if (p == null) {
+                if (v) workspace.needsRedraw();
+            } else {
+                p.needsLayoutUpdate(v);
+            }
             this.parent()?.needsLayoutUpdate(v);
         }
         return this._dirtyLayout;
