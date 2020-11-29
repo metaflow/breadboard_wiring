@@ -1,68 +1,45 @@
 import { Mutation, actionDeserializers, MutationSpec } from "../mutation";
-import Konva from "konva";
 import { currentLayer } from "../workspace";
-import { clearSelection, selection, selectionAddresses } from "../components/selectable_component";
-import { deserializeComponent } from "../components/component";
+import { selectionAddresses } from "../components/selectable_component";
+import { Component, deserializeComponent } from "../components/component";
 
 const marker = 'DeleteSelectionAction';
 
-actionDeserializers.push(function (data: any): Mutation | null {
-    if (data['typeMarker'] !== marker) return null;
-    const s: DeleteSelectionActionSpec = data;
-    let z = new DeleteSelectionAction();
-    z.components = s.components;
-    z.prevSelection = s.prevSelection;
-    return z;
+actionDeserializers.set(marker, function (data: DeleteSelectionActionSpec): Mutation {
+    return new DeleteComponentsMutation(
+        data.components.map(c => deserializeComponent(c)),
+        data.prevSelection);
 });
 
 interface DeleteSelectionActionSpec extends MutationSpec {
-    typeMarker: 'DeleteSelectionAction';
     prevSelection: string[];    
     components: any[];
 }
 
-export class DeleteSelectionAction extends Mutation {
+export class DeleteComponentsMutation extends Mutation {
+    components: Component[];
     prevSelection: string[] = [];
-    newSelection: string[] = [];
-    components: any[] = [];
-    private constructor() {
+    constructor(components: Component[], prevSelection: string[]) {
         super();
+        this.components = components;
+        this.prevSelection = prevSelection;
     }
-    begin() {
-        super.begin();
-        this.components = selection().map(c => c.serialize());
-        this.prevSelection = selectionAddresses();
-    }
-    apply(): void {
-        super.apply();
-        selection().forEach(c => c.remove());
-        clearSelection();
+    apply(): void {       
+        this.components.forEach(c => c.remove());
     }
     undo(): void {
-        super.undo();
-        this.components.forEach(d => {
-            const c = deserializeComponent(d);
-            if (c == null) return;
-            c.updateLayout();
+        this.components.forEach(c => {
+            c.needsLayoutUpdate(true);
             c.show(currentLayer());
             c.materialized(true);
         })
         selectionAddresses(this.prevSelection);
     }
-    mousemove(event: Konva.KonvaEventObject<MouseEvent>): boolean {
-        return false;
-    }
-    mousedown(event: Konva.KonvaEventObject<MouseEvent>): boolean {
-        return false;
-    }
-    mouseup(event: Konva.KonvaEventObject<MouseEvent>): boolean {
-        return true;
-    }
     serialize() {
         let z: DeleteSelectionActionSpec = {
-            typeMarker: marker,
+            T: marker,
             prevSelection: this.prevSelection,
-            components: this.components,
+            components: this.components.map(c => c.serialize()),
         };
         return z;
     }

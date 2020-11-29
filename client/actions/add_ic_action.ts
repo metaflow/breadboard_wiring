@@ -11,7 +11,7 @@ interface PlaceComponentActionSpec extends MutationSpec {
 }
 
 mutationDeserializers.set(marker, (d: PlaceComponentActionSpec) => {
-    return new PlaceComponentMutation(deserializeComponent(d.component_spec));
+    return new AddComponentMutation(deserializeComponent(d.component_spec));
 });
 
 export class AddComponentInteraction extends Interaction {
@@ -32,12 +32,12 @@ export class AddComponentInteraction extends Interaction {
     }
     mousedown(event: KonvaEventObject<MouseEvent>): Interaction | null {
         this.component.mainColor(theme.foreground);
-        workspace.update(new PlaceComponentMutation(this.component));
+        workspace.update(new AddComponentMutation(this.component));
         return null;
     }
 }
 
-export class PlaceComponentMutation extends Mutation {
+export class AddComponentMutation extends Mutation {
     component: Component;
     xy: Point = new Point();
     constructor(component: Component) {

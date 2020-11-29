@@ -1,6 +1,6 @@
 import Konva from 'konva';
 import { pointAsNumber, Point, closesetContact, stage } from '../workspace';
-import { newAddress } from '../address';
+import { all, copy, newAddress } from '../address';
 import { Component, componentDeserializers, ComponentSpec } from './component';
 import { workspace } from '../workspace';
 import { MoveWirePointAction } from '../mutations/move_wire_point';
@@ -8,6 +8,8 @@ import { SelectableComponent } from './selectable_component';
 import { MoveSelectionAction } from '../mutations/move_selection';
 import theme from '../../theme.json';
 import { typeGuard } from '../utils';
+import { Contact } from './contact';
+import assertExists from 'ts-assert-exists';
 
 export interface WirePointSpec extends ComponentSpec {
     helper: boolean;
@@ -260,3 +262,61 @@ export function addHelperPoints(s: WirePointSpec[]): WirePointSpec[] {
     }
     return z;
 }
+
+interface SingleWireMove {
+    address: string;
+    originalPoints: WirePointSpec[];
+    affectedPointsIds: (string|undefined)[];
+    auxWire?: Wire;
+};
+
+export function moveSingleWire(dxy: Point, spec: WirePointSpec[], affectedIds: string[]): WirePointSpec[] {
+    let z: WirePointSpec[] = [];
+    const affected: boolean[] = [];
+    const fixed: boolean[] = [];
+    const nextVertical: boolean[] = [];
+    const nextHorizontal: boolean[] = [];
+    const contacts = all(Contact);
+    for (const p of spec) {
+      const a = affectedIds.indexOf(assertExists(p.id)) != -1;
+      if (p.helper && !a) continue;
+      affected.push(a);
+      fixed.push(contacts.some(c => c.absolutePosition().closeTo(new Point(p.offset))));
+      z.push(copy(p));
+    }
+    for (let i = 0; i < z.length; i++) {
+      if (i + 1 < z.length) {
+        nextVertical.push(z[i].offset.x == z[i + 1].offset.x);
+        nextHorizontal.push(z[i].offset.y == z[i + 1].offset.y);
+      }
+      if (affected[i]) {
+        z[i].offset = new Point(z[i].offset).add(dxy).alignToGrid().plain();
+      }
+    }
+    for (let i = 0; i < z.length; i++) {
+      const p = z[i];
+      if (!affected[i] || p.helper) continue;
+      if (i > 0 && !affected[i - 1] && !fixed[i - 1]) {
+        if (nextVertical[i - 1]) {
+          z[i - 1].offset.x = p.offset.x;
+        }
+        if (nextHorizontal[i - 1]) {
+          z[i - 1].offset.y = p.offset.y;
+        }
+      }
+      if (i + 1 < z.length && !affected[i + 1] && !fixed[i + 1]) {
+        if (nextVertical[i]) {
+          z[i + 1].offset.x = p.offset.x;
+        }
+        if (nextHorizontal[i]) {
+          z[i + 1].offset.y = p.offset.y;
+        }
+      }
+    }
+    for (const p of z) {
+      p.helper = false;
+    }
+    z = removeRedundantPoints(z);
+    z = addHelperPoints(z);
+    return z;
+  }

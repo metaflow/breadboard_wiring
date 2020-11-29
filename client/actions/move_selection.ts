@@ -1,109 +1,79 @@
-import { IntegratedCircuitSchematic } from "../components/IC_schematic";
-import { Mutation, actionDeserializers, ActionState, MutationSpec } from "../mutation";
+import { Mutation, Interaction } from "../mutation";
 import { KonvaEventObject } from "konva/types/Node";
-import { Point, PlainPoint, stage } from "../workspace";
+import { Point, stage, currentLayer, workspace } from "../workspace";
 import { all } from "../address";
-import { Component } from "../components/component";
-import { WirePoint } from "../components/wire";
+import { Component, deserializeComponent } from "../components/component";
+import { moveSingleWire, Wire, WirePoint } from "../components/wire";
 import { selectionByType, selectionAddresses } from "../components/selectable_component";
 import { Contact } from "../components/contact";
-import { MoveWirePointAction } from "./move_wire_point";
-import { MoveIcSchematicAction } from "./move_ic_schematic";
+import { MoveComponentMutation } from "./move_component";
 import assertExists from "ts-assert-exists";
+import { typeGuard } from "../utils";
+import theme from '../../theme.json';
+import { CompoundMutation } from "./compound";
+import { UpdateWireSpecMutation } from "./update_wire_spec";
 
-const marker = 'MoveSelectionAction';
-
-actionDeserializers.push(function (data: any, state: ActionState): Mutation | null {
-    if (data['typeMarker'] !== marker) return null;
-    const s: MoveSelectionActionSpec = data;
-    let z = new MoveSelectionAction(new Point(s.from));
-    z.selection = s.selection;
-    z.to = new Point(s.to);
-    return z;
-});
-
-interface MoveSelectionActionSpec extends MutationSpec  {
-    typeMarker: 'MoveSelectionAction';
-    from: PlainPoint;
-    to: PlainPoint;
-    selection: string[];
-}
-
-export class MoveSelectionAction extends Mutation {
+export class MoveSelectionInteraction extends Interaction {
     from: Point;
-    to: Point;
-    moveICs: MoveIcSchematicAction[] = [];
-    movePoints: MoveWirePointAction|undefined;
-    selection: string[] = [];
-    private constructor(from?: Point) {
+    components: Component[] = [];
+    auxComponents: Component[];
+    selection: string[];
+    wires = new Map<Wire, [string[], Wire]>();  // Map of "original wire" => (id of affected points, aux wire).
+    constructor() {
         super();
-        if (from == undefined) from = Point.cursor();
-        this.from = from;
-        this.to = from;        
-    }
-    begin() {
-        super.begin();
+        this.selection = selectionAddresses();
+        this.from = Point.cursor();
+        this.components = selectionByType(Component).filter(c => !typeGuard(c, WirePoint));
+        this.auxComponents = this.components.map(c => {
+            const x = deserializeComponent(c.serialize);
+            x.mainColor(theme.active);
+            x.show(currentLayer());
+            c.hide();
+            return x;
+        });
         const points = selectionByType(WirePoint);
-        const ics = selectionByType(IntegratedCircuitSchematic);
-        const cc = ics.flatMap((c: Component) => c.descendants(Contact));
+        const cc = this.components.flatMap((c: Component) => c.descendants(Contact));
         const attached = all(WirePoint).filter((p: WirePoint) => {
-            return cc.some((c: Contact) =>  c.absolutePosition().closeTo(p.absolutePosition()));
+            return cc.some((c: Contact) => c.absolutePosition().closeTo(p.absolutePosition()));
         });
         points.push(...(attached.filter((p: WirePoint) => points.indexOf(p) == -1)));
-        this.movePoints = new MoveWirePointAction(points, this.from);
-        this.movePoints.begin();
-        for (const ic of ics) {
-            const move = new MoveIcSchematicAction(ic, this.from);
-            move.begin();
-            this.moveICs.push(move);
+        for (const p of points) {
+            if (!this.wires.has(p.wire())) {
+                const w = new Wire();
+                w.mainColor(theme.active);
+                w.show(currentLayer());
+                w.alwaysShowPoints = true;
+                w.pointsSpec(p.wire().pointsSpec());
+                p.wire().hide();
+                this.wires.set(p.wire(), [[], w]);
+            }
+            this.wires.get(p.wire())![0].push(assertExists(p.id()));
         }
-        this.selection = selectionAddresses();
         stage()!.container()!.setAttribute('style', 'cursor: move');
-        // TODO: cancel should clear created actions?
     }
     cancel(): void {
-        super.cancel();
-        this.movePoints?.cancel();
-        this.moveICs.forEach(a => a.cancel());
-    }
-    apply(): void {
-        super.apply();
-        assertExists(this.movePoints);
-        this.movePoints!.to = this.to;
-        this.movePoints?.apply();
-        for (const a of this.moveICs) {
-            a.to = this.to;
-            a.apply();
-        }
+        this.components.forEach(c => c.show(currentLayer()));
+        this.wires.forEach((v, k) => k.show(currentLayer()));
         stage()!.container()!.setAttribute('style', 'cursor: auto');
     }
-    undo(): void {
-        super.undo();
-        this.movePoints?.undo();
-        this.moveICs.forEach(a => a.undo());
+    mousemove(e: KonvaEventObject<MouseEvent>): Interaction | null {
+        const d = Point.cursor().sub(this.from);
+        this.auxComponents.forEach(c => c.offset(c.offset().add(d).alignToGrid()));
+        this.wires.forEach(v => {
+            v[1].pointsSpec(moveSingleWire(d, v[1].pointsSpec(), v[0]));
+        });
+        return this;
     }
-    mousemove(event: KonvaEventObject<MouseEvent>): boolean {
-        this.to = Point.cursor();
-        this.movePoints?.mousemove(event);
-        for (const a of this.moveICs) a.mousemove(event);
-        return false;
-    }
-    mousedown(event: KonvaEventObject<MouseEvent>): boolean {
-        return false;
-    }
-    mouseup(event: KonvaEventObject<MouseEvent>): boolean {
-        this.to = Point.cursor();
-        this.movePoints?.mouseup(event);
-        for (const a of this.moveICs) a.mouseup(event);
-        return true;
-    }
-    serialize() {
-        const z: MoveSelectionActionSpec = {
-            typeMarker: marker,
-            from: this.from.plain(),
-            to: this.to.plain(),
-            selection: this.selection,
-        };
-        return z;
+    mouseup(event: KonvaEventObject<MouseEvent>): Interaction | null {        
+        const mm: Mutation[] = [];
+        for (const c of this.components) {
+            mm.push(new MoveComponentMutation(c.address(), this.from, Point.cursor()));
+        }
+        this.wires.forEach((v, k) => {
+            mm.push(new UpdateWireSpecMutation(k.address(), k.pointsSpec(), v[1].pointsSpec()));
+        });
+        workspace.update(new CompoundMutation(mm));
+        this.cancel();
+        return null;
     }
 }

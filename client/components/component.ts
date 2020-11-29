@@ -8,6 +8,7 @@ import theme from '../../theme.json';
 export const componentDeserializers: { (data: any): (Component | null) }[] = [];
 
 export interface ComponentSpec {
+    // TODO: add T type marker as with Mutation.
     offset: PlainPoint;
     id?: string;
 }
@@ -108,14 +109,15 @@ export class Component implements Addressable {
         if (this._dirtyLayout) this.updateLayout();
         this.shapes.moveTo(layer);
         this.children.forEach(c => c.show(layer));
+        workspace.needsRedraw();
     }
     hide() {
         this.shapes.remove();
         this.children.forEach(c => c.hide());
+        workspace.needsRedraw();
     }
     remove() {
         this.hide();
-        this.children.forEach(v => v.remove());
         this.materialized(false);
         this.parent(null);
     }
@@ -127,7 +129,7 @@ export class Component implements Addressable {
     updateLayout() {
         this._dirtyLayout = false;
         this.children.forEach(c => c.updateLayout());
-    }    
+    }
     needsLayoutUpdate(v?: boolean): boolean {
         if (v !== undefined && v !== this._dirtyLayout) {
             this._dirtyLayout = v;
