@@ -184,7 +184,7 @@ export class Workspace {
         this.stateHistory.push(this.componentsState());
     }
     currentInteraction(a?: Interaction | null): Interaction | null {  // TODO: move outside of workspace?
-        if (a !== undefined) {                     
+        if (a !== undefined) {
             this._currentInteraction?.cancel();
             this._currentInteraction = a;
         }
@@ -195,8 +195,8 @@ export class Workspace {
     }
     onMouseDown(e: Konva.KonvaEventObject<MouseEvent>) {
         e.evt.preventDefault(); // Disable scroll on middle button click. TODO: check button?
-        if (this.currentInteraction() != null) {
-            this.currentInteraction(this.currentInteraction()?.mousedown(e));
+        if (this._currentInteraction != null) {
+            this._currentInteraction = this._currentInteraction.mousedown(e);
             return;
         }
         // Left button.
@@ -210,7 +210,7 @@ export class Workspace {
             return;
         }
         // Middle button.
-        if (e.evt.button == 1) { 
+        if (e.evt.button == 1) {
             // TODO: convert scene dragging to interaction.
             this.draggingScene = true;
             this.draggingOrigin = Point.screenCursor();
@@ -218,10 +218,10 @@ export class Workspace {
         }
     }
     onMouseUp(event: Konva.KonvaEventObject<MouseEvent>) {
-        if (this.currentInteraction() != null) {
-            this.currentInteraction(this.currentInteraction()?.mouseup(event));
+        if (this._currentInteraction != null) {
+            this._currentInteraction = this._currentInteraction.mouseup(event);
             return;
-        }        
+        }
         this.draggingScene = false;
     }
     onMouseWheel(e: Konva.KonvaEventObject<WheelEvent>) {
@@ -238,8 +238,8 @@ export class Workspace {
         workspace.delayedPersistInLocalHistory();
     }
     onMouseMove(event: Konva.KonvaEventObject<MouseEvent>) {
-        if (this.currentInteraction() != null) {
-            this.currentInteraction(this.currentInteraction()?.mousemove(event));
+        if (this._currentInteraction != null) {
+            this._currentInteraction = this._currentInteraction.mousemove(event);
             return;
         }
         if (this.draggingScene) {
@@ -251,7 +251,7 @@ export class Workspace {
             workspace.delayedPersistInLocalHistory();
         }
     }
-    update(a: Mutation, keepForwardHistory: boolean = false) {        
+    update(a: Mutation, keepForwardHistory: boolean = false) {
         this.history.push(a);
         if (!keepForwardHistory) this.forwardHistory = [];
         if (this.debugActions) {
@@ -329,7 +329,7 @@ export class Workspace {
         this.currentInteraction(null);
         const x = this.forwardHistory.pop();
         if (x != undefined) this.update(x, true);
-    }    
+    }
     persistInLocalHistory() {
         if (this.loading) return;
         localStorage.setItem('actions_history', JSON.stringify(this.serialize()));
@@ -376,7 +376,7 @@ export class Workspace {
             console.log(this.componentsState(), currentLayer());
         }
         this.stateHistory.push(this.componentsState());
-        if (ws.history != undefined) {                        
+        if (ws.history != undefined) {
             const h = ws.history.map(d => deserializeMutation(d));
             if (this.debugActions) {
                 console.groupCollapsed('load actions');
@@ -438,6 +438,7 @@ export class Workspace {
     }
     needsRedraw() {
         // TODO: postpone until user interaction is over. With set timeout?
+        // console.log('redraw');
         this.redraw();
     }
 }

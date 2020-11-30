@@ -22,12 +22,13 @@ export class AddComponentInteraction extends Interaction {
         this.component.mainColor(theme.active);
         this.component.show(currentLayer());
     }
-    cancel(): void {
-        this.component.materialized(false);
+    cancel() {
         this.component.hide();
     }
     mousemove(event: KonvaEventObject<MouseEvent>): Interaction | null {
         this.component.offset(Point.cursor().alignToGrid());
+        this.component.updateLayout();
+        workspace.needsRedraw();
         return this;
     }
     mousedown(event: KonvaEventObject<MouseEvent>): Interaction | null {
