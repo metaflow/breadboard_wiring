@@ -1,13 +1,12 @@
 import Konva from 'konva';
 import { Contact } from './components/contact';
-import { addAddressRoot, roots } from './address';
+import { roots } from './address';
 import { Component, deserializeComponent } from './components/component';
 import { selection, selectionAddresses } from './components/selectable_component';
-import { assert, error, typeGuard } from './utils';
+import { error, typeGuard } from './utils';
 import { Mutation, deserializeMutation, Interaction } from './mutation';
 import { diffString } from 'json-diff';
-import { SelectMutation } from './mutations/select';
-import { SelectInteraction } from './interactions/select';
+import { SelectInteraction, UpdateSelectionMutation } from './actions/select';
 
 let _stage: Konva.Stage | null = null;
 let _gridAlignment: number | null = null;
@@ -191,6 +190,9 @@ export class Workspace {
         }
         return this._currentInteraction;
     }
+    cancelInteractions() {
+        this.currentInteraction()?.cancel();
+    }
     onMouseDown(e: Konva.KonvaEventObject<MouseEvent>) {
         e.evt.preventDefault(); // Disable scroll on middle button click. TODO: check button?
         if (this.currentInteraction() != null) {
@@ -204,7 +206,7 @@ export class Workspace {
         }
         // Right click: deselect all.
         if (e.evt.button == 2 && selection().length > 0) {
-            workspace.update(new SelectMutation(selectionAddresses(), []));
+            workspace.update(new UpdateSelectionMutation(selectionAddresses(), []));
             return;
         }
         // Middle button.
@@ -221,7 +223,6 @@ export class Workspace {
             return;
         }        
         this.draggingScene = false;
-        return true;
     }
     onMouseWheel(e: Konva.KonvaEventObject<WheelEvent>) {
         // TODO: add mousewheel as interaction method.

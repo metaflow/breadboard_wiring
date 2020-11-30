@@ -3,10 +3,9 @@ import Konva from "konva";
 import { pointAsNumber, Point } from "../workspace";
 import { Contact } from "./contact";
 import { workspace } from "../workspace";
-import { MoveSelectionAction } from "../mutations/move_selection";
-import { SelectableComponent } from "./selectable_component";
-import { SelectMutation } from "../mutations/select";
-import theme from '../../theme.json';
+import { SelectableComponent, selectionAddresses } from "./selectable_component";
+import { UpdateSelectionMutation } from "../actions/select";
+import { MoveSelectionInteraction } from "../actions/move_selection";
 
 const marker = 'IntegratedCircuitSchematic';
 
@@ -170,19 +169,16 @@ export class IntegratedCircuitSchematic extends SelectableComponent {
     setupEvents() {
         const o = this;
         const f = (e: Konva.KonvaEventObject<MouseEvent>) => {
-            if (workspace.currentAction()) {
+            if (workspace.currentInteraction()) {
                 workspace.onMouseDown(e);
                 return;
             }
             if (e.evt.button != 0) return;
             e.cancelBubble = true;
             if (!this.selected()) {
-                const a = new SelectMutation();
-                a.newSelection = [o.address()];
-                workspace.currentAction(a);
-                workspace.update();
+                workspace.update(new UpdateSelectionMutation(selectionAddresses(), [o.address()]));
             }
-            workspace.currentAction(new MoveSelectionAction());
+            new MoveSelectionInteraction();
         };
         this.rect.on('mousedown', f);
         this.right_labels.forEach(x => x.on('mousedown', f));

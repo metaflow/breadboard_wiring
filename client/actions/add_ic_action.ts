@@ -1,4 +1,4 @@
-import { Mutation, actionDeserializers as mutationDeserializers, ActionState, Interaction, MutationSpec } from "../mutation";
+import { Mutation, actionDeserializers as mutationDeserializers, Interaction, MutationSpec } from "../mutation";
 import { KonvaEventObject } from "konva/types/Node";
 import { Component, deserializeComponent } from "../components/component";
 import { currentLayer, Point, PlainPoint, workspace } from "../workspace";

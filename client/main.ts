@@ -1,15 +1,17 @@
 import Konva from 'konva';
 import hotkeys from 'hotkeys-js';
 import { workspace } from './workspace';
-import { stage, currentLayer, gridAlignment, Point } from './workspace';
-import { SelectMutation } from './mutations/select';
+import { stage, currentLayer, gridAlignment } from './workspace';
 import { ic74x245 } from './components/74x245';
-import { PlaceComponentMutation } from './mutations/add_ic_action';
-import { AddWireAction } from './mutations/add_wire';
-import { DeleteSelectionAction } from './mutations/delete_action';
-import { MoveSelectionAction } from './mutations/move_selection';
 import { onError, typeGuard } from './utils';
 import theme from '../theme.json';
+import { AddWireInteraction } from './actions/add_wire';
+import { SelectInteraction } from './actions/select';
+import { MoveSelectionInteraction } from './actions/move_selection';
+import { DeleteComponentsMutation } from './actions/delete_action';
+import { selectionAddresses, selectionByType } from './components/selectable_component';
+import { Component } from './components/component';
+import { AddComponentInteraction } from './actions/add_ic_action';
 
 window.onerror = (errorMsg, url, lineNumber) => {
   onError(errorMsg, url, lineNumber);
@@ -17,7 +19,7 @@ window.onerror = (errorMsg, url, lineNumber) => {
 };
 
 (window as any).add245 = function () {
-  workspace.currentAction(new PlaceComponentMutation(new ic74x245()));
+  new AddComponentInteraction(new ic74x245());
 };
 
 (window as any).clearActionsHistory = function () {
@@ -26,17 +28,20 @@ window.onerror = (errorMsg, url, lineNumber) => {
 };
 
 (window as any).addOrthogonal = function() {
-  workspace.currentAction(new AddWireAction());
+  workspace.cancelInteractions();
+  new AddWireInteraction();
 };
 
 (window as any).toolSelect = function() {
-  workspace.currentAction(new SelectMutation());
+  workspace.cancelInteractions();
+  new SelectInteraction();
 };
 
 (window as any).deleteSelection = deleteSelection;
 
 (window as any).moveSelection = function() {
-  workspace.currentAction(new MoveSelectionAction());
+  workspace.cancelInteractions();
+  new MoveSelectionInteraction();
 };
 
 (window as any).downloadScene = function() {
@@ -52,7 +57,7 @@ window.onerror = (errorMsg, url, lineNumber) => {
 };
 
 const fileSelector = document.getElementById('file-selector') as HTMLInputElement;
-fileSelector?.addEventListener('change', (event: Event) => {  
+fileSelector?.addEventListener('change', () => {  
   const fileList = fileSelector.files;
   if (fileList == null) return;
   const file = fileList.item(0);
@@ -69,8 +74,8 @@ fileSelector?.addEventListener('change', (event: Event) => {
 });
 
 function deleteSelection() {
-  workspace.currentAction(new DeleteSelectionAction());
-  workspace.update();
+  workspace.cancelInteractions();
+  workspace.update(new DeleteComponentsMutation(selectionByType(Component), selectionAddresses()));
 }
 
 // first we need to create a stage
@@ -108,7 +113,7 @@ stage().on('mouseup', function(e) {
 
 hotkeys('esc', function (e) {
   e.preventDefault();
-  workspace.cancelCurrentInteraction();
+  workspace.cancelInteractions();
 });
 
 hotkeys('ctrl+z', function (e) {
@@ -121,7 +126,7 @@ hotkeys('ctrl+y', function (e) {
   workspace.redo();
 });
 
-hotkeys('del', function (e) {
+hotkeys('del', function () {
   deleteSelection();
 });
 

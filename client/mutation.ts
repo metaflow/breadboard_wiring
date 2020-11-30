@@ -1,5 +1,5 @@
 import Konva from 'konva';
-import { assert, error, TypeMarker } from './utils';
+import { assert } from './utils';
 import { workspace } from './workspace';
 
 /* active - (finish) ->  ready - (apply) -> applied
@@ -14,7 +14,7 @@ import { workspace } from './workspace';
 export const actionDeserializers = new Map<string, { (data: any): Mutation }>();
 
 export function deserializeMutation(data: any): Mutation {
-    const t = data[TypeMarker];
+    const t = data.T;
     assert(actionDeserializers.has(t), t);
     return actionDeserializers.get(t)!(data)!;
 }

@@ -43,7 +43,7 @@ export class SelectInteraction extends Interaction {
     mouseup(event: KonvaEventObject<MouseEvent>): Interaction | null {
         if (this.rect == null) return this;
         this.rect.remove();
-        workspace.update(new SelectMutation(this.prevSelection, selectionAddresses()));
+        workspace.update(new UpdateSelectionMutation(this.prevSelection, selectionAddresses()));
         return null;
     }
     cancel(): void {
@@ -60,10 +60,10 @@ interface UpdateSelection {
 }
 
 actionDeserializers.set(marker, function (s: UpdateSelection): Mutation {
-    return new SelectMutation(s.newSelection, s.prevSelection);
+    return new UpdateSelectionMutation(s.newSelection, s.prevSelection);
 });
 
-export class SelectMutation extends Mutation {
+export class UpdateSelectionMutation extends Mutation {
     prevSelection: string[] = [];
     newSelection: string[] = [];
     constructor(prevSelection: string[], newSelection: string[]) {

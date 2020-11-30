@@ -1,17 +1,7 @@
-import { IntegratedCircuitSchematic } from "../components/IC_schematic";
-import { Mutation, actionDeserializers, ActionState, MutationSpec, Interaction } from "../mutation";
-import { KonvaEventObject } from "konva/types/Node";
-import { Point, PlainPoint, stage, currentLayer } from "../workspace";
-import { all, getTypedByAddress } from "../address";
-import { Component, deserializeComponent } from "../components/component";
-import { moveSingleWire, Wire, WirePoint, WirePointSpec } from "../components/wire";
-import { selectionByType, selectionAddresses } from "../components/selectable_component";
-import { Contact } from "../components/contact";
-import { MoveComponentMutation } from "./move_component";
+import { Mutation, actionDeserializers, MutationSpec } from "../mutation";
+import { getTypedByAddress } from "../address";
+import { Wire, WirePointSpec } from "../components/wire";
 import assertExists from "ts-assert-exists";
-import { typeGuard } from "../utils";
-import theme from '../../theme.json';
-import { CompoundMutation } from "./compound";
 import { classToPlain, plainToClass } from "class-transformer";
 
 const marker = 'UpdateWireSpec';

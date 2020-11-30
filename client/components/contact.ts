@@ -1,8 +1,8 @@
 import Konva from "konva";
+import { AddWireInteraction } from "../actions/add_wire";
 import { workspace } from "../workspace";
 import { addContact, removeContact } from "../workspace";
 import { ComponentSpec } from "./component";
-import { AddWireAction } from "../mutations/add_wire";
 import { SelectableComponent } from "./selectable_component";
 
 const radius = 2;
@@ -34,13 +34,14 @@ export class Contact extends SelectableComponent {
     setupEvents() {
         const o = this;
         this.circle.on('mousedown', function (e) {            
-            if (workspace.currentAction()) {
+            if (workspace.currentInteraction()) {
                 workspace.onMouseDown(e);
                 return;
             }
             if (e.evt.button != 0) return;
             e.cancelBubble = true;
-            workspace.currentAction(new AddWireAction(o.absolutePosition()));
+            // TODO: if there is an existing wire.
+            new AddWireInteraction(o.absolutePosition());
         });
     }
     updateLayout(): void {

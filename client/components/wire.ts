@@ -3,13 +3,13 @@ import { pointAsNumber, Point, closesetContact, stage } from '../workspace';
 import { all, copy, newAddress } from '../address';
 import { Component, componentDeserializers, ComponentSpec } from './component';
 import { workspace } from '../workspace';
-import { MoveWirePointAction } from '../mutations/move_wire_point';
-import { SelectableComponent } from './selectable_component';
-import { MoveSelectionAction } from '../mutations/move_selection';
+import { SelectableComponent, selectionAddresses } from './selectable_component';
 import theme from '../../theme.json';
 import { typeGuard } from '../utils';
 import { Contact } from './contact';
 import assertExists from 'ts-assert-exists';
+import { MoveSelectionInteraction } from '../actions/move_selection';
+import { UpdateSelectionMutation } from '../actions/select';
 
 export interface WirePointSpec extends ComponentSpec {
     helper: boolean;
@@ -51,17 +51,16 @@ export class WirePoint extends SelectableComponent {
         });
         const point = this;
         this.selectionRect.on('mousedown', function (e) {
-            if (workspace.currentAction()) {
+            if (workspace.currentInteraction()) {
                 workspace.onMouseDown(e);
                 return;
             }
             if (e.evt.button != 0) return;
             e.cancelBubble = true;
-            if (point.selected()) {
-                workspace.currentAction(new MoveSelectionAction());
-            } else {
-                workspace.currentAction(new MoveWirePointAction([point], Point.cursor()));
+            if (!point.selected()) {
+                workspace.update(new UpdateSelectionMutation(selectionAddresses(), [point.address()]));
             }
+            new MoveSelectionInteraction();
         });
         this.selectionRect.on('mouseover mouseout', function (e: any) {
             const wire = point.parent();
