@@ -1,8 +1,9 @@
 import Konva from 'konva';
-import { removeRedundantPoints, addHelperPoints, WirePointSpec } from '../components/wire';
+import { removeRedundantPoints, addHelperPoints, WirePointSpec, Wire } from '../components/wire';
 import { Interaction } from '../mutation';
 import { currentLayer, pointAsNumber, Point, closesetContact, workspace } from '../workspace';
 import theme from '../../theme.json';
+import { AddComponentMutation } from './add_ic_action';
 
 export class AddWireInteraction extends Interaction {
     line: Konva.Line | undefined;
@@ -62,6 +63,7 @@ export class AddWireInteraction extends Interaction {
         return this;
     }
     complete() {
+        console.log('complete wire');
         this.removeHelpers();
         let specs: WirePointSpec[] = [];
         for (const p of this.points) {
@@ -73,6 +75,9 @@ export class AddWireInteraction extends Interaction {
         }
         specs = removeRedundantPoints(specs);
         specs = addHelperPoints(specs);
+        const wire = new Wire();
+        wire.pointsSpec(specs);
+        workspace.update(new AddComponentMutation(wire));
     }
     removeHelpers() {
         this.line?.remove();

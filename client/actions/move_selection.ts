@@ -25,7 +25,7 @@ export class MoveSelectionInteraction extends Interaction {
         this.from = Point.cursor();
         this.components = selectionByType(Component).filter(c => !typeGuard(c, WirePoint));
         this.auxComponents = this.components.map(c => {
-            const x = deserializeComponent(c.serialize);
+            const x = deserializeComponent(c.serialize());
             x.mainColor(theme.active);
             x.show(currentLayer());
             c.hide();
@@ -58,17 +58,21 @@ export class MoveSelectionInteraction extends Interaction {
     }
     mousemove(e: KonvaEventObject<MouseEvent>): Interaction | null {
         const d = Point.cursor().sub(this.from);
-        this.auxComponents.forEach(c => c.offset(c.offset().add(d).alignToGrid()));
+        this.auxComponents.forEach((c, i) => {
+            c.offset(this.components[i].offset().add(d).alignToGrid());
+            c.updateLayout();
+        });
         this.wires.forEach(v => {
             v[1].pointsSpec(moveSingleWire(d, v[1].pointsSpec(), v[0]));
         });
+        workspace.needsRedraw();
         return this;
     }
     mouseup(event: KonvaEventObject<MouseEvent>): Interaction | null {        
         const mm: Mutation[] = [];
-        for (const c of this.components) {
-            mm.push(new MoveComponentMutation(c.address(), this.from, Point.cursor()));
-        }
+        this.components.forEach((c, i) => {
+            mm.push(new MoveComponentMutation(c.address(), this.from, this.auxComponents[i].offset()));
+        });
         this.wires.forEach((v, k) => {
             mm.push(new UpdateWireSpecMutation(k.address(), k.pointsSpec(), v[1].pointsSpec()));
         });

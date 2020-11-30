@@ -109,12 +109,12 @@ export class Component implements Addressable {
         if (this._dirtyLayout) this.updateLayout();
         this.shapes.moveTo(layer);
         this.children.forEach(c => c.show(layer));
-        workspace.needsRedraw();
+        if (this.parent() == null) workspace.addVisibleComponent(this);
     }
     hide() {
         this.shapes.remove();
         this.children.forEach(c => c.hide());
-        workspace.needsRedraw();
+        if (this.parent() == null) workspace.removeVisibleComponent(this);
     }
     remove() {
         this.hide();
@@ -130,6 +130,7 @@ export class Component implements Addressable {
         this._dirtyLayout = false;
         this.children.forEach(c => c.updateLayout());
     }
+    // TODO: make it parameter-less.
     needsLayoutUpdate(v?: boolean): boolean {
         if (v !== undefined && v !== this._dirtyLayout) {
             this._dirtyLayout = v;
@@ -139,7 +140,6 @@ export class Component implements Addressable {
             } else {
                 p.needsLayoutUpdate(v);
             }
-            this.parent()?.needsLayoutUpdate(v);
         }
         return this._dirtyLayout;
     }

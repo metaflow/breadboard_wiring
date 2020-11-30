@@ -6,29 +6,23 @@ import { KonvaEventObject } from "konva/types/Node";
 import theme from '../../theme.json';
 
 export class SelectInteraction extends Interaction {
-    rect: Konva.Rect;
+    rect: Konva.Rect|null = null;
     prevSelection: string[];
     constructor() {
         super();
-        this.prevSelection = selectionAddresses();
-        let pos = Point.cursor();
-        this.rect = new Konva.Rect({
-            x: pos.x,
-            y: pos.y,
-            stroke: theme.selection,
-            strokeWidth: 1,
-        });
+        this.prevSelection = selectionAddresses();        
     }
     mousemove(event: KonvaEventObject<MouseEvent>): Interaction | null {
         if (this.rect == null) return this;
         let pos = Point.cursor();
         this.rect.width(pos.x - this.rect.x());
-        this.rect.height(pos.y - this.rect.y());
-        clearSelection();
-        selectionAddresses(this.selected());
-        return null;
+        this.rect.height(pos.y - this.rect.y());        
+        workspace.needsRedraw();
+        selectionAddresses(this.selected());        
+        return this;
     }
     selected(): string[] {
+        if (this.rect == null) return [];
         const r = this.rect.getClientRect(null);
         return stage().find('.selectable')
             .toArray()
@@ -37,17 +31,24 @@ export class SelectInteraction extends Interaction {
     }
     mousedown(event: KonvaEventObject<MouseEvent>): Interaction | null {
         if (this.rect != null) return this;
+        let pos = Point.cursor();
+        this.rect = new Konva.Rect({
+            x: pos.x,
+            y: pos.y,
+            stroke: theme.selection,
+            strokeWidth: 1,
+        });
         currentLayer()?.add(this.rect);
         return this;
     }
     mouseup(event: KonvaEventObject<MouseEvent>): Interaction | null {
-        if (this.rect == null) return this;
-        this.rect.remove();
-        workspace.update(new UpdateSelectionMutation(this.prevSelection, selectionAddresses()));
+        this.rect?.remove();
+        workspace.needsRedraw();
+        workspace.update(new UpdateSelectionMutation(this.prevSelection, selectionAddresses()));        
         return null;
     }
     cancel(): void {
-        this.rect.remove();
+        this.rect?.remove();
         selectionAddresses(this.prevSelection);
     }
 }

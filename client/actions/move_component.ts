@@ -25,10 +25,10 @@ export class MoveComponentMutation extends Mutation {
         this.from = from;
     }
     apply(): void {
-        assertExists(getTypedByAddress(Component)).offset(this.to);
+        assertExists(getTypedByAddress(Component, this.address)).offset(this.to);
     }
     undo(): void {
-        assertExists(getTypedByAddress(Component)).offset(this.from);
+        assertExists(getTypedByAddress(Component, this.address)).offset(this.from);
     }  
     serialize() {
         const z: MoveComponentMutationSpec = {

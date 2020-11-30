@@ -178,8 +178,10 @@ export class Workspace {
     private history: Mutation[] = [];
     private forwardHistory: Mutation[] = [];
     private loading = false;
-    stateHistory: StageState[] = [];
-    persistTimeout: number | undefined;
+    private stateHistory: StageState[] = [];
+    private persistTimeout: number | undefined;
+    private visibleComponents = new Set<Component>();
+    private willRedraw = false;
     constructor() {
         this.stateHistory.push(this.componentsState());
     }
@@ -201,11 +203,13 @@ export class Workspace {
         }
         // Left button.
         if (e.evt.button == 0) {
+            console.log('start new selection');
             new SelectInteraction().mousedown(e);
             return;
         }
         // Right click: deselect all.
-        if (e.evt.button == 2 && selection().length > 0) {
+        if (e.evt.button == 2) {
+            console.log('deselect all', selection().length);
             workspace.update(new UpdateSelectionMutation(selectionAddresses(), []));
             return;
         }
@@ -429,17 +433,27 @@ export class Workspace {
         })
     }
     redraw() {
-        roots.forEach(v => {
-            if (typeGuard(v, Component)) {
-                if (v.needsLayoutUpdate()) v.updateLayout();
-            }
-        });
+        this.willRedraw = false;
+        this.visibleComponents.forEach(c => {
+            if (c.needsLayoutUpdate()) c.updateLayout();
+        });        
         stage().batchDraw();
     }
     needsRedraw() {
         // TODO: postpone until user interaction is over. With set timeout?
         // console.log('redraw');
-        this.redraw();
+        if (this.willRedraw) return;
+        this.willRedraw = true;
+        const o = this;
+        window.setTimeout(() => { o.redraw(); }, 0);
+    }
+    addVisibleComponent(c: Component) {
+        this.visibleComponents.add(c);
+        this.needsRedraw();
+    }
+    removeVisibleComponent(c: Component) {
+        this.visibleComponents.delete(c);
+        this.needsRedraw();
     }
 }
 

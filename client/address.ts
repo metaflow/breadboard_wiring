@@ -27,7 +27,7 @@ export function removeAddressRoot(id: string) {
     roots.delete(id);
 }
 
-export function getTypedByAddress<T>(q: { new(...args: any[]): T }, address?: string): T | null {
+export function getTypedByAddress<T>(q: { new(...args: any[]): T }, address: string): T | null {
     let t = getByAddress(address);
     if (typeGuard(t, q)) return t as T;
     error(t, 'is not an instance of', q);
@@ -38,7 +38,7 @@ export function copy<T>(v: T): T {
     return JSON.parse(JSON.stringify(v));
 }
 
-export function getByAddress(address?: string): any | null {
+export function getByAddress(address: string): any | null {
     if (address == null) {
         error('passed address is null', address);
         return null;

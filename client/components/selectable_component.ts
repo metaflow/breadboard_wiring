@@ -6,17 +6,16 @@ import theme from '../../theme.json';
 export class SelectableComponent extends Component {
     _selected: boolean = false;
     selectableInterface: true = true; 
-    selected(v?: boolean | undefined): boolean {        
+    selected(v?: boolean): boolean {        
         if (v !== undefined) {
             if (this._selected != v) {
                 this._selected = v;
                 this.mainColor(v ? theme.selection : theme.foreground);
-                this.needsLayoutUpdate(true);
                 if (v) {
                     _selection.add(this);
                 } else {
                     _selection.delete(this);
-                }                
+                }
             }
         }        
         return this._selected;
@@ -41,6 +40,7 @@ export function selectionByType<T>(q: { new(...args: any[]): T }): T[] {
 
 export function selectionAddresses(s?: string[]): string[] {
     if (s !== undefined) {
+        // TODO: only deselect what is no longer selected.
         clearSelection();
         s.forEach(a => {
             const t = getTypedByAddress(SelectableComponent, a);
