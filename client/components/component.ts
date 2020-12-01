@@ -113,7 +113,8 @@ export class Component implements Addressable {
     }
     hide() {
         this.shapes.remove();
-        this.children.forEach(c => c.hide());
+        workspace.needsRedraw();
+        this.children.forEach(c => c.hide());        
         if (this.parent() == null) workspace.removeVisibleComponent(this);
     }
     remove() {

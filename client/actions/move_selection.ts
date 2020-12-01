@@ -51,9 +51,13 @@ export class MoveSelectionInteraction extends Interaction {
         }
         stage()!.container()!.setAttribute('style', 'cursor: move');
     }
-    cancel(): void {
+    cancel() {
         this.components.forEach(c => c.show(currentLayer()));
-        this.wires.forEach((v, k) => k.show(currentLayer()));
+        this.wires.forEach((v, k) => {
+            k.show(currentLayer());
+            v[1].remove();
+        });
+        this.auxComponents.forEach(c => c.remove());
         stage()!.container()!.setAttribute('style', 'cursor: auto');
     }
     mousemove(e: KonvaEventObject<MouseEvent>): Interaction | null {
