@@ -5,7 +5,7 @@ import theme from '../../theme.json';
 
 export class SelectableComponent extends Component {
     _selected: boolean = false;
-    selectableInterface: true = true; 
+    selectableInterface: true = true;  // TODO: needed?
     selected(v?: boolean): boolean {        
         if (v !== undefined) {
             if (this._selected != v) {

@@ -1,5 +1,5 @@
 import Konva from 'konva';
-import { removeRedundantPoints, addHelperPoints, WirePointSpec, Wire } from '../components/wire';
+import { removeRedundantPoints, addHelperPoints, WirePointSpec, Wire, newWirePointSpec } from '../components/wire';
 import { Interaction } from '../mutation';
 import { currentLayer, pointAsNumber, Point, closesetContact, workspace } from '../workspace';
 import theme from '../../theme.json';
@@ -48,9 +48,9 @@ export class AddWireInteraction extends Interaction {
             if (this.points.length >= 2) {
                 this.complete();
                 return null;
-            }            
+            }
             return this;
-        } 
+        }
         const xy = Point.cursor().alignToGrid();
         this.points.push(xy);
         const c = closesetContact(xy);
@@ -63,16 +63,8 @@ export class AddWireInteraction extends Interaction {
         return this;
     }
     complete() {
-        console.log('complete wire');
         this.removeHelpers();
-        let specs: WirePointSpec[] = [];
-        for (const p of this.points) {
-            let s: WirePointSpec = {
-                helper: false,
-                offset: p.plain(),
-            };
-            specs.push(s);
-        }
+        let specs: WirePointSpec[] = this.points.map(p => newWirePointSpec(p.plain(), false));
         specs = removeRedundantPoints(specs);
         specs = addHelperPoints(specs);
         const wire = new Wire();

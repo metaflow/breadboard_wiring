@@ -24,6 +24,7 @@ export class Breadboard extends Component {
                 if ((j == 0 || j == 1 || j == 18 || j == 19) &&
                     (i == 0 || ((i - 1) % 6 == 0) || i == 62)) continue;
                 const c = new Contact({
+                    T: '',
                     id: letters[j] + (i + 1), 
                     offset: new Point(left + i * p_contact, top + j * p_contact).plain(),
                 });

@@ -1,5 +1,5 @@
 import Konva from 'konva';
-import { pointAsNumber, Point, closesetContact, stage } from '../workspace';
+import { pointAsNumber, Point, closesetContact, stage, PlainPoint } from '../workspace';
 import { all, copy, newAddress } from '../address';
 import { Component, componentDeserializers, ComponentSpec } from './component';
 import { workspace } from '../workspace';
@@ -97,31 +97,25 @@ export class WirePoint extends SelectableComponent {
         return this.parent() as Wire;
     }
     serialize(): any {
-        return {
-            address: this.materialized() ? this.address() : undefined,
-            helper: this.helper,
-            offset: this._offset.plain(),
-            id: this._id,
-        } as WirePointSpec;
+        const z = super.serialize() as WirePointSpec;
+        z.helper = this.helper;
+        return z;
     }
+}
+
+export function newWirePointSpec(p: PlainPoint, helper: boolean): WirePointSpec {
+    return {
+        T: WirePoint.name,
+        helper: helper,
+        offset: p,
+    };
 }
 
 const wireWidth = 1;
 
 export interface WireSpec extends ComponentSpec {
-    typeMarker: string;
     points: WirePointSpec[];
 }
-
-const marker = 'Wire';
-
-componentDeserializers.push(function (data: any): (Wire | null) {
-    if (data['typeMarker'] !== marker) {
-        return null
-    }
-    return new Wire(data['spec'] as WireSpec);
-});
-
 
 export class Wire extends Component {
     line: Konva.Line;
@@ -192,12 +186,9 @@ export class Wire extends Component {
         return o.points.map(p => p.serialize());
     }
     serialize(): any {
-        return {
-            typeMarker: marker,
-            points: this.pointsSpec(),
-            offset: this._offset.plain(),
-            id: this._id,
-        } as WireSpec;
+        const z = super.serialize() as WireSpec;
+        z.points = this.pointsSpec();
+        return z;
     }
     onPointEvent(eventType: string) {
         this.hoverPoint = eventType == 'mouseover';
@@ -205,6 +196,10 @@ export class Wire extends Component {
         workspace.redraw();
     }
 }
+
+componentDeserializers.set(Wire.name, function (data: any): Wire {
+    return new Wire(data);
+});
 
 export function removeRedundantPoints(s: WirePointSpec[]): WirePointSpec[] {
     // Make sure that on every line there are 3 points.
@@ -252,10 +247,10 @@ export function addHelperPoints(s: WirePointSpec[]): WirePointSpec[] {
     const z: WirePointSpec[] = [];
     for (let k = 0; k < s.length; k++) {
         if (k > 0) {
-            z.push({
-                offset: new Point(s[k - 1].offset).add(new Point(s[k].offset)).s(0.5).plain(),
-                helper: true,
-            });
+            z.push(newWirePointSpec(
+                new Point(s[k - 1].offset).add(new Point(s[k].offset)).s(0.5).plain(),
+                true,
+            ));
         }
         z.push(s[k]);
     }

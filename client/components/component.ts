@@ -2,13 +2,11 @@ import { Addressable, address, addAddressRoot, removeAddressRoot, newAddress } f
 import Konva from "konva";
 import { Point, PlainPoint, workspace } from "../workspace";
 import assertExists from "ts-assert-exists";
-import { error, typeGuard } from "../utils";
+import { assert, error, typeGuard } from "../utils";
 import theme from '../../theme.json';
 
-export const componentDeserializers: { (data: any): (Component | null) }[] = [];
-
 export interface ComponentSpec {
-    // TODO: add T type marker as with Mutation.
+    T: string;
     offset: PlainPoint;
     id?: string;
 }
@@ -154,6 +152,7 @@ export class Component implements Addressable {
     }
     serialize(): any {
         const z: ComponentSpec = {
+            T: this.constructor.name,
             id: this._id,
             offset: this._offset.plain(),
         };
@@ -171,11 +170,10 @@ export class Component implements Addressable {
     }    
 }
 
-export function deserializeComponent(data: any): Component { // TODO: check call places and remove null checks.
-    for (const d of componentDeserializers) {
-        let c = d(data);
-        if (c !== null) return c;
-    }
-    error('none of deserializers accepted', data);
-    throw new Error('none of deserializers accepted');
+export const componentDeserializers = new Map<string, { (data: any): Component }>();
+
+export function deserializeComponent(data: any): Component {
+    const t = data.T;
+    assert(componentDeserializers.has(t), t);
+    return componentDeserializers.get(t)!(data)!;
 }

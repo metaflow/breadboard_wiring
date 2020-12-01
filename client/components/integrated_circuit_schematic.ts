@@ -7,15 +7,6 @@ import { SelectableComponent, selectionAddresses } from "./selectable_component"
 import { UpdateSelectionMutation } from "../actions/select";
 import { MoveSelectionInteraction } from "../actions/move_selection";
 
-const marker = 'IntegratedCircuitSchematic';
-
-componentDeserializers.push(function (data: any): (IntegratedCircuitSchematic | null) {
-    if (data['typeMarker'] !== marker) {
-        return null
-    }
-    return new IntegratedCircuitSchematic(data['spec'] as IntegratedCircuitSchematicSpec);
-});
-
 // Increase values so wires shouldn't be <1 width.
 const gap = 3;
 const width = 60;
@@ -24,12 +15,10 @@ const contact_label_width = 15;
 const pin_length = 15;
 const label_font_size = 9;
 
-export interface IntegratedCircuitSchematicSpec {
-    typeMarker?: string;
+export interface IntegratedCircuitSchematicSpec extends ComponentSpec {
     left_pins: string[];
     right_pins: string[];
     label: string;
-    super?: ComponentSpec;
 }
 
 export class IntegratedCircuitSchematic extends SelectableComponent {
@@ -43,9 +32,11 @@ export class IntegratedCircuitSchematic extends SelectableComponent {
     pin_lines: Konva.Line[] = [];
 
     constructor(spec: IntegratedCircuitSchematicSpec) {
-        super(spec.super);
-        this.left_pins = spec.left_pins;
-        this.right_pins = spec.right_pins;
+        super(spec);
+        if (spec != null) {
+            this.left_pins = spec.left_pins;
+            this.right_pins = spec.right_pins;
+        }
         this.rect = new Konva.Rect({
             stroke: this.mainColor(),
             strokeWidth: 1,
@@ -64,6 +55,7 @@ export class IntegratedCircuitSchematic extends SelectableComponent {
             this.shapes.add(t);
             if (s === "") continue;
             const c = new Contact({
+                T: '',
                 id: s,
                 offset: new Point(- pin_length, (i + 1) * contact_height).plain(),
             });
@@ -84,6 +76,7 @@ export class IntegratedCircuitSchematic extends SelectableComponent {
             this.shapes.add(t);
             if (s === "") continue;
             const c = new Contact({
+                T: '',
                 id: s,
                 offset: new Point(width + pin_length, (i + 1) * contact_height).plain()
             });
@@ -128,7 +121,6 @@ export class IntegratedCircuitSchematic extends SelectableComponent {
             this.left_labels[i].y(y + ((i + 1) * contact_height - 0.5 * label_font_size));
             if (this.left_pins[i] === "") continue;
             const cxy = this.contacts[j].absolutePosition().plain();
-            // cxy.setX(cxy.x);
             this.pin_lines[j].points([cxy.x, cxy.y, x, cxy.y]);
             this.pin_lines[j].stroke(this.mainColor());
             j++;
@@ -150,16 +142,13 @@ export class IntegratedCircuitSchematic extends SelectableComponent {
         this.name.fill(this.mainColor());
     }
     serialize(): any {
-        return {
-            typeMarker: marker,
-            left_pins: this.left_pins,
-            right_pins: this.right_pins,
-            label: this.name.text(),
-            super: super.serialize(),
-        } as IntegratedCircuitSchematicSpec;
+        const z = super.serialize() as IntegratedCircuitSchematicSpec;
+        z.left_pins = this.left_pins;
+        z.right_pins = this.right_pins;
+        z.label = this.name.text();
+        return z;
     }
     materialized(b?: boolean): boolean {
-        // debugger;
         let z = super.materialized(b);
         if (z) {
             this.rect.attrs['address'] = this.address();
@@ -185,3 +174,7 @@ export class IntegratedCircuitSchematic extends SelectableComponent {
         this.left_labels.forEach(x => x.on('mousedown', f));
     }
 }
+
+componentDeserializers.set(IntegratedCircuitSchematic.name , function (data: IntegratedCircuitSchematicSpec): IntegratedCircuitSchematic {
+    return new IntegratedCircuitSchematic(data);
+});

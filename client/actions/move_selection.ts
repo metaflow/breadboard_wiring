@@ -66,8 +66,8 @@ export class MoveSelectionInteraction extends Interaction {
             c.offset(this.components[i].offset().add(d).alignToGrid());
             c.updateLayout();
         });
-        this.wires.forEach(v => {
-            v[1].pointsSpec(moveSingleWire(d, v[1].pointsSpec(), v[0]));
+        this.wires.forEach((v, k) => {
+            v[1].pointsSpec(moveSingleWire(d, k.pointsSpec(), v[0]));
         });
         workspace.needsRedraw();
         return this;
