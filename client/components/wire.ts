@@ -134,7 +134,6 @@ export class Wire extends Component {
         });
         const w = this;
         this.line.on('mouseover', function () {
-            console.log('hover wire');
             w.hoverWire = true;
             w.invalidateLayout();
         });
@@ -147,7 +146,6 @@ export class Wire extends Component {
         this.updateLayout();
     }
     updateLayout() {
-        console.log('updateLayout');
         const pp: number[] = [];
         for (const p of this.points) {
             if (p.helper) continue;
@@ -255,6 +253,13 @@ export function addHelperPoints(s: WirePointSpec[]): WirePointSpec[] {
         z.push(s[k]);
     }
     return z;
+}
+
+export function attachPoints(points: Point[], spec: WirePointSpec[]): WirePointSpec[] {
+    points.forEach((p: Point) => {
+        spec.push(newWirePointSpec(p.plain(), false));
+    });
+    return spec;
 }
 
 interface SingleWireMove {

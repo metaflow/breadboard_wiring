@@ -1,7 +1,5 @@
 ("todo list" extension format)
 
-- extending wire
-- hightlight of wire points when cursor is close is broken
 - click and move should be a "move and select action", not separate select then move
 - save / load schematic w/o history
     - call begin() from workspace

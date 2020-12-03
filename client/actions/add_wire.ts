@@ -1,9 +1,11 @@
 import Konva from 'konva';
-import { removeRedundantPoints, addHelperPoints, WirePointSpec, Wire, newWirePointSpec } from '../components/wire';
+import { removeRedundantPoints, addHelperPoints, WirePointSpec, Wire, newWirePointSpec, WirePoint, attachPoints } from '../components/wire';
 import { Interaction } from '../mutation';
 import { currentLayer, pointAsNumber, Point, closesetContact, workspace } from '../workspace';
 import theme from '../../theme.json';
 import { AddComponentMutation } from './add_ic_action';
+import { all } from '../address';
+import { UpdateWireSpecMutation } from './update_wire_spec';
 
 export class AddWireInteraction extends Interaction {
     line: Konva.Line | undefined;
@@ -62,14 +64,54 @@ export class AddWireInteraction extends Interaction {
         }
         return this;
     }
+
     complete() {
         this.removeHelpers();
-        let specs: WirePointSpec[] = this.points.map(p => newWirePointSpec(p.plain(), false));
+        const o = this;
+        let existingWire: Wire | null = null;
+        let specs: WirePointSpec[] = [];
+        console.log(all(Wire));
+        for (const w of all(Wire)) {
+            if (existingWire != null) break;
+            const a = w.points[0].absolutePosition();
+            const b = w.points[w.points.length - 1].absolutePosition();
+            const x = o.points[0];
+            const y = o.points[o.points.length - 1];
+            if (a.closeTo(x)) {
+                specs = attachPoints(o.points, w.pointsSpec().reverse());
+                existingWire = w;
+                break;
+            }
+            if (b.closeTo(x)) {
+                specs = attachPoints(o.points, w.pointsSpec());
+                existingWire = w;
+                break;
+            }
+            if (a.closeTo(y)) {
+                specs = attachPoints(o.points.reverse(), w.pointsSpec().reverse());
+                existingWire = w;
+                break;
+            }
+            if (b.closeTo(y)) {
+                specs = attachPoints(o.points.reverse(), w.pointsSpec());
+                existingWire = w;
+                break;
+            }
+        }
+        if (existingWire == null) {
+            specs = this.points.map(p => newWirePointSpec(p.plain(), false));
+            specs = removeRedundantPoints(specs);
+            specs = addHelperPoints(specs);
+            const wire = new Wire();
+            wire.pointsSpec(specs);
+            workspace.update(new AddComponentMutation(wire));
+            return;
+        }
+        console.log('attach to existing wire');
+        // TODO: make this point simplification in Wire.pointsSpec()?
         specs = removeRedundantPoints(specs);
         specs = addHelperPoints(specs);
-        const wire = new Wire();
-        wire.pointsSpec(specs);
-        workspace.update(new AddComponentMutation(wire));
+        workspace.update(new UpdateWireSpecMutation(existingWire.address(), existingWire.pointsSpec(), specs));
     }
     removeHelpers() {
         this.line?.remove();

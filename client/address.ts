@@ -60,10 +60,12 @@ export function getByAddress(address: string): any | null {
 
 export function all<T>(q : { new(...args: any[]): T }): T[] {
     return Array.from(roots.values()).flatMap((a: Addressable) => {
+        let z: T[] = [];
         if (typeGuard(a, Component)) {
-            return a.descendants(q);
+            z = a.descendants(q);
         }
-        return [];
+        if (typeGuard(a, q)) z.push(a);
+        return z;
     });
 }
 
