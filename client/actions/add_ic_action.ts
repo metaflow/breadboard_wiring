@@ -28,7 +28,7 @@ export class AddComponentInteraction extends Interaction {
     mousemove(event: KonvaEventObject<MouseEvent>): Interaction | null {
         this.component.offset(Point.cursor().alignToGrid());
         this.component.updateLayout();
-        workspace.needsRedraw();
+        workspace.invalidateScene();
         return this;
     }
     mousedown(event: KonvaEventObject<MouseEvent>): Interaction | null {

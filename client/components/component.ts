@@ -95,7 +95,7 @@ export class Component implements Addressable {
     offset(v?: Point): Point {
         if (v != undefined) {
             this._offset = v.clone();
-            this.needsLayoutUpdate(true);
+            this.invalidateLayout();
         }
         return this._offset.clone();
     }
@@ -111,7 +111,7 @@ export class Component implements Addressable {
     }
     hide() {
         this.shapes.remove();
-        workspace.needsRedraw();
+        workspace.invalidateScene();
         this.children.forEach(c => c.hide());        
         if (this.parent() == null) workspace.removeVisibleComponent(this);
     }
@@ -128,25 +128,24 @@ export class Component implements Addressable {
     updateLayout() {
         this._dirtyLayout = false;
         this.children.forEach(c => c.updateLayout());
-    }
-    // TODO: make it parameter-less.
-    needsLayoutUpdate(v?: boolean): boolean {
-        if (v !== undefined && v !== this._dirtyLayout) {
-            this._dirtyLayout = v;
-            const p = this.parent();
-            if (p == null) {
-                if (v) workspace.needsRedraw();
-            } else {
-                p.needsLayoutUpdate(v);
-            }
+    }    
+    invalidateLayout() {
+        if (this.parent() != null) {
+            this.parent()?.invalidateLayout();
+            return;
         }
+        this._dirtyLayout = true;
+        workspace.invalidateScene();
+    }
+    dirtyLayout(): boolean {
+        if (this._parent != null) return this._parent.dirtyLayout();
         return this._dirtyLayout;
     }
     mainColor(color?: string): string {
         if (color !== undefined) {
             this._mainColor = color;
             this.children.forEach(c => c.mainColor(color));
-            this.needsLayoutUpdate(true);
+            this.invalidateLayout();
         }
         return this._mainColor;
     }

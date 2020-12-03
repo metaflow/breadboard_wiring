@@ -238,7 +238,7 @@ export class Workspace {
         currentLayer()?.scaleX(x);
         currentLayer()?.scaleY(x);
         currentLayer()?.offset(c.sub(Point.cursor()).add(new Point(currentLayer()?.offset())));
-        this.redraw();
+        this.invalidateScene();
         workspace.delayedPersistInLocalHistory();
     }
     onMouseMove(event: Konva.KonvaEventObject<MouseEvent>) {
@@ -251,7 +251,7 @@ export class Workspace {
             if (!sx) return true;
             let p = Point.screenCursor().sub(this.draggingOrigin).s(-1 / sx).add(this.initialOffset);
             currentLayer()?.offset(p);
-            this.redraw();
+            this.invalidateScene();
             workspace.delayedPersistInLocalHistory();
         }
     }
@@ -396,7 +396,7 @@ export class Workspace {
             currentLayer()?.scaleX(ws.view.scale);
             currentLayer()?.scaleY(ws.view.scale);
         }
-        this.redraw();
+        this.invalidateScene();
     }
     componentsState(): StageState {
         let z: StageState = {
@@ -435,11 +435,11 @@ export class Workspace {
     redraw() {
         this.willRedraw = false;
         this.visibleComponents.forEach(c => {
-            if (c.needsLayoutUpdate()) c.updateLayout();
+            if (c.dirtyLayout()) c.updateLayout();
         });        
         stage().batchDraw();
     }
-    needsRedraw() {
+    invalidateScene() {
         // TODO: postpone until user interaction is over. With set timeout?
         // console.log('redraw');
         if (this.willRedraw) return;
@@ -449,11 +449,11 @@ export class Workspace {
     }
     addVisibleComponent(c: Component) {
         this.visibleComponents.add(c);
-        this.needsRedraw();
+        this.invalidateScene();
     }
     removeVisibleComponent(c: Component) {
         this.visibleComponents.delete(c);
-        this.needsRedraw();
+        this.invalidateScene();
     }
 }
 

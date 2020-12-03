@@ -69,7 +69,7 @@ export class MoveSelectionInteraction extends Interaction {
         this.wires.forEach((v, k) => {
             v[1].pointsSpec(moveSingleWire(d, k.pointsSpec(), v[0]));
         });
-        workspace.needsRedraw();
+        workspace.invalidateScene();
         return this;
     }
     mouseup(event: KonvaEventObject<MouseEvent>): Interaction | null {        

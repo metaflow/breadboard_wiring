@@ -17,7 +17,7 @@ export class SelectInteraction extends Interaction {
         let pos = Point.cursor();
         this.rect.width(pos.x - this.rect.x());
         this.rect.height(pos.y - this.rect.y());        
-        workspace.needsRedraw();
+        workspace.invalidateScene();
         selectionAddresses(this.selected());        
         return this;
     }
@@ -43,7 +43,7 @@ export class SelectInteraction extends Interaction {
     }
     mouseup(event: KonvaEventObject<MouseEvent>): Interaction | null {
         this.rect?.remove();
-        workspace.needsRedraw();
+        workspace.invalidateScene();
         workspace.update(new UpdateSelectionMutation(this.prevSelection, selectionAddresses()));        
         return null;
     }

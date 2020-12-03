@@ -35,7 +35,7 @@ export class AddWireInteraction extends Interaction {
         currentLayer()?.add(this.line);
         currentLayer()?.add(this.startMarker);
         currentLayer()?.add(this.endMarker);
-        workspace.needsRedraw();
+        workspace.invalidateScene();
     }
     mousemove(event: Konva.KonvaEventObject<MouseEvent>): Interaction | null {
         this.endMarker?.position(Point.cursor().alignToGrid());
@@ -75,7 +75,7 @@ export class AddWireInteraction extends Interaction {
         this.line?.remove();
         this.startMarker?.remove();
         this.endMarker?.remove();
-        workspace.needsRedraw();
+        workspace.invalidateScene();
     }
     cancel(): void {
         this.removeHelpers();
@@ -88,6 +88,6 @@ export class AddWireInteraction extends Interaction {
         const xy = Point.cursor().alignToGrid();
         pp.push(...pointAsNumber(xy));
         this.line?.points(pp);
-        workspace.needsRedraw();
+        workspace.invalidateScene();
     }
 }

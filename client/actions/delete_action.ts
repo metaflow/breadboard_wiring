@@ -29,7 +29,7 @@ export class DeleteComponentsMutation extends Mutation {
     }
     undo(): void {
         this.components.forEach(c => {
-            c.needsLayoutUpdate(true);
+            c.updateLayout();
             c.show(currentLayer());
             c.materialized(true);
         })

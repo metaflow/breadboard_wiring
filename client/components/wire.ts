@@ -134,20 +134,20 @@ export class Wire extends Component {
         });
         const w = this;
         this.line.on('mouseover', function () {
+            console.log('hover wire');
             w.hoverWire = true;
-            w.needsLayoutUpdate();
-            workspace.redraw();
+            w.invalidateLayout();
         });
         this.line.on('mouseout', function () {
             w.hoverWire = false;
-            w.needsLayoutUpdate();
-            workspace.redraw();
+            w.invalidateLayout();
         });
         this.pointsSpec(spec?.points);
         this.shapes.add(this.line);
         this.updateLayout();
     }
     updateLayout() {
+        console.log('updateLayout');
         const pp: number[] = [];
         for (const p of this.points) {
             if (p.helper) continue;
@@ -162,11 +162,11 @@ export class Wire extends Component {
         super.updateLayout();
     }
     pointsSpec(v?: WirePointSpec[]): WirePointSpec[] {
-        let o = this;
         if (v !== undefined) {
             this.hoverPoint = false;
-            o.points.forEach(p => p.remove());
+            this.points.forEach(p => p.remove());
             // Create points in two passes: first with known IDs, then new ones.
+            const o = this;
             let pp = v.map(x => {
                 if (x.id == undefined) return null;
                 return o.addChild(new WirePoint(x));
@@ -175,15 +175,15 @@ export class Wire extends Component {
                 const x = v[i];
                 if (x.id !== undefined) continue;
                 x.id = newAddress(o);
-                pp[i] = o.addChild(new WirePoint(x));
+                pp[i] = this.addChild(new WirePoint(x));
             }
-            o.points = [];
+            this.points = [];
             pp.forEach(x => {
                 if (x != null) o.points.push(x);
             });
-            o.needsLayoutUpdate(true);
+            this.invalidateLayout();
         }
-        return o.points.map(p => p.serialize());
+        return this.points.map(p => p.serialize());
     }
     serialize(): any {
         const z = super.serialize() as WireSpec;
@@ -192,8 +192,8 @@ export class Wire extends Component {
     }
     onPointEvent(eventType: string) {
         this.hoverPoint = eventType == 'mouseover';
-        this.needsLayoutUpdate();
-        workspace.redraw();
+        this.invalidateLayout();
+        workspace.invalidateScene();
     }
 }
 
