@@ -1,18 +1,9 @@
-import { Mutation, actionDeserializers, MutationSpec } from "../mutation";
-import { Point, PlainPoint } from "../workspace";
+import { Mutation, mutationDeserializers } from "../mutation";
+import { Point } from "../workspace";
 import { getTypedByAddress } from "../address";
 import assertExists from "ts-assert-exists";
 import { Component } from "../components/component";
-
-const marker = 'MoveIcSchematicAction';
-
-actionDeserializers.set(marker, (data: MoveComponentMutationSpec) => new MoveComponentMutation(data.address, new Point(data.from), new Point(data.to)));
-
-interface MoveComponentMutationSpec extends MutationSpec {
-    from: PlainPoint;
-    to: PlainPoint;
-    address: string;
-}
+import { plainToClass } from "class-transformer";
 
 export class MoveComponentMutation extends Mutation {
     address: string
@@ -29,14 +20,9 @@ export class MoveComponentMutation extends Mutation {
     }
     undo(): void {
         assertExists(getTypedByAddress(Component, this.address)).offset(this.from);
-    }  
-    serialize() {
-        const z: MoveComponentMutationSpec = {
-            T: marker,
-            from: this.from.plain(),
-            to: this.to.plain(),
-            address: this.address,
-        };
-        return z;
     }
 }
+
+mutationDeserializers.set(MoveComponentMutation.name, (d: object) => {
+    return plainToClass(MoveComponentMutation, d);
+});

@@ -1,17 +1,39 @@
-import { Mutation, actionDeserializers as mutationDeserializers, Interaction, MutationSpec } from "../mutation";
+import { Mutation, Interaction, mutationDeserializers } from "../mutation";
 import { KonvaEventObject } from "konva/types/Node";
-import { Component, deserializeComponent } from "../components/component";
-import { currentLayer, Point, PlainPoint, workspace } from "../workspace";
+import { Component, ComponentSpec, deserializeComponent } from "../components/component";
+import { currentLayer, Point, workspace } from "../workspace";
 import theme from '../../theme.json';
+import { getTypedByAddress, newAddress } from "../address";
+import { assert } from "../utils";
+import assertExists from "ts-assert-exists";
+import { plainToClass } from "class-transformer";
 
-const marker = 'PlaceComponentAction';
-
-interface PlaceComponentActionSpec extends MutationSpec {
-    component_spec: any;
+export class AddComponentMutation extends Mutation {
+    spec: ComponentSpec|undefined;
+    constructor(spec: ComponentSpec) {
+        super();        
+        this.spec = spec;
+        this.postInit();
+    }
+    postInit() {
+        if (this.spec == null) return;
+        assert(this.spec.id != null);
+    }
+    apply(): void {
+        const c = deserializeComponent(this.spec);
+        c.show(currentLayer());
+        c.materialized(true);
+    }
+    undo(): void {
+        if (this.spec == null) return;
+        const c = assertExists(getTypedByAddress(Component, this.spec.id!));
+        c.materialized(false);
+        c.hide();
+    }
 }
 
-mutationDeserializers.set(marker, (d: PlaceComponentActionSpec) => {
-    return new AddComponentMutation(deserializeComponent(d.component_spec));
+mutationDeserializers.set(AddComponentMutation.name, (d: object) => {
+    return plainToClass(AddComponentMutation, d);
 });
 
 export class AddComponentInteraction extends Interaction {
@@ -33,31 +55,9 @@ export class AddComponentInteraction extends Interaction {
     }
     mousedown(event: KonvaEventObject<MouseEvent>): Interaction | null {
         this.component.mainColor(theme.foreground);
-        workspace.update(new AddComponentMutation(this.component));
+        const s = this.component.serialize();
+        s.id = newAddress();
+        workspace.update(new AddComponentMutation(s));
         return null;
-    }
-}
-
-export class AddComponentMutation extends Mutation {
-    component: Component;
-    xy: Point = new Point();
-    constructor(component: Component) {
-        super();
-        this.component = component;
-    }
-    apply(): void {
-        this.component.show(currentLayer());
-        this.component.materialized(true);
-    }
-    undo(): void {
-        this.component.materialized(false);
-        this.component.hide();
-    }
-    serialize(): any {
-        const z: PlaceComponentActionSpec = {
-            T: marker,
-            component_spec: this.component.serialize(),
-        };
-        return z;
     }
 }

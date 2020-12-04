@@ -1,9 +1,10 @@
-import { Mutation, actionDeserializers, Interaction } from "../mutation";
+import { Mutation, Interaction, mutationDeserializers } from "../mutation";
 import Konva from "konva";
 import { stage, Point, currentLayer, workspace } from "../workspace";
 import { clearSelection, selectionAddresses } from "../components/selectable_component";
 import { KonvaEventObject } from "konva/types/Node";
 import theme from '../../theme.json';
+import { classToPlain, plainToClass } from "class-transformer";
 
 export class SelectInteraction extends Interaction {
     rect: Konva.Rect|null = null;
@@ -53,17 +54,6 @@ export class SelectInteraction extends Interaction {
     }
 }
 
-const marker = 'update_selection';
-interface UpdateSelection {
-    T: 'update_selection';
-    prevSelection: string[];
-    newSelection: string[];
-}
-
-actionDeserializers.set(marker, function (s: UpdateSelection): Mutation {
-    return new UpdateSelectionMutation(s.newSelection, s.prevSelection);
-});
-
 export class UpdateSelectionMutation extends Mutation {
     prevSelection: string[] = [];
     newSelection: string[] = [];
@@ -78,12 +68,8 @@ export class UpdateSelectionMutation extends Mutation {
     undo() {
         selectionAddresses(this.prevSelection);
     }
-    serialize() {
-        let z: UpdateSelection = {
-            T: marker,
-            prevSelection: this.prevSelection,
-            newSelection: this.newSelection,
-        };
-        return z;
-    }
 }
+
+mutationDeserializers.set(UpdateSelectionMutation.name, (d: object) => {
+    return plainToClass(UpdateSelectionMutation, d);
+});

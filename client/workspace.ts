@@ -4,7 +4,7 @@ import { roots } from './address';
 import { Component, deserializeComponent } from './components/component';
 import { selection, selectionAddresses } from './components/selectable_component';
 import { error, typeGuard } from './utils';
-import { Mutation, deserializeMutation, Interaction } from './mutation';
+import { Mutation, Interaction, deserializeMutation } from './mutation';
 import { diffString } from 'json-diff';
 import { SelectInteraction, UpdateSelectionMutation } from './actions/select';
 
@@ -173,7 +173,7 @@ export class Workspace {
     private draggingScene = false;
     private draggingOrigin = new Point();
     private initialOffset = new Point();
-    private debugActions = false;
+    private debugActions = true;
     private _currentInteraction: Interaction | null = null;
     private history: Mutation[] = [];
     private forwardHistory: Mutation[] = [];
@@ -260,6 +260,8 @@ export class Workspace {
         if (!keepForwardHistory) this.forwardHistory = [];
         if (this.debugActions) {
             console.groupCollapsed(`applying ${a.constructor.name}`);
+            console.log('action', a);
+            let endGroup = true;
             a.apply();
             let sa = this.stateHistory[this.stateHistory.length - 1];
             let sb = this.componentsState();
@@ -267,16 +269,18 @@ export class Workspace {
             a.undo();
             let s = this.componentsState();
             if (JSON.stringify(sa) != JSON.stringify(s)) {
+                if (endGroup) { console.groupEnd(); endGroup = false; }
                 error('undo changes state');
                 console.group('details');
                 console.log(diffString(sa, s));
                 console.log('expected state', sa);
-                console.log('actual state', s);
+                console.log('actual state', s);                
                 console.groupEnd();
             }
             a.apply();
             s = this.componentsState();
             if (JSON.stringify(sb) != JSON.stringify(s)) {
+                if (endGroup) { console.groupEnd(); endGroup = false; }
                 error('redo changes state');
                 console.group('details');
                 console.log('diff', diffString(sb, s));
@@ -285,7 +289,7 @@ export class Workspace {
                 console.groupEnd();
             }
             console.log('new state', this.componentsState());
-            console.groupEnd();
+            if (endGroup) { console.groupEnd(); endGroup = false; }
         } else {
             a.apply();
         }
@@ -355,7 +359,7 @@ export class Workspace {
     serializeActions(): any[] {
         let h: any[] = [];
         for (const a of this.history) {
-            const s = a.serialize();
+             const s = a.serialize();
             if (s == null) continue;
             h.push(s);
         }
@@ -410,6 +414,7 @@ export class Workspace {
         return z;
     }
     serialize(): WorkspaceState {
+        console.log('serialize');
         return {
             components: this.componentsState(),
             history: this.serializeActions(),
@@ -436,7 +441,7 @@ export class Workspace {
         this.willRedraw = false;
         this.visibleComponents.forEach(c => {
             if (c.dirtyLayout()) c.updateLayout();
-        });        
+        });
         stage().batchDraw();
     }
     invalidateScene() {

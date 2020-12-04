@@ -1,46 +1,34 @@
-import { Mutation, actionDeserializers, MutationSpec } from "../mutation";
+import { Mutation, mutationDeserializers, MutationSpec } from "../mutation";
 import { currentLayer } from "../workspace";
 import { selectionAddresses } from "../components/selectable_component";
-import { Component, deserializeComponent } from "../components/component";
-
-const marker = 'DeleteSelectionAction';
-
-actionDeserializers.set(marker, function (data: DeleteSelectionActionSpec): Mutation {
-    return new DeleteComponentsMutation(
-        data.components.map(c => deserializeComponent(c)),
-        data.prevSelection);
-});
-
-interface DeleteSelectionActionSpec extends MutationSpec {
-    prevSelection: string[];    
-    components: any[];
-}
+import { Component, ComponentSpec, deserializeComponent } from "../components/component";
+import { plainToClass } from "class-transformer";
+import { getTypedByAddress } from "../address";
 
 export class DeleteComponentsMutation extends Mutation {
-    components: Component[];
+    components: ComponentSpec[];
     prevSelection: string[] = [];
-    constructor(components: Component[], prevSelection: string[]) {
+    constructor(components: ComponentSpec[], prevSelection: string[]) {
         super();
         this.components = components;
         this.prevSelection = prevSelection;
     }
     apply(): void {       
-        this.components.forEach(c => c.remove());
+        this.components.forEach(c => {
+            getTypedByAddress(Component, c.id!)?.remove();
+        });
     }
     undo(): void {
-        this.components.forEach(c => {
+        this.components.forEach(s => {
+            const c = deserializeComponent(s);
             c.updateLayout();
             c.show(currentLayer());
             c.materialized(true);
         })
         selectionAddresses(this.prevSelection);
     }
-    serialize() {
-        let z: DeleteSelectionActionSpec = {
-            T: marker,
-            prevSelection: this.prevSelection,
-            components: this.components.map(c => c.serialize()),
-        };
-        return z;
-    }
 }
+
+mutationDeserializers.set(DeleteComponentsMutation.name, (d: object) => {
+    return plainToClass(DeleteComponentsMutation, d);
+});

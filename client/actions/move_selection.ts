@@ -12,6 +12,7 @@ import { typeGuard } from "../utils";
 import theme from '../../theme.json';
 import { CompoundMutation } from "./compound";
 import { UpdateWireSpecMutation } from "./update_wire_spec";
+import { UpdateSelectionMutation } from "./select";
 
 export class MoveSelectionInteraction extends Interaction {
     from: Point;
@@ -74,6 +75,7 @@ export class MoveSelectionInteraction extends Interaction {
     }
     mouseup(event: KonvaEventObject<MouseEvent>): Interaction | null {        
         const mm: Mutation[] = [];
+        mm.push(new UpdateSelectionMutation(this.selection, this.components.map(c => c.address())));        
         this.components.forEach((c, i) => {
             mm.push(new MoveComponentMutation(c.address(), this.from, this.auxComponents[i].offset()));
         });

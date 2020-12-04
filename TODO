@@ -1,20 +1,15 @@
 ("todo list" extension format)
 
+- single point wire should be removed
+- enable action debugging back
 - click and move should be a "move and select action", not separate select then move
-- save / load schematic w/o history
-    - call begin() from workspace
-    - check that cancel properly destroys objects
-    - add checks that state is consistent after calling action methods
 - check that deletion of wire point deletes
 - schematic
     - move IC
     - schematic wire (intiallay copy)
-    - make wire with orthogonal bends
-    - add schematic wire
     - select wire
     - delete wire
     - move wire end
-    - add bends in schematic wire
 - add IC
     - selection
     - move

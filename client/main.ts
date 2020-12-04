@@ -12,7 +12,7 @@ import { DeleteComponentsMutation } from './actions/delete_action';
 import { selectionAddresses, selectionByType } from './components/selectable_component';
 import { Component } from './components/component';
 import { AddComponentInteraction } from './actions/add_ic_action';
-
+ 
 window.onerror = (errorMsg, url, lineNumber) => {
   onError(errorMsg, url, lineNumber);
   return false;
@@ -75,7 +75,8 @@ fileSelector?.addEventListener('change', () => {
 
 function deleteSelection() {
   workspace.cancelInteractions();
-  workspace.update(new DeleteComponentsMutation(selectionByType(Component), selectionAddresses()));
+  // TODO: deletion for wire points should work differently.
+  workspace.update(new DeleteComponentsMutation(selectionByType(Component).map(c => c.serialize()), selectionAddresses()));
 }
 
 // first we need to create a stage

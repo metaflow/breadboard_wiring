@@ -1,36 +1,32 @@
-import { Mutation, actionDeserializers, deserializeMutation, MutationSpec } from "../mutation";
-
-const marker = 'CompoundAction';
-
-interface CompoundActionSpec extends MutationSpec  {
-    actions: any[];
-};
-
-actionDeserializers.set(marker, function (data: any): Mutation {
-    return new CompoundMutation((data as CompoundActionSpec).actions.map(a => deserializeMutation(a)));
-});
+import { plainToClass } from "class-transformer";
+import { deserializeMutation, Mutation, mutationDeserializers, MutationSpec } from "../mutation";
 
 export class CompoundMutation extends Mutation {
-    actions: Mutation[];
-    done: boolean[];
+    actions: Mutation[]|undefined;
+    done: boolean[]|undefined;
     constructor(actions: Mutation[]) {        
         super();
         this.actions = actions;
-        this.done = actions.map(_ => false);
+        this.postInit();
+    }
+    postInit() {
+        if (this.actions == null) return;
+        this.done = this.actions.map(_ => false);
     }
     apply(): void {
+        if (this.actions == null) return;
         this.actions.forEach(a => a.apply());
     }
     undo(): void {
+        if (this.actions == null) return;
         this.actions.reverse();
         this.actions.forEach(a => a.undo());
         this.actions.reverse();
     }
-    serialize() {
-        const z: CompoundActionSpec = {
-            T: marker,
-            actions: this.actions.map(a => a.serialize()),
-        };
-        return z;
-    }
 }
+
+mutationDeserializers.set(CompoundMutation.name, function (data: object): Mutation {
+    const z = plainToClass(CompoundMutation, data);
+    z.actions = (data as any).actions.map((d: any) => deserializeMutation(d));
+    return z;
+});

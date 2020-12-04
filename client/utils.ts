@@ -39,8 +39,8 @@ export function onError(...args: any) {
 
 export function assert(c: boolean, ...args: any) {
     if (c) return;
-    console.error('assertion faile', ...args);
-    throw new Error('assection failed');
+    console.error('assertion failed', ...args);
+    throw new Error('assertion failed');
 }
 
 export function clearError() {
