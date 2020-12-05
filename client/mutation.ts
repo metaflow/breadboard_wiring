@@ -24,16 +24,13 @@ export function deserializeMutation(data: any): Mutation {
     return z;
 }
 
-export abstract class Mutation { 
+export abstract class Mutation {
     abstract apply(): void;
     abstract undo(): void;
     serialize() {
-        const z = classToPlain(this);
-        // z.T = this.constructor.name;
-        console.log(z);
-        return z;
+        return classToPlain(this);
     }
-    postInit() {}
+    postInit() { }
     @Expose()
     T() {
         return this.constructor.name;
@@ -48,13 +45,13 @@ export abstract class Interaction {
     constructor() {
         workspace.currentInteraction(this);
     }
-    mousemove(event: Konva.KonvaEventObject<MouseEvent>): Interaction|null {
+    mousemove(event: Konva.KonvaEventObject<MouseEvent>): Interaction | null {
         return this;
     }
-    mousedown(event: Konva.KonvaEventObject<MouseEvent>): Interaction|null {
+    mousedown(event: Konva.KonvaEventObject<MouseEvent>): Interaction | null {
         return this;
     }
-    mouseup(event: Konva.KonvaEventObject<MouseEvent>): Interaction|null {
+    mouseup(event: Konva.KonvaEventObject<MouseEvent>): Interaction | null {
         return this;
     }
     abstract cancel(): void;

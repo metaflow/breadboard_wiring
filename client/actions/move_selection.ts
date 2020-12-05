@@ -77,7 +77,7 @@ export class MoveSelectionInteraction extends Interaction {
         const mm: Mutation[] = [];
         mm.push(new UpdateSelectionMutation(this.selection, this.components.map(c => c.address())));        
         this.components.forEach((c, i) => {
-            mm.push(new MoveComponentMutation(c.address(), this.from, this.auxComponents[i].offset()));
+            mm.push(new MoveComponentMutation(c.address(), c.offset().plain(), this.auxComponents[i].offset().plain()));
         });
         this.wires.forEach((v, k) => {
             mm.push(new UpdateWireSpecMutation(k.address(), k.pointsSpec(), v[1].pointsSpec()));

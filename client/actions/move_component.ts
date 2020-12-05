@@ -1,25 +1,31 @@
 import { Mutation, mutationDeserializers } from "../mutation";
-import { Point } from "../workspace";
+import { PlainPoint, Point } from "../workspace";
 import { getTypedByAddress } from "../address";
 import assertExists from "ts-assert-exists";
 import { Component } from "../components/component";
 import { plainToClass } from "class-transformer";
+import { assert } from "../utils";
 
 export class MoveComponentMutation extends Mutation {
     address: string
-    to: Point;
-    from: Point;
-    constructor(address: string, from: Point, to: Point) {
+    to: PlainPoint;
+    from: PlainPoint;
+    constructor(address: string, from: PlainPoint, to: PlainPoint) {
         super();        
         this.address = address;
         this.to = to;
         this.from = from;
     }
     apply(): void {
-        assertExists(getTypedByAddress(Component, this.address)).offset(this.to);
+        const c = getTypedByAddress(Component, this.address);
+        assert(c != null, `${this.address} is not found`);
+        console.log(this);
+        c?.offset(new Point(this.to));
     }
     undo(): void {
-        assertExists(getTypedByAddress(Component, this.address)).offset(this.from);
+        const c = getTypedByAddress(Component, this.address);
+        assert(c != null, `${this.address} is not found`);
+        c?.offset(new Point(this.from));
     }
 }
 

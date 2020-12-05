@@ -14,10 +14,6 @@ export class UpdateWireSpecMutation extends Mutation {
         this.from = from;
         this.to = to;
     }
-    // serialize() {
-    //     const z = classToPlain(this);
-    //     return z;
-    // }
     apply() {
         assertExists(getTypedByAddress(Wire, this.address)).pointsSpec(this.to);
     }

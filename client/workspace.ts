@@ -209,7 +209,6 @@ export class Workspace {
         }
         // Right click: deselect all.
         if (e.evt.button == 2) {
-            console.log('deselect all', selection().length);
             workspace.update(new UpdateSelectionMutation(selectionAddresses(), []));
             return;
         }
@@ -366,7 +365,6 @@ export class Workspace {
         return h;
     }
     deserialize(s: any) {
-        console.log('load workspace', s);
         // TODO: make it a "reset or clear".
         this.history = [];
         this.forwardHistory = []; // TODO: store forward history too.
