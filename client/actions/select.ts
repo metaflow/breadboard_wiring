@@ -19,7 +19,7 @@ export class SelectInteraction extends Interaction {
         this.rect.width(pos.x - this.rect.x());
         this.rect.height(pos.y - this.rect.y());        
         workspace.invalidateScene();
-        selectionAddresses(this.selected());        
+        selectionAddresses(this.selected());
         return this;
     }
     selected(): string[] {

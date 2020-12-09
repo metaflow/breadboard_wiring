@@ -153,7 +153,7 @@ export class Wire extends Component {
         }
         this.line.points(pp);
         this.line.strokeWidth(wireWidth);
-        this.line.stroke(this.mainColor());
+        this.line.stroke(this.points.some(p => p.selected()) ? theme.selection : this.mainColor());
         for (const p of this.points) {
             p.visible = this.hoverWire || this.hoverPoint || this.alwaysShowPoints || p.selected();
         }
@@ -162,12 +162,15 @@ export class Wire extends Component {
     pointsSpec(v?: WirePointSpec[]): WirePointSpec[] {
         if (v !== undefined) {
             this.hoverPoint = false;
+            const selected = this.points.filter(p => p.selected()).map(p => p.id());
             this.points.forEach(p => p.remove());
             // Create points in two passes: first with known IDs, then new ones.
             const o = this;
             let pp = v.map(x => {
                 if (x.id == undefined) return null;
-                return o.addChild(new WirePoint(x));
+                const p = new WirePoint(x);
+                p.selected(selected.includes(p.id()));
+                return o.addChild(p);
             });
             for (let i = 0; i < v.length; i++) {
                 const x = v[i];

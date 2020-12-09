@@ -412,7 +412,6 @@ export class Workspace {
         return z;
     }
     serialize(): WorkspaceState {
-        console.log('serialize');
         return {
             components: this.componentsState(),
             history: this.serializeActions(),

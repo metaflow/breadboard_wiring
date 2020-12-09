@@ -75,8 +75,12 @@ fileSelector?.addEventListener('change', () => {
 
 function deleteSelection() {
   workspace.cancelInteractions();
-  // TODO: deletion for wire points should work differently.
-  workspace.update(new DeleteComponentsMutation(selectionByType(Component).map(c => c.serialize()), selectionAddresses()));
+  const cc = selectionByType(Component).map(c => {
+    let p = c;
+    while (p.parent() != null) p = p.parent()!;
+    return p.serialize();
+  });
+  workspace.update(new DeleteComponentsMutation(cc, selectionAddresses()));
 }
 
 // first we need to create a stage

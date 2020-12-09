@@ -54,10 +54,10 @@ export class AddComponentInteraction extends Interaction {
         return this;
     }
     mousedown(event: KonvaEventObject<MouseEvent>): Interaction | null {
-        this.component.mainColor(theme.foreground);
-        const s = this.component.serialize();
+        this.cancel();
+        const s = this.component.serialize();        
         s.id = newAddress();
-        workspace.update(new AddComponentMutation(s));
+        workspace.update(new AddComponentMutation(s));        
         return null;
     }
 }

@@ -73,9 +73,10 @@ export class MoveSelectionInteraction extends Interaction {
         workspace.invalidateScene();
         return this;
     }
-    mouseup(event: KonvaEventObject<MouseEvent>): Interaction | null {        
+    mouseup(event: KonvaEventObject<MouseEvent>): Interaction | null {
         const mm: Mutation[] = [];
-        mm.push(new UpdateSelectionMutation(this.selection, this.components.map(c => c.address())));        
+        // Add selection of the current selection to make proper undo.
+        mm.push(new UpdateSelectionMutation(this.selection, this.selection));
         this.components.forEach((c, i) => {
             mm.push(new MoveComponentMutation(c.address(), c.offset().plain(), this.auxComponents[i].offset().plain()));
         });
