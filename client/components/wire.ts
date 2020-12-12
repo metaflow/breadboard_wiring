@@ -221,7 +221,7 @@ export function removeRedundantPoints(s: WirePointSpec[]): WirePointSpec[] {
         // pi -- pj -- pk
         const ji = pi.clone().sub(pj);
         const jk = pk.clone().sub(pj);
-        if (ji.length() < 0.1 || jk.length() < 0.1) {
+        if (pi.closeTo(pj) || pj.closeTo(pk)) {
             j = k;
             continue;
         }
@@ -234,14 +234,16 @@ export function removeRedundantPoints(s: WirePointSpec[]): WirePointSpec[] {
         pi = pj;
         j++;
     }
-    const pp = s;
-    s = [];
+    const pp: WirePointSpec[] = [];
     for (let k = 0; k < keep.length; k++) {
         if (keep[k]) {
-            s.push(pp[k]);
+            pp.push(s[k]);
         }
     }
-    return s
+    if (pp.length == 2 && new Point(pp[0].offset).closeTo(new Point(pp[1].offset))) {
+        return [];
+    }
+    return pp;
 }
 
 export function addHelperPoints(s: WirePointSpec[]): WirePointSpec[] {

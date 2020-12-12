@@ -1,6 +1,5 @@
 ("todo list" extension format)
 
-- single point wire should be removed
 - click and move should be a "move and select action", not separate select then move
 - schematic
     - move IC
@@ -16,6 +15,8 @@
 - click and move IC should be a one action
 - add breadboard
 - move breadboard (one in relation to another)
+- copy / paste
+- cup / paste
 
 scenario:
 - draw a scrematic, with LED, ground and other

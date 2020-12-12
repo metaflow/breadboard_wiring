@@ -13,6 +13,7 @@ import theme from '../../theme.json';
 import { CompoundMutation } from "./compound";
 import { UpdateWireSpecMutation } from "./update_wire_spec";
 import { UpdateSelectionMutation } from "./select";
+import { DeleteComponentsMutation } from "./delete_action";
 
 export class MoveSelectionInteraction extends Interaction {
     from: Point;
@@ -55,7 +56,7 @@ export class MoveSelectionInteraction extends Interaction {
     cancel() {
         this.components.forEach(c => c.show(currentLayer()));
         this.wires.forEach((v, k) => {
-            k.show(currentLayer());
+            if (k.materialized()) k.show(currentLayer());
             v[1].remove();
         });
         this.auxComponents.forEach(c => c.remove());
@@ -81,7 +82,12 @@ export class MoveSelectionInteraction extends Interaction {
             mm.push(new MoveComponentMutation(c.address(), c.offset().plain(), this.auxComponents[i].offset().plain()));
         });
         this.wires.forEach((v, k) => {
-            mm.push(new UpdateWireSpecMutation(k.address(), k.pointsSpec(), v[1].pointsSpec()));
+            const points = v[1].pointsSpec();
+            if (points.length < 2) {
+                mm.push(new DeleteComponentsMutation([k.serialize()], []));
+            } else {
+                mm.push(new UpdateWireSpecMutation(k.address(), k.pointsSpec(), v[1].pointsSpec()));
+            }            
         });
         workspace.update(new CompoundMutation(mm));
         this.cancel();
