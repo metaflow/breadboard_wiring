@@ -442,7 +442,6 @@ export class Workspace {
         stage().batchDraw();
     }
     invalidateScene() {
-        // TODO: postpone until user interaction is over. With set timeout?
         // console.log('redraw');
         if (this.willRedraw) return;
         this.willRedraw = true;

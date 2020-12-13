@@ -6,7 +6,7 @@ import theme from '../../theme.json';
 export class SelectableComponent extends Component {
     _selected: boolean = false;
     selectableInterface: true = true;  // TODO: needed?
-    selected(v?: boolean): boolean {        
+    selected(v?: boolean): boolean {
         if (v !== undefined) {
             if (this._selected != v) {
                 this._selected = v;
@@ -17,7 +17,7 @@ export class SelectableComponent extends Component {
                     _selection.delete(this);
                 }
             }
-        }        
+        }
         return this._selected;
     }
     materialized(b?: boolean): boolean {
@@ -38,6 +38,14 @@ export function selectionByType<T>(q: { new(...args: any[]): T }): T[] {
     return selection().filter(x => typeGuard(x, q)).map(x => x as any as T);
 }
 
+export function selectionRoots(): Component[] {
+    return Array.from(new Set<Component>(selectionByType(Component).map(c => {
+        let p = c;
+        while (p.parent() != null) p = p.parent()!;
+        return p;
+    })));
+}
+
 export function selectionAddresses(s?: string[]): string[] {
     if (s !== undefined) {
         // TODO: only deselect what is no longer selected.
@@ -47,7 +55,7 @@ export function selectionAddresses(s?: string[]): string[] {
             if (t === null) {
                 error('cannot find', a, 'of type SelectableComponent');
                 return;
-            } 
+            }
             t.selected(true);
         });
     }

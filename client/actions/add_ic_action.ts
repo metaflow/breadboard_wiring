@@ -7,11 +7,12 @@ import { getTypedByAddress, newAddress } from "../address";
 import { assert } from "../utils";
 import assertExists from "ts-assert-exists";
 import { plainToClass } from "class-transformer";
+import { CompoundMutation } from "./compound";
 
 export class AddComponentMutation extends Mutation {
-    spec: ComponentSpec|undefined;
+    spec: ComponentSpec | undefined;
     constructor(spec: ComponentSpec) {
-        super();        
+        super();
         this.spec = spec;
         this.postInit();
     }
@@ -37,27 +38,36 @@ mutationDeserializers.set(AddComponentMutation.name, (d: object) => {
 });
 
 export class AddComponentInteraction extends Interaction {
-    component: Component;
-    constructor(c: Component) {
+    components: Component[];
+    offsets: Point[];
+    start: Point;
+    constructor(cc: Component[]) {
         super();
-        this.component = c;
-        this.component.mainColor(theme.active);
-        this.component.show(currentLayer());
+        console.log('add compoenents', cc)
+        this.components = cc;        
+        this.components.forEach(c => {
+            debugger;
+            c.mainColor(theme.active);
+            c.show(currentLayer());
+        });
+        this.offsets = this.components.map(c => c.offset());
+        this.start = Point.cursor();
     }
     cancel() {
-        this.component.hide();
+        this.components.forEach(c => c.hide());
     }
     mousemove(event: KonvaEventObject<MouseEvent>): Interaction | null {
-        this.component.offset(Point.cursor().alignToGrid());
-        this.component.updateLayout();
-        workspace.invalidateScene();
+        const o = this;
+        this.components.forEach((c, i) => {
+            c.offset(o.offsets[i].clone().add(Point.cursor()).sub(o.start).alignToGrid());
+        });
         return this;
     }
     mousedown(event: KonvaEventObject<MouseEvent>): Interaction | null {
         this.cancel();
-        const s = this.component.serialize();        
-        s.id = newAddress();
-        workspace.update(new AddComponentMutation(s));        
+        this.components.forEach(c => c.id(newAddress()));
+        const mm = this.components.map(c => new AddComponentMutation(c.serialize()));
+        workspace.update(new CompoundMutation(mm));
         return null;
     }
 }

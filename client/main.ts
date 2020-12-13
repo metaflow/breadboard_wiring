@@ -9,8 +9,8 @@ import { AddWireInteraction } from './actions/add_wire';
 import { SelectInteraction } from './actions/select';
 import { MoveSelectionInteraction } from './actions/move_selection';
 import { DeleteComponentsMutation } from './actions/delete_action';
-import { selectionAddresses, selectionByType } from './components/selectable_component';
-import { Component } from './components/component';
+import { selection, selectionAddresses, selectionByType, selectionRoots } from './components/selectable_component';
+import { Component, deserializeComponent } from './components/component';
 import { AddComponentInteraction } from './actions/add_ic_action';
  
 window.onerror = (errorMsg, url, lineNumber) => {
@@ -19,7 +19,7 @@ window.onerror = (errorMsg, url, lineNumber) => {
 };
 
 (window as any).add245 = function () {
-  new AddComponentInteraction(new ic74x245());
+  new AddComponentInteraction([new ic74x245()]);
 };
 
 (window as any).clearActionsHistory = function () {
@@ -74,12 +74,8 @@ fileSelector?.addEventListener('change', () => {
 });
 
 function deleteSelection() {
-  workspace.cancelInteractions();
-  const cc = selectionByType(Component).map(c => {
-    let p = c;
-    while (p.parent() != null) p = p.parent()!;
-    return p.serialize();
-  });
+  workspace.cancelInteractions();  
+  const cc = selectionRoots().map(c => c.serialize());
   workspace.update(new DeleteComponentsMutation(cc, selectionAddresses()));
 }
 
@@ -133,6 +129,24 @@ hotkeys('ctrl+y', function (e) {
 
 hotkeys('del', function () {
   deleteSelection();
+});
+
+hotkeys('ctrl+c', function (e) {
+  const ss = selectionRoots().map(c => c.serialize());
+  if (ss.length == 0) return;
+  const t = JSON.stringify(ss);  
+  navigator.clipboard.writeText(t).then(function() {
+    console.log('successfully wrote clipboard');
+  }, function() {
+    console.log('failed to write clipboard');
+  });
+});
+
+hotkeys('ctrl+v', function (e) {  
+  navigator.clipboard.readText().then(txt => {
+    const ss = JSON.parse(txt);
+    new AddComponentInteraction(ss.map((a: any) => deserializeComponent(a)));
+  });
 });
 
 gridAlignment(15);

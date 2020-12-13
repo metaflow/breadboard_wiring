@@ -1,12 +1,6 @@
 ("todo list" extension format)
 
 - click and move should be a "move and select action", not separate select then move
-- schematic
-    - move IC
-    - schematic wire (intiallajsy copy)
-    - select wire
-    - delete wire
-    - move wire end
 - add IC
     - selection
     - move
@@ -16,7 +10,7 @@
 - add breadboard
 - move breadboard (one in relation to another)
 - copy / paste
-- cup / paste
+- cut / paste
 
 scenario:
 - draw a scrematic, with LED, ground and other
