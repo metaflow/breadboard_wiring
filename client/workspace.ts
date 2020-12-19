@@ -1,9 +1,8 @@
 import Konva from 'konva';
 import { Contact } from './components/contact';
-import { roots } from './address';
-import { Component, deserializeComponent } from './components/component';
-import { selection, selectionAddresses } from './components/selectable_component';
-import { error, typeGuard } from './utils';
+import { all, Component, deserializeComponent, resetIdCounter, roots } from './components/component';
+import { selectionAddresses } from './components/selectable_component';
+import { error } from './utils';
 import { Mutation, Interaction, deserializeMutation } from './mutation';
 import { diffString } from 'json-diff';
 import { SelectInteraction, UpdateSelectionMutation } from './actions/select';
@@ -119,22 +118,13 @@ export function pointAsNumber(xy: Point): [number, number] { // TODO: move to Po
     return [xy.x, xy.y];
 }
 
-const contacts = new Map<string, Contact>();
-export function addContact(c: Contact) {
-    contacts.set(c.address(), c);
-}
-
-export function removeContact(c: Contact) {
-    contacts.delete(c.address());
-}
-
 export function closesetContact(xy?: Point): Contact | null {
     if (xy === undefined) {
         xy = Point.cursor();
     }
     let z: Contact | null = null;
     let dz = 0;
-    contacts.forEach(c => {
+    all(Contact).forEach((c: Contact) => {
         const d = c.absolutePosition().distance(xy!);
         if (z == null || d < dz) {
             z = c;
@@ -273,7 +263,7 @@ export class Workspace {
                 console.group('details');
                 console.log(diffString(sa, s));
                 console.log('expected state', sa);
-                console.log('actual state', s);                
+                console.log('actual state', s);
                 console.groupEnd();
             }
             a.apply();
@@ -358,7 +348,7 @@ export class Workspace {
     serializeActions(): any[] {
         let h: any[] = [];
         for (const a of this.history) {
-             const s = a.serialize();
+            const s = a.serialize();
             if (s == null) continue;
             h.push(s);
         }
@@ -402,13 +392,11 @@ export class Workspace {
     }
     componentsState(): StageState {
         let z: StageState = {
-            roots: [],
+            roots: Array.from(roots.values())
+                .sort((a, b) => a.id() - b.id())
+                .map(c => c.serialize()),
             selection: selectionAddresses(),
         }
-        const keys = Array.from(roots.keys());
-        keys.sort().forEach(k => {
-            z.roots?.push((roots.get(k) as Component).serialize());
-        });
         return z;
     }
     serialize(): WorkspaceState {
@@ -426,13 +414,8 @@ export class Workspace {
         }
     }
     private clearComponents() {
-        roots.forEach(v => {
-            if (typeGuard(v, Component)) {
-                v.remove();
-            } else {
-                error(v, 'is not a component cannot delete');
-            }
-        })
+        roots.forEach(c => c.remove());
+        resetIdCounter();
     }
     redraw() {
         this.willRedraw = false;

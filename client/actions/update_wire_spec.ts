@@ -1,8 +1,7 @@
 import { Mutation, mutationDeserializers } from "../mutation";
-import { getTypedByAddress } from "../address";
 import { Wire, WirePointSpec } from "../components/wire";
-import assertExists from "ts-assert-exists";
-import { classToPlain, plainToClass } from "class-transformer";
+import { plainToClass } from "class-transformer";
+import { Component } from "../components/component";
 
 export class UpdateWireSpecMutation extends Mutation {
     address: string;
@@ -15,13 +14,12 @@ export class UpdateWireSpecMutation extends Mutation {
         this.to = to;
     }
     apply() {
-        assertExists(getTypedByAddress(Wire, this.address)).pointsSpec(this.to);
+        Component.typedByAddress(Wire, this.address).pointsSpec(this.to);
     }
     undo() {
-        assertExists(getTypedByAddress(Wire, this.address)).pointsSpec(this.from);
+        Component.typedByAddress(Wire, this.address).pointsSpec(this.from);
     }
 }
-
 
 mutationDeserializers.set(UpdateWireSpecMutation.name, (d: object) => {
     return plainToClass(UpdateWireSpecMutation, d);

@@ -1,6 +1,5 @@
 import { Component } from "./component";
-import { error, typeGuard } from "../utils";
-import { getTypedByAddress } from "../address";
+import { typeGuard } from "../utils";
 import theme from '../../theme.json';
 
 export class SelectableComponent extends Component {
@@ -50,14 +49,7 @@ export function selectionAddresses(s?: string[]): string[] {
     if (s !== undefined) {
         // TODO: only deselect what is no longer selected.
         clearSelection();
-        s.forEach(a => {
-            const t = getTypedByAddress(SelectableComponent, a);
-            if (t === null) {
-                error('cannot find', a, 'of type SelectableComponent');
-                return;
-            }
-            t.selected(true);
-        });
+        s.forEach(a => Component.typedByAddress(SelectableComponent, a).selected(true));
     }
     return selection().map(x => x.address()).sort();
 }

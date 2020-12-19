@@ -1,11 +1,10 @@
 import Konva from 'konva';
-import { pointAsNumber, Point, closesetContact, stage, PlainPoint } from '../workspace';
-import { all, copy, newAddress } from '../address';
-import { Component, componentDeserializers, ComponentSpec } from './component';
+import { pointAsNumber, Point, closesetContact, PlainPoint } from '../workspace';
+import { all, Component, componentDeserializers, ComponentSpec } from './component';
 import { workspace } from '../workspace';
 import { SelectableComponent, selectionAddresses } from './selectable_component';
 import theme from '../../theme.json';
-import { typeGuard } from '../utils';
+import { copy, typeGuard } from '../utils';
 import { Contact } from './contact';
 import assertExists from 'ts-assert-exists';
 import { MoveSelectionInteraction } from '../actions/move_selection';
@@ -168,14 +167,13 @@ export class Wire extends Component {
             const o = this;
             let pp = v.map(x => {
                 if (x.id == undefined) return null;
-                const p = new WirePoint(x);
+                const p = this.addChild(new WirePoint(x), x.id);
                 p.selected(selected.includes(p.id()));
-                return o.addChild(p);
+                return p;
             });
             for (let i = 0; i < v.length; i++) {
                 const x = v[i];
                 if (x.id !== undefined) continue;
-                x.id = newAddress(o);
                 pp[i] = this.addChild(new WirePoint(x));
             }
             this.points = [];
@@ -274,7 +272,7 @@ interface SingleWireMove {
     auxWire?: Wire;
 };
 
-export function moveSingleWire(dxy: Point, spec: WirePointSpec[], affectedIds: string[]): WirePointSpec[] {
+export function moveSingleWire(dxy: Point, spec: WirePointSpec[], affectedIds: number[]): WirePointSpec[] {
     let z: WirePointSpec[] = [];
     const affected: boolean[] = [];
     const fixed: boolean[] = [];
@@ -285,7 +283,7 @@ export function moveSingleWire(dxy: Point, spec: WirePointSpec[], affectedIds: s
       const a = affectedIds.indexOf(assertExists(p.id)) != -1;
       if (p.helper && !a) continue;
       affected.push(a);
-      fixed.push(contacts.some(c => c.absolutePosition().closeTo(new Point(p.offset))));
+      fixed.push(contacts.some((c: Contact) => c.absolutePosition().closeTo(new Point(p.offset))));
       z.push(copy(p));
     }
     for (let i = 0; i < z.length; i++) {

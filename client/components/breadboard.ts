@@ -2,7 +2,6 @@ import Konva from 'konva';
 import { Point } from '../workspace';
 import { Contact } from './contact';
 import { Component, ComponentSpec } from './component';
-import assertExists from 'ts-assert-exists';
 import theme from '../../theme.json';
 
 const p_width = 170.5;
@@ -10,14 +9,12 @@ const p_height = 63.1;
 const p_contact = 2.54;
 
 export class Breadboard extends Component {
-
-    contacts = new Map<string, Contact>();
+    contacts: Contact[] = [];
     rect: Konva.Rect;
     constructor(spec?: ComponentSpec) {
         super(spec);
         let left = (p_width - p_contact * 62) / 2;
         let top = (p_height - 19 * p_contact) / 2;
-        const letters = "yz  abcde  fghij  kl";
         for (let i = 0; i < 63; i++) {
             for (let j = 0; j < 20; j++) {
                 if (j == 2 || j == 3 || j == 9 || j == 10 || j == 16 || j == 17) continue;
@@ -25,11 +22,11 @@ export class Breadboard extends Component {
                     (i == 0 || ((i - 1) % 6 == 0) || i == 62)) continue;
                 const c = new Contact({
                     T: '',
-                    id: letters[j] + (i + 1), 
                     offset: new Point(left + i * p_contact, top + j * p_contact).plain(),
                 });
+                // TODO: id: letters[j] + (i + 1), 
                 this.addChild(c);
-                this.contacts.set(assertExists(c.id()), c);
+                this.contacts.push(c);
             }
         }
         this.rect = new Konva.Rect({            

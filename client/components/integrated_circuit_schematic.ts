@@ -56,10 +56,10 @@ export class IntegratedCircuitSchematic extends SelectableComponent {
             if (s === "") continue;
             const c = new Contact({
                 T: '',
-                id: s,
                 offset: new Point(- pin_length, (i + 1) * contact_height).plain(),
             });
-            this.contacts.push(this.addChild(c));
+            this.addChild(c)
+            this.contacts.push(c);
             this.pin_lines.push(new Konva.Line({
                 points: [],
             }));
@@ -77,10 +77,10 @@ export class IntegratedCircuitSchematic extends SelectableComponent {
             if (s === "") continue;
             const c = new Contact({
                 T: '',
-                id: s,
                 offset: new Point(width + pin_length, (i + 1) * contact_height).plain()
             });
-            this.contacts.push(this.addChild(c));
+            this.addChild(c);
+            this.contacts.push(c);
             this.pin_lines.push(new Konva.Line({
                 points: [],
             }));
@@ -150,9 +150,7 @@ export class IntegratedCircuitSchematic extends SelectableComponent {
     }
     materialized(b?: boolean): boolean {
         let z = super.materialized(b);
-        if (z) {
-            this.rect.attrs['address'] = this.address();
-        }
+        if (z) this.rect.attrs['address'] = this.address();
         return z;
     }
     setupEvents() {

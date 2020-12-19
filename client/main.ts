@@ -9,8 +9,8 @@ import { AddWireInteraction } from './actions/add_wire';
 import { SelectInteraction } from './actions/select';
 import { MoveSelectionInteraction } from './actions/move_selection';
 import { DeleteComponentsMutation } from './actions/delete_action';
-import { selection, selectionAddresses, selectionByType, selectionRoots } from './components/selectable_component';
-import { Component, deserializeComponent } from './components/component';
+import { selectionAddresses, selectionRoots } from './components/selectable_component';
+import { ComponentSpec, deserializeComponent } from './components/component';
 import { AddComponentInteraction } from './actions/add_ic_action';
  
 window.onerror = (errorMsg, url, lineNumber) => {
@@ -131,21 +131,25 @@ hotkeys('del', function () {
   deleteSelection();
 });
 
-hotkeys('ctrl+c', function (e) {
-  const ss = selectionRoots().map(c => c.serialize());
+hotkeys('ctrl+c', function () {
+  const ss = selectionRoots().map(c => {
+    const s: ComponentSpec = c.serialize();
+    delete(s.id);
+    return s;
+  });
   if (ss.length == 0) return;
   const t = JSON.stringify(ss);  
-  navigator.clipboard.writeText(t).then(function() {
-    console.log('successfully wrote clipboard');
-  }, function() {
-    console.log('failed to write clipboard');
+  navigator.clipboard.writeText(t).catch(() => {
+    throw new Error('failed to write to clipboard');
   });
 });
 
-hotkeys('ctrl+v', function (e) {  
+hotkeys('ctrl+v', function () {  
   navigator.clipboard.readText().then(txt => {
     const ss = JSON.parse(txt);
-    new AddComponentInteraction(ss.map((a: any) => deserializeComponent(a)));
+    new AddComponentInteraction(ss.map((a: ComponentSpec) => {
+      return deserializeComponent(a);
+    }));
   });
 });
 

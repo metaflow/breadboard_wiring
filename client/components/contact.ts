@@ -1,7 +1,6 @@
 import Konva from "konva";
 import { AddWireInteraction } from "../actions/add_wire";
 import { workspace } from "../workspace";
-import { addContact, removeContact } from "../workspace";
 import { ComponentSpec } from "./component";
 import { SelectableComponent } from "./selectable_component";
 
@@ -17,20 +16,7 @@ export class Contact extends SelectableComponent {
         this.shapes.add(this.circle);
         this.setupEvents();
         this.updateLayout();
-    }
-    materialized(b?:boolean): boolean {
-        let p = this._materialized;
-        if (b !== undefined && p != b) {
-            if (b)  {
-                p = super.materialized(b);
-                addContact(this);
-            } else {
-                removeContact(this);
-                p = super.materialized(b);
-            }
-        }
-        return p;
-    }
+    }    
     setupEvents() {
         const o = this;
         this.circle.on('mousedown', function (e) {            

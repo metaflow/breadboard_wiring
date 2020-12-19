@@ -4,8 +4,8 @@ import { Interaction } from '../mutation';
 import { currentLayer, pointAsNumber, Point, closesetContact, workspace } from '../workspace';
 import theme from '../../theme.json';
 import { AddComponentMutation } from './add_ic_action';
-import { all, newAddress } from '../address';
 import { UpdateWireSpecMutation } from './update_wire_spec';
+import { all } from '../components/component';
 
 export class AddWireInteraction extends Interaction {
     line: Konva.Line | undefined;
@@ -104,7 +104,6 @@ export class AddWireInteraction extends Interaction {
             specs = addHelperPoints(specs);
             const wire = new Wire();
             wire.pointsSpec(specs);
-            wire.id(newAddress());
             workspace.update(new AddComponentMutation(wire.serialize()));
             return;
         }

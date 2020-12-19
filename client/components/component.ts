@@ -1,48 +1,61 @@
-import { Addressable, address, addAddressRoot, removeAddressRoot, newAddress } from "../address";
 import Konva from "konva";
 import { Point, PlainPoint, workspace } from "../workspace";
 import assertExists from "ts-assert-exists";
 import { assert, error, typeGuard } from "../utils";
 import theme from '../../theme.json';
+import { setPointerCapture } from "konva/types/PointerEvents";
 
 export interface ComponentSpec {
     T: string;
     offset: PlainPoint;
-    id?: string;
+    id?: number;
 }
 
-export class Component implements Addressable {
+let idCounter: number = 0;
+
+export function resetIdCounter() {
+    idCounter = 0;
+}
+
+export const materializedComponents = new Map<string, Component>();
+export const roots = new Map<number, Component>();
+
+export class Component {
     _parent: Component | null = null;
-    children = new Map<string, Component>();
+    children = new Map<number, Component>();
+    childCounter = 0;
     shapes = new Konva.Group();
     _mainColor = theme.foreground;
     typeMarker: string = 'Component';
     _offset = new Point();
-    _id: string|undefined;
+    _id: number;
     _materialized = false; // If this component really "exists" and accessabe from the address root.
     _dirtyLayout = true;
     constructor(spec?: ComponentSpec) {
-        if (spec != undefined) {
+        let id = -1;
+        if (spec !== undefined) {
             this._offset = new Point(spec.offset);
-            this._id = spec.id;
+            if (spec.id !== undefined) id = spec.id;
         }
+        if (id < 0) {
+            id = idCounter;
+            idCounter++;
+        }
+        this._id = id;
     }
     materialized(b?: boolean): boolean {
-        if (b === undefined) return this._materialized;
-        if (this._materialized == b) return b;
+        if (b === undefined || this._materialized == b) return this._materialized;
         this._materialized = b;
-        if (b && this._parent == null) {
-            if (this.id() == null) this.id(newAddress());
-            addAddressRoot(this);
-        }        
         this.children.forEach(c => c.materialized(b));
-        if (!b) {
-            if (this._parent == null) {
-                // This must be a address root.
-                removeAddressRoot(assertExists(this.id()));
-            }
+        if (b) {
+            assert(!materializedComponents.has(this.address()))
+            materializedComponents.set(this.address(), this);
+            if (this.parent() == null) roots.set(this.id(), this);
+        } else {
+            materializedComponents.delete(this.address());
+            if (this.parent() == null) roots.delete(this.id());
         }
-        return this._materialized;
+        return b;
     }
     parent(p?: Component | null): Component | null {
         if (p !== undefined) {
@@ -57,15 +70,11 @@ export class Component implements Addressable {
         }
         return this._parent;
     }
-    addChild<T extends Component>(c: T): T {
-        // this.shapes.add(c.shapes);
-        const id = c.id();
-        if (id == null) {
-            throw new Error('child id is not set');            
-        }
-        if (this.children.has(id)) {
-            throw new Error(`child with id "${c.id()}" already present`);
-        }
+    addChild<T extends Component>(c: T, id?: number): T {
+        if (id == undefined) id = this.childCounter;    
+        this.childCounter = Math.max(this.childCounter, id + 1);
+        c.id(id);
+        assert(!this.children.has(id));
         c.parent(this);
         this.children.set(id, c);
         c.mainColor(this.mainColor());
@@ -73,24 +82,16 @@ export class Component implements Addressable {
         c.materialized(this.materialized());
         return c;
     }
-    // TODO: do we need this separation beween adressable and component?
-    addressParent(): Addressable | null {
-        return this.parent();
-    }
-    addressChild(id: string): Addressable | null | undefined {
-        return this.children.get(id);
-    }
-    address(): string {
-        if (!this._materialized) {
-            error(this, 'is not materialized');
-        }
-        return address(this);
-    }
-    id(v?: string): string | undefined {
-        if (v != undefined) {
+    id(v?: number): number {
+        if (v !== undefined) {
+            idCounter = Math.max(idCounter, v + 1);
             this._id = v;
         }
         return this._id;
+    }
+    address(): string {
+        if (this._parent == null) return `${this.id()}`;
+        return `${this.parent()?.address()}:${this.id()}`;
     }
     offset(v?: Point): Point {
         if (v != undefined) {
@@ -112,7 +113,7 @@ export class Component implements Addressable {
     hide() {
         this.shapes.remove();
         workspace.invalidateScene();
-        this.children.forEach(c => c.hide());        
+        this.children.forEach(c => c.hide());
         if (this.parent() == null) workspace.removeVisibleComponent(this);
     }
     remove() {
@@ -121,14 +122,12 @@ export class Component implements Addressable {
         this.parent(null);
     }
     removeChild(x: Component) {
-        const id = x.id();
-        if (id == null) throw new Error('child id is not set');
-        this.children.delete(id);
+        this.children.delete(x.id());
     }
     updateLayout() {
         this._dirtyLayout = false;
         this.children.forEach(c => c.updateLayout());
-    }    
+    }
     invalidateLayout() {
         if (this.parent() != null) {
             this.parent()?.invalidateLayout();
@@ -166,7 +165,18 @@ export class Component implements Addressable {
             }
         });
         return z;
-    }    
+    }
+    static byID(n: number): Component {
+        return assertExists(roots.get(n));
+    }
+    static byAddress(a: string): Component {
+        return assertExists(materializedComponents.get(a));
+    }
+    static typedByAddress<T extends Component>(q: { new(...args: any[]): T }, a: string): T {
+        let t = Component.byAddress(a);
+        if (typeGuard(t, q)) return t as T;
+        throw error(t, 'is not an instance of', q);
+    }
 }
 
 export const componentDeserializers = new Map<string, { (data: any): Component }>();
@@ -175,4 +185,29 @@ export function deserializeComponent(data: any): Component {
     const t = data.T;
     assert(componentDeserializers.has(t), t);
     return componentDeserializers.get(t)!(data)!;
+}
+
+// export function getByAddress(address: string): any | null {
+//     if (address == null) {
+//         error('passed address is null', address);
+//         return null;
+//     }
+//     const parts = address.split(':');
+//     let t: Component | null | undefined = roots.get(parts[0]);
+//     if (t == null) {
+//         error('address root', parts[0], 'not found', address);
+//     }
+//     for (let i = 1; i < parts.length && t != null; i++) {
+//         t = t.children.get(parts[i]);
+//         if (t == null) {
+//             error('address child', parts[i], 'not found', address);
+//         }
+//     }
+//     if (t === undefined) return null;
+//     return t;
+// }
+
+export function all<T extends Component>(q: { new(...args: any[]): T }): T[] {
+    return Array.from(materializedComponents.values())
+        .filter(c => typeGuard(c, q)) as T[];
 }

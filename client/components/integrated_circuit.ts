@@ -1,7 +1,6 @@
 import { Component, ComponentSpec } from "./component";
 import Konva from "konva";
 import { pointAsNumber, Point } from "../workspace";
-import { newAddress } from "../address";
 import { Contact } from "./contact";
 import theme from '../../theme.json';
 
@@ -46,15 +45,14 @@ export class IntegratedCircuit extends Component {
         for (let i = 0; i < w; i++) {
             const c = new Contact({
                 T: '',
-                id: newAddress(this),
                 offset: new Point((i + 0.5) * contact_width + gap, height + pin_length).plain(),
             });
-            this.contacts.push(this.addChild(c));
+            this.addChild(c);
+            this.contacts.push(c);
         }
         for (let i = w; i < this.pins.length; i++) {
             let c = new Contact({
                 T: '',
-                id: newAddress(this),
                 offset: new Point((this.pins.length - i - 1 + 0.5) * contact_width + gap, -pin_length).plain(),
             });
             this.addChild(c);

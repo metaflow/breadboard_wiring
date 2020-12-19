@@ -1,25 +1,23 @@
-import { Mutation, mutationDeserializers, MutationSpec } from "../mutation";
+import { Mutation, mutationDeserializers } from "../mutation";
 import { currentLayer } from "../workspace";
 import { selectionAddresses } from "../components/selectable_component";
 import { Component, ComponentSpec, deserializeComponent } from "../components/component";
 import { plainToClass } from "class-transformer";
-import { getTypedByAddress } from "../address";
 
 export class DeleteComponentsMutation extends Mutation {
-    components: ComponentSpec[];
+    specs: ComponentSpec[];
     prevSelection: string[] = [];
     constructor(components: ComponentSpec[], prevSelection: string[]) {
         super();
-        this.components = components;
+        this.specs = components;
         this.prevSelection = prevSelection;
     }
-    apply(): void {       
-        this.components.forEach(c => {
-            getTypedByAddress(Component, c.id!)?.remove();
-        });
+    apply(): void {
+        // TODO: this deletets non-roots too but createing  of component does not attaches back.
+        this.specs.forEach(c => Component.byID(c.id!).remove());
     }
     undo(): void {
-        this.components.forEach(s => {
+        this.specs.forEach(s => {
             const c = deserializeComponent(s);
             c.updateLayout();
             c.show(currentLayer());
