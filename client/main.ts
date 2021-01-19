@@ -12,6 +12,7 @@ import { DeleteComponentsMutation } from './actions/delete_action';
 import { selectionAddresses, selectionRoots } from './components/selectable_component';
 import { ComponentSpec, deserializeComponent } from './components/component';
 import { AddComponentInteraction } from './actions/add_ic_action';
+import Split from 'split.js';
  
 window.onerror = (errorMsg, url, lineNumber) => {
   onError(errorMsg, url, lineNumber);
@@ -81,14 +82,25 @@ function deleteSelection() {
 
 // first we need to create a stage
 stage(new Konva.Stage({
-  container: 'container',   // id of container <div>
+  container: 'scheme',
   width: window.screen.width,
   height: window.screen.height,
 }));
 
-stage()!.container().style.backgroundColor = theme.backgroud;
+const s2 = new Konva.Stage({
+  container: 'physical',
+  width: window.screen.width,
+  height: window.screen.height,
+});
 
-document.getElementById('container')?.addEventListener('contextmenu', e => {
+stage()!.container().style.backgroundColor = theme.backgroud;
+s2.container().style.backgroundColor = theme.backgroud;
+
+document.getElementById('scheme')?.addEventListener('contextmenu', e => {
+  e.preventDefault()
+});
+
+document.getElementById('physical')?.addEventListener('contextmenu', e => {
   e.preventDefault()
 });
 
@@ -169,3 +181,9 @@ hotkeys('ctrl+v', function () {
 
 gridAlignment(15);
 workspace.loadFromLocalHistory();
+
+Split(['#scheme', '#physical'], {
+  minSize: 100,
+  gutterSize: 3,
+  direction: 'vertical',
+});

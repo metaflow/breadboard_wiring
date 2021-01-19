@@ -26,6 +26,7 @@
     "morgan": "~1.9.1",
     "pug": "2.0.0-beta11",
     "reflect-metadata": "^0.1.13",
+    "split.js": "^1.6.2",
     "ts-assert-exists": "^1.0.5",
     "vec2": "^1.6.1",
     "vector2d": "^3.0.0"
