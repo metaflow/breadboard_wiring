@@ -144,6 +144,20 @@ hotkeys('ctrl+c', function () {
   });
 });
 
+hotkeys('ctrl+x', function () {
+  const ss = selectionRoots().map(c => {
+    const s: ComponentSpec = c.serialize();
+    delete(s.id);
+    return s;
+  });
+  if (ss.length == 0) return;
+  const t = JSON.stringify(ss);  
+  navigator.clipboard.writeText(t).catch(() => {
+    throw new Error('failed to write to clipboard');
+  });
+  deleteSelection();
+});
+
 hotkeys('ctrl+v', function () {  
   navigator.clipboard.readText().then(txt => {
     const ss = JSON.parse(txt);

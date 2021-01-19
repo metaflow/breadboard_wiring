@@ -42,9 +42,10 @@ export class MoveSelectionInteraction extends Interaction {
             if (!this.wires.has(p.wire())) {
                 const w = new Wire();
                 w.mainColor(theme.active);
-                w.show(currentLayer());
+                w.offset(p.wire().offset());
                 w.alwaysShowPoints = true;
                 w.pointsSpec(p.wire().pointsSpec());
+                w.show(currentLayer());
                 p.wire().hide();
                 this.wires.set(p.wire(), [[], w]);
             }

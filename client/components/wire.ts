@@ -265,13 +265,6 @@ export function attachPoints(points: Point[], spec: WirePointSpec[]): WirePointS
     return spec;
 }
 
-interface SingleWireMove {
-    address: string;
-    originalPoints: WirePointSpec[];
-    affectedPointsIds: (string|undefined)[];
-    auxWire?: Wire;
-};
-
 export function moveSingleWire(dxy: Point, spec: WirePointSpec[], affectedIds: number[]): WirePointSpec[] {
     let z: WirePointSpec[] = [];
     const affected: boolean[] = [];

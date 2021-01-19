@@ -4,15 +4,13 @@ import { workspace } from "../workspace";
 import { ComponentSpec } from "./component";
 import { SelectableComponent } from "./selectable_component";
 
-const radius = 2;
+const radius = 3;
 
 export class Contact extends SelectableComponent {
     circle: Konva.Circle;
     constructor(spec: ComponentSpec) {
         super(spec);
-        this.circle = new Konva.Circle({
-            radius: 1,
-        });
+        this.circle = new Konva.Circle({radius});
         this.shapes.add(this.circle);
         this.setupEvents();
         this.updateLayout();
@@ -32,8 +30,9 @@ export class Contact extends SelectableComponent {
     }
     updateLayout(): void {
         super.updateLayout();
-        this.circle.fill(this.selected() ? 'green' : this.mainColor());
+        this.circle.stroke(this.selected() ? 'green' : this.mainColor());
         this.circle.position(this.absolutePosition());
+        this.circle.strokeWidth(1);
         this.circle.radius(radius);
     }
 }

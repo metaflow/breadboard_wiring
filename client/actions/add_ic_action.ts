@@ -59,6 +59,7 @@ export class AddComponentInteraction extends Interaction {
     mousemove(event: KonvaEventObject<MouseEvent>): Interaction | null {
         const o = this;
         this.components.forEach((c, i) => {
+            // TODO: actually wire offset does nothing here.
             c.offset(o.offsets[i].clone().add(Point.cursor()).sub(o.start).alignToGrid());
         });
         return this;

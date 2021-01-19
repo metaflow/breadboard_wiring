@@ -9,8 +9,6 @@
 - click and move IC should be a one action
 - add breadboard
 - move breadboard (one in relation to another)
-- copy / paste
-- cut / paste
 
 scenario:
 - draw a scrematic, with LED, ground and other
