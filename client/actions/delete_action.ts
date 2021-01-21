@@ -1,5 +1,5 @@
 import { Mutation, mutationDeserializers } from "../mutation";
-import { currentLayer } from "../workspace";
+import { schemeLayer } from "../workspace";
 import { selectionAddresses } from "../components/selectable_component";
 import { Component, ComponentSpec, deserializeComponent } from "../components/component";
 import { plainToClass } from "class-transformer";
@@ -20,7 +20,7 @@ export class DeleteComponentsMutation extends Mutation {
         this.specs.forEach(s => {
             const c = deserializeComponent(s);
             c.updateLayout();
-            c.show(currentLayer());
+            c.show(schemeLayer());
             c.materialized(true);
         })
         selectionAddresses(this.prevSelection);

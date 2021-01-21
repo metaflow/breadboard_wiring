@@ -1,6 +1,6 @@
 import { Mutation, Interaction } from "../mutation";
 import { KonvaEventObject } from "konva/types/Node";
-import { Point, stage, currentLayer, workspace } from "../workspace";
+import { Point, schemeStage, schemeLayer, workspace } from "../workspace";
 import { all, Component, deserializeComponent } from "../components/component";
 import { moveSingleWire, Wire, WirePoint } from "../components/wire";
 import { selectionByType, selectionAddresses } from "../components/selectable_component";
@@ -28,7 +28,7 @@ export class MoveSelectionInteraction extends Interaction {
         this.auxComponents = this.components.map(c => {
             const x = deserializeComponent(c.serialize());
             x.mainColor(theme.active);
-            x.show(currentLayer());
+            x.show(schemeLayer());
             c.hide();
             return x;
         });
@@ -45,22 +45,22 @@ export class MoveSelectionInteraction extends Interaction {
                 w.offset(p.wire().offset());
                 w.alwaysShowPoints = true;
                 w.pointsSpec(p.wire().pointsSpec());
-                w.show(currentLayer());
+                w.show(schemeLayer());
                 p.wire().hide();
                 this.wires.set(p.wire(), [[], w]);
             }
             this.wires.get(p.wire())![0].push(assertExists(p.id()));
         }
-        stage()!.container()!.setAttribute('style', 'cursor: move');
+        schemeStage().container()!.setAttribute('style', 'cursor: move');
     }
     cancel() {
-        this.components.forEach(c => c.show(currentLayer()));
+        this.components.forEach(c => c.show(schemeLayer()));
         this.wires.forEach((v, k) => {
-            if (k.materialized()) k.show(currentLayer());
+            if (k.materialized()) k.show(schemeLayer());
             v[1].remove();
         });
         this.auxComponents.forEach(c => c.remove());
-        stage()!.container()!.setAttribute('style', 'cursor: auto');
+        schemeStage().container()!.setAttribute('style', 'cursor: auto');
     }
     mousemove(e: KonvaEventObject<MouseEvent>): Interaction | null {
         const d = Point.cursor().sub(this.from);

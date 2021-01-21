@@ -6,7 +6,7 @@ block content
       #error-bar.hidden
       #toolbar
         button(onclick='clearActionsHistory()') clear history
-        button(onclick='downloadScene()') save
+        button(onclick='downloadSchematic()') save
         input(type="file" id="file-selector" multiple)
     #drawing
       #scheme-area
@@ -18,6 +18,7 @@ block content
         #scheme
       #physical-area
         #physical-toolbar
+          button(onclick='addBreadboard()') BB
           button(onclick='add245()') 245
           button(onclick='addOrthogonal()') wire
         #physical

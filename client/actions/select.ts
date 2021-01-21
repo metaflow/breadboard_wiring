@@ -1,6 +1,6 @@
 import { Mutation, Interaction, mutationDeserializers } from "../mutation";
 import Konva from "konva";
-import { stage, Point, currentLayer, workspace } from "../workspace";
+import { schemeStage, Point, schemeLayer, workspace } from "../workspace";
 import { clearSelection, selectionAddresses } from "../components/selectable_component";
 import { KonvaEventObject } from "konva/types/Node";
 import theme from '../../theme.json';
@@ -25,7 +25,7 @@ export class SelectInteraction extends Interaction {
     selected(): string[] {
         if (this.rect == null) return [];
         const r = this.rect.getClientRect(null);
-        return stage().find('.selectable')
+        return schemeStage().find('.selectable')
             .toArray()
             .filter((shape) => Konva.Util.haveIntersection(r, shape.getClientRect()))
             .map(a => a.attrs['address']);
@@ -39,7 +39,7 @@ export class SelectInteraction extends Interaction {
             stroke: theme.selection,
             strokeWidth: 1,
         });
-        currentLayer()?.add(this.rect);
+        schemeLayer().add(this.rect);
         return this;
     }
     mouseup(event: KonvaEventObject<MouseEvent>): Interaction | null {

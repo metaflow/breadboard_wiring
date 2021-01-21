@@ -1,7 +1,7 @@
 import Konva from 'konva';
 import { removeRedundantPoints, addHelperPoints, WirePointSpec, Wire, newWirePointSpec, attachPoints } from '../components/wire';
 import { Interaction } from '../mutation';
-import { currentLayer, pointAsNumber, Point, closesetContact, workspace } from '../workspace';
+import { schemeLayer, pointAsNumber, Point, closesetContact, workspace } from '../workspace';
 import theme from '../../theme.json';
 import { AddComponentMutation } from './add_ic_action';
 import { UpdateWireSpecMutation } from './update_wire_spec';
@@ -34,9 +34,9 @@ export class AddWireInteraction extends Interaction {
             this.startMarker.position(this.points[0]);
             this.endMarker.position(this.points[this.points.length - 1]);
         }
-        currentLayer()?.add(this.line);
-        currentLayer()?.add(this.startMarker);
-        currentLayer()?.add(this.endMarker);
+        schemeLayer().add(this.line);
+        schemeLayer().add(this.startMarker);
+        schemeLayer().add(this.endMarker);
         workspace.invalidateScene();
     }
     mousemove(event: Konva.KonvaEventObject<MouseEvent>): Interaction | null {

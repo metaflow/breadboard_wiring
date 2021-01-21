@@ -7,7 +7,8 @@ import { Mutation, Interaction, deserializeMutation } from './mutation';
 import { diffString } from 'json-diff';
 import { SelectInteraction, UpdateSelectionMutation } from './actions/select';
 
-let _stage: Konva.Stage | null = null;
+let _schemeStage: Konva.Stage | null = null;
+let _physicalStage: Konva.Stage | null = null;
 let _gridAlignment: number | null = null;
 
 export class PlainPoint {
@@ -86,14 +87,14 @@ export class Point implements Konva.Vector2d {
         return Math.sqrt(this.x * this.x + this.y * this.y);
     }
     static screenCursor(): Point {
-        let pos = stage().getPointerPosition()
+        let pos = schemeStage().getPointerPosition();
         if (pos == null) pos = { x: 0, y: 0 };
-        return new Point(stage().getPointerPosition());
+        return new Point(schemeStage().getPointerPosition());
     }
     static cursor(): Point {
-        let pos = stage().getPointerPosition()
+        let pos = schemeStage().getPointerPosition();
         if (pos == null) pos = { x: 0, y: 0 };
-        return new Point(currentLayer()?.getTransform().copy().invert().point(pos));
+        return new Point(schemeLayer().getTransform().copy().invert().point(pos));
     }
     alignToGrid(): this {
         return this.align(gridAlignment());
@@ -105,13 +106,22 @@ export function gridAlignment(v?: number | null): number | null {
     return _gridAlignment;
 }
 
-export function stage(s?: Konva.Stage): Konva.Stage {
-    if (s !== undefined) _stage = s;
-    if (_stage == null) {
+export function schemeStage(s?: Konva.Stage): Konva.Stage {
+    if (s !== undefined) _schemeStage = s;
+    if (_schemeStage == null) {
         error('stage is not set');
         throw new Error("Stage is not set");
     }
-    return _stage;
+    return _schemeStage;
+}
+
+export function physicalStage(s?: Konva.Stage): Konva.Stage {
+    if (s !== undefined) _physicalStage = s;
+    if (_physicalStage == null) {
+        error('stage is not set');
+        throw new Error("Stage is not set");
+    }
+    return _physicalStage;
 }
 
 export function pointAsNumber(xy: Point): [number, number] { // TODO: move to Point(if used).
@@ -134,13 +144,23 @@ export function closesetContact(xy?: Point): Contact | null {
     return z;
 }
 
-let _defaultLayer: Konva.Layer | null;
-export function currentLayer(layer?: Konva.Layer): Konva.Layer | null {
-    if (layer !== undefined) {
-        _defaultLayer = layer;
-        layer.setAttr('name', 'default');
+let layers = new Map<string, Konva.Layer>();
+export function layer(name: string, v?: Konva.Layer): Konva.Layer {
+    if (v !== undefined) {
+        layers.set(name, v);
+        return v;
     }
-    return _defaultLayer;
+    const x = layers.get(name);
+    if (x) return x;
+    throw error(`no layer ${name}`);
+}
+
+export function schemeLayer(v?: Konva.Layer): Konva.Layer {
+    return layer('scheme', v);
+}
+
+export function physicalLayer(v?: Konva.Layer): Konva.Layer {
+    return layer('physical', v);
 }
 
 export interface StageState {
@@ -207,7 +227,7 @@ export class Workspace {
             // TODO: convert scene dragging to interaction.
             this.draggingScene = true;
             this.draggingOrigin = Point.screenCursor();
-            this.initialOffset = new Point(currentLayer()?.offsetX(), currentLayer()?.offsetY());
+            this.initialOffset = new Point(schemeLayer().offsetX(), schemeLayer().offsetY());
         }
     }
     onMouseUp(event: Konva.KonvaEventObject<MouseEvent>) {
@@ -220,13 +240,13 @@ export class Workspace {
     onMouseWheel(e: Konva.KonvaEventObject<WheelEvent>) {
         // TODO: add mousewheel as interaction method.
         let d = (e.evt.deltaY < 0) ? (1 / 1.1) : 1.1;
-        let x = currentLayer()?.scaleX();
+        let x = schemeLayer().scaleX();
         if (!x) return;
         let c = Point.cursor();
         x *= d;
-        currentLayer()?.scaleX(x);
-        currentLayer()?.scaleY(x);
-        currentLayer()?.offset(c.sub(Point.cursor()).add(new Point(currentLayer()?.offset())));
+        schemeLayer().scaleX(x);
+        schemeLayer().scaleY(x);
+        schemeLayer().offset(c.sub(Point.cursor()).add(new Point(schemeLayer().offset())));
         this.invalidateScene();
         workspace.delayedPersistInLocalHistory();
     }
@@ -236,10 +256,10 @@ export class Workspace {
             return;
         }
         if (this.draggingScene) {
-            const sx = currentLayer()?.scaleX();
+            const sx = schemeLayer().scaleX();
             if (!sx) return true;
             let p = Point.screenCursor().sub(this.draggingOrigin).s(-1 / sx).add(this.initialOffset);
-            currentLayer()?.offset(p);
+            schemeLayer().offset(p);
             this.invalidateScene();
             workspace.delayedPersistInLocalHistory();
         }
@@ -365,11 +385,11 @@ export class Workspace {
         if (ws.components !== undefined && ws.components.roots != null && (ws.history === undefined || !this.debugActions)) {
             ws.components.roots.forEach((a: any) => {
                 const c = deserializeComponent(a);
-                c.show(currentLayer());
+                c.show(schemeLayer());
                 c.materialized(true);
             });
             selectionAddresses(s.selection);
-            console.log(this.componentsState(), currentLayer());
+            console.log(this.componentsState(), schemeLayer());
         }
         this.stateHistory.push(this.componentsState());
         if (ws.history != undefined) {
@@ -384,9 +404,9 @@ export class Workspace {
         }
         // TODO: make currentLayer() assert instead of returning null.
         if (ws.view != undefined) {
-            currentLayer()?.offset(ws.view.offset);
-            currentLayer()?.scaleX(ws.view.scale);
-            currentLayer()?.scaleY(ws.view.scale);
+            schemeLayer().offset(ws.view.offset);
+            schemeLayer().scaleX(ws.view.scale);
+            schemeLayer().scaleY(ws.view.scale);
         }
         this.invalidateScene();
     }
@@ -409,8 +429,8 @@ export class Workspace {
     }
     private serializeView(): ViewState {
         return {
-            scale: currentLayer()?.scaleX()!,
-            offset: currentLayer()?.offset()!,
+            scale: schemeLayer().scaleX()!,
+            offset: schemeLayer().offset()!,
         }
     }
     private clearComponents() {
@@ -422,7 +442,7 @@ export class Workspace {
         this.visibleComponents.forEach(c => {
             if (c.dirtyLayout()) c.updateLayout();
         });
-        stage().batchDraw();
+        schemeStage().batchDraw();
     }
     invalidateScene() {
         // console.log('redraw');

@@ -1,7 +1,7 @@
 import Konva from 'konva';
 import hotkeys from 'hotkeys-js';
-import { workspace } from './workspace';
-import { stage, currentLayer, gridAlignment } from './workspace';
+import { physicalLayer, physicalStage, workspace } from './workspace';
+import { schemeStage, schemeLayer, gridAlignment } from './workspace';
 import { ic74x245 } from './components/74x245';
 import { onError, typeGuard } from './utils';
 import theme from '../theme.json';
@@ -45,7 +45,7 @@ window.onerror = (errorMsg, url, lineNumber) => {
   new MoveSelectionInteraction();
 };
 
-(window as any).downloadScene = function() {
+(window as any).downloadSchematic = function() {
   let w = workspace.serialize();
   delete w.history;
   var text = JSON.stringify(w),
@@ -55,6 +55,10 @@ window.onerror = (errorMsg, url, lineNumber) => {
   anchor.href = (window.webkitURL || window.URL).createObjectURL(blob);
   anchor.dataset.downloadurl = ['text/plain', anchor.download, anchor.href].join(':');
   anchor.click();
+};
+
+(window as any).addBreadboard = () => {
+  new AddComponentInteraction([new ic74x245()]);
 };
 
 const fileSelector = document.getElementById('file-selector') as HTMLInputElement;
@@ -81,20 +85,25 @@ function deleteSelection() {
 }
 
 // first we need to create a stage
-stage(new Konva.Stage({
+schemeStage(new Konva.Stage({
   container: 'scheme',
   width: window.screen.width,
   height: window.screen.height,
 }));
+schemeStage().container().style.backgroundColor = theme.backgroud;
+schemeStage().add(schemeLayer(new Konva.Layer()));
+schemeLayer().scaleX(2);
+schemeLayer().scaleY(2);
 
-const s2 = new Konva.Stage({
+physicalStage(new Konva.Stage({
   container: 'physical',
   width: window.screen.width,
   height: window.screen.height,
-});
-
-stage()!.container().style.backgroundColor = theme.backgroud;
-s2.container().style.backgroundColor = theme.backgroud;
+}));
+physicalStage().container().style.backgroundColor = theme.backgroud;
+physicalStage().add(physicalLayer(new Konva.Layer()));
+physicalLayer().scaleX(2);
+physicalLayer().scaleY(2);
 
 document.getElementById('scheme')?.addEventListener('contextmenu', e => {
   e.preventDefault()
@@ -104,23 +113,19 @@ document.getElementById('physical')?.addEventListener('contextmenu', e => {
   e.preventDefault()
 });
 
-stage().add(currentLayer(new Konva.Layer()));
-currentLayer()?.scaleX(2);
-currentLayer()?.scaleY(2);
-
-stage().on('mousemove', function (e: Konva.KonvaEventObject<MouseEvent>) {
+schemeStage().on('mousemove', function (e: Konva.KonvaEventObject<MouseEvent>) {
   workspace.onMouseMove(e);
 });
 
-stage().on('wheel', function(e : Konva.KonvaEventObject<WheelEvent>) {
+schemeStage().on('wheel', function(e : Konva.KonvaEventObject<WheelEvent>) {
   workspace.onMouseWheel(e);
 });
 
-stage().on('mousedown', function (e) {
+schemeStage().on('mousedown', function (e) {
   workspace.onMouseDown(e);
 });
 
-stage().on('mouseup', function(e) {
+schemeStage().on('mouseup', function(e) {
   workspace.onMouseUp(e); 
 });
 
