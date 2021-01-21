@@ -6,14 +6,19 @@ block content
       #error-bar.hidden
       #toolbar
         button(onclick='clearActionsHistory()') clear history
-        button(onclick='add245()') 245
-        button(onclick='addOrthogonal()') wire
-        button(onclick='toolSelect()') select
-        button(onclick='deleteSelection()') delete
         button(onclick='downloadScene()') save
         input(type="file" id="file-selector" multiple)
     #drawing
-      #scheme
-      #physical
+      #scheme-area
+        #scheme-toolbar
+          button(onclick='add245()') 245
+          button(onclick='addOrthogonal()') wire
+          button(onclick='toolSelect()') select
+          button(onclick='deleteSelection()') delete
+        #scheme
+      #physical-area
+        #physical-toolbar
+          button(onclick='add245()') 245
+          button(onclick='addOrthogonal()') wire
+        #physical
   script(src='/gen/bundle.js')
-  //- script(src='/javascripts/Reflect.js')

@@ -25,8 +25,8 @@ a {
     color: #00b7ff;
 }
 
-#toolbar {
-    padding: 10px;
+#toolbar, #scheme-toolbar, #physical-toolbar {
+    padding: 5px;
     box-shadow: 0 0 0 1px $border;
 }
 
@@ -35,7 +35,7 @@ a {
     height: 700px;
 }
 
-#scheme, #physical {
+#scheme-area, #physical-area {
     overflow: hidden;
 }
 

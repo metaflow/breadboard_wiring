@@ -182,7 +182,7 @@ hotkeys('ctrl+v', function () {
 gridAlignment(15);
 workspace.loadFromLocalHistory();
 
-Split(['#scheme', '#physical'], {
+Split(['#scheme-area', '#physical-area'], {
   minSize: 100,
   gutterSize: 3,
   direction: 'vertical',
