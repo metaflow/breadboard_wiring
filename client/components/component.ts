@@ -1,14 +1,14 @@
 import Konva from "konva";
-import { Point, PlainPoint, workspace } from "../workspace";
+import { Point, PlainPoint, workspace, SCHEME, layer } from "../workspace";
 import assertExists from "ts-assert-exists";
 import { assert, error, typeGuard } from "../utils";
 import theme from '../../theme.json';
-import { setPointerCapture } from "konva/types/PointerEvents";
 
 export interface ComponentSpec {
     T: string;
     offset: PlainPoint;
     id?: number;
+    layerName: string;
 }
 
 let idCounter: number = 0;
@@ -31,12 +31,14 @@ export class Component {
     _id: number;
     _materialized = false; // If this component really "exists" and accessabe from the address root.
     _dirtyLayout = true;
+    layerName: string;
     constructor(spec?: ComponentSpec) {
         let id = -1;
         if (spec !== undefined) {
             this._offset = new Point(spec.offset);
-            if (spec.id !== undefined) id = spec.id;
+            if (spec.id !== undefined) id = spec.id;            
         }
+        this.layerName = spec?.layerName || SCHEME;
         if (id < 0) {
             id = idCounter;
             idCounter++;
@@ -78,7 +80,7 @@ export class Component {
         c.parent(this);
         this.children.set(id, c);
         c.mainColor(this.mainColor());
-        c.show(this.shapes.getLayer() as Konva.Layer);
+        c.show();
         c.materialized(this.materialized());
         return c;
     }
@@ -104,10 +106,10 @@ export class Component {
         if (this._parent != null) return this._parent.absolutePosition().add(this.offset());
         return this.offset();
     }
-    show(layer: Konva.Layer | null) {
+    show() {
         if (this._dirtyLayout) this.updateLayout();
-        this.shapes.moveTo(layer);
-        this.children.forEach(c => c.show(layer));
+        this.shapes.moveTo(this.layer());
+        this.children.forEach(c => c.show());
         if (this.parent() == null) workspace.addVisibleComponent(this);
     }
     hide() {
@@ -139,6 +141,10 @@ export class Component {
     dirtyLayout(): boolean {
         if (this._parent != null) return this._parent.dirtyLayout();
         return this._dirtyLayout;
+    }
+    layer(): Konva.Layer {
+        if (this._parent != null) return this._parent.layer();
+        return layer(this.layerName);
     }
     mainColor(color?: string): string {
         if (color !== undefined) {

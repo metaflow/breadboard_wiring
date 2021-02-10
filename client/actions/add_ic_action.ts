@@ -1,7 +1,7 @@
 import { Mutation, Interaction, mutationDeserializers } from "../mutation";
 import { KonvaEventObject } from "konva/types/Node";
 import { Component, ComponentSpec, deserializeComponent } from "../components/component";
-import { schemeLayer, Point, workspace } from "../workspace";
+import { Point, workspace } from "../workspace";
 import theme from '../../theme.json';
 import { assert } from "../utils";
 import { plainToClass } from "class-transformer";
@@ -22,7 +22,7 @@ export class AddComponentMutation extends Mutation {
     apply(): void {
         const c = deserializeComponent(this.spec);
         console.log('apply add', c, this.spec);
-        c.show(schemeLayer());
+        c.show();
         c.materialized(true);
     }
     undo(): void {
@@ -45,10 +45,10 @@ export class AddComponentInteraction extends Interaction {
     constructor(cc: Component[]) {
         super();
         console.log('add compoenents', cc)
-        this.components = cc;        
+        this.components = cc;
         this.components.forEach(c => {
             c.mainColor(theme.active);
-            c.show(schemeLayer());
+            c.show();
         });
         this.offsets = this.components.map(c => c.offset());
         this.start = Point.cursor();
@@ -66,7 +66,7 @@ export class AddComponentInteraction extends Interaction {
     }
     mousedown(event: KonvaEventObject<MouseEvent>): Interaction | null {
         const mm = this.components.map(c => new AddComponentMutation(c.serialize()));
-        this.cancel();        
+        this.cancel();
         workspace.update(new CompoundMutation(mm));
         return null;
     }

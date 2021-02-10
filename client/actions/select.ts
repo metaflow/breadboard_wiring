@@ -1,16 +1,18 @@
 import { Mutation, Interaction, mutationDeserializers } from "../mutation";
 import Konva from "konva";
-import { schemeStage, Point, schemeLayer, workspace } from "../workspace";
-import { clearSelection, selectionAddresses } from "../components/selectable_component";
+import { schemeStage, Point, schemeLayer, workspace, layer } from "../workspace";
+import { selectionAddresses } from "../components/selectable_component";
 import { KonvaEventObject } from "konva/types/Node";
 import theme from '../../theme.json';
-import { classToPlain, plainToClass } from "class-transformer";
+import { plainToClass } from "class-transformer";
 
 export class SelectInteraction extends Interaction {
     rect: Konva.Rect|null = null;
     prevSelection: string[];
-    constructor() {
+    layerName: string;
+    constructor(layerName: string) {        
         super();
+        this.layerName = layerName;
         this.prevSelection = selectionAddresses();        
     }
     mousemove(event: KonvaEventObject<MouseEvent>): Interaction | null {
@@ -39,7 +41,7 @@ export class SelectInteraction extends Interaction {
             stroke: theme.selection,
             strokeWidth: 1,
         });
-        schemeLayer().add(this.rect);
+        layer(this.layerName).add(this.rect);
         return this;
     }
     mouseup(event: KonvaEventObject<MouseEvent>): Interaction | null {

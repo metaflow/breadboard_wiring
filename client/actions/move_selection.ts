@@ -1,6 +1,6 @@
 import { Mutation, Interaction } from "../mutation";
 import { KonvaEventObject } from "konva/types/Node";
-import { Point, schemeStage, schemeLayer, workspace } from "../workspace";
+import { Point, schemeStage, workspace } from "../workspace";
 import { all, Component, deserializeComponent } from "../components/component";
 import { moveSingleWire, Wire, WirePoint } from "../components/wire";
 import { selectionByType, selectionAddresses } from "../components/selectable_component";
@@ -28,7 +28,7 @@ export class MoveSelectionInteraction extends Interaction {
         this.auxComponents = this.components.map(c => {
             const x = deserializeComponent(c.serialize());
             x.mainColor(theme.active);
-            x.show(schemeLayer());
+            x.show();
             c.hide();
             return x;
         });
@@ -45,7 +45,7 @@ export class MoveSelectionInteraction extends Interaction {
                 w.offset(p.wire().offset());
                 w.alwaysShowPoints = true;
                 w.pointsSpec(p.wire().pointsSpec());
-                w.show(schemeLayer());
+                w.show();
                 p.wire().hide();
                 this.wires.set(p.wire(), [[], w]);
             }
@@ -54,9 +54,9 @@ export class MoveSelectionInteraction extends Interaction {
         schemeStage().container()!.setAttribute('style', 'cursor: move');
     }
     cancel() {
-        this.components.forEach(c => c.show(schemeLayer()));
+        this.components.forEach(c => c.show());
         this.wires.forEach((v, k) => {
-            if (k.materialized()) k.show(schemeLayer());
+            if (k.materialized()) k.show();
             v[1].remove();
         });
         this.auxComponents.forEach(c => c.remove());

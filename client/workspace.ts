@@ -16,6 +16,9 @@ export class PlainPoint {
     y: number = 0;
 };
 
+export const SCHEME = 'scheme';
+export const PHYSICAL = 'physical';
+
 // just in case: https://stackoverflow.com/questions/34098023/typescript-self-referencing-return-type-for-static-methods-in-inheriting-classe?rq=1
 export class Point implements Konva.Vector2d {
     x: number = 0;
@@ -156,11 +159,11 @@ export function layer(name: string, v?: Konva.Layer): Konva.Layer {
 }
 
 export function schemeLayer(v?: Konva.Layer): Konva.Layer {
-    return layer('scheme', v);
+    return layer(SCHEME, v);
 }
 
 export function physicalLayer(v?: Konva.Layer): Konva.Layer {
-    return layer('physical', v);
+    return layer(PHYSICAL, v);
 }
 
 export interface StageState {
@@ -214,7 +217,7 @@ export class Workspace {
         // Left button.
         if (e.evt.button == 0) {
             console.log('start new selection');
-            new SelectInteraction().mousedown(e);
+            new SelectInteraction(SCHEME /* TODO: get from the event */).mousedown(e);
             return;
         }
         // Right click: deselect all.
@@ -385,11 +388,11 @@ export class Workspace {
         if (ws.components !== undefined && ws.components.roots != null && (ws.history === undefined || !this.debugActions)) {
             ws.components.roots.forEach((a: any) => {
                 const c = deserializeComponent(a);
-                c.show(schemeLayer());
+                c.show();
                 c.materialized(true);
             });
             selectionAddresses(s.selection);
-            console.log(this.componentsState(), schemeLayer());
+            console.log(this.componentsState());
         }
         this.stateHistory.push(this.componentsState());
         if (ws.history != undefined) {
