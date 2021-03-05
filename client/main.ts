@@ -1,6 +1,6 @@
 import Konva from 'konva';
 import hotkeys from 'hotkeys-js';
-import { physicalLayer, physicalStage, workspace } from './workspace';
+import { PHYSICAL, physicalLayer, physicalStage, SCHEME, workspace } from './workspace';
 import { schemeStage, schemeLayer, gridAlignment } from './workspace';
 import { ic74x245 } from './components/74x245';
 import { onError, typeGuard } from './utils';
@@ -13,6 +13,7 @@ import { selectionAddresses, selectionRoots } from './components/selectable_comp
 import { ComponentSpec, deserializeComponent } from './components/component';
 import { AddComponentInteraction } from './actions/add_ic_action';
 import Split from 'split.js';
+import { Breadboard } from './components/breadboard';
  
 window.onerror = (errorMsg, url, lineNumber) => {
   onError(errorMsg, url, lineNumber);
@@ -21,6 +22,12 @@ window.onerror = (errorMsg, url, lineNumber) => {
 
 (window as any).add245 = function () {
   new AddComponentInteraction([new ic74x245()]);
+};
+
+(window as any).add245physical = function () {
+  const c = new ic74x245();
+  c.layerName = PHYSICAL;
+  new AddComponentInteraction([c]);
 };
 
 (window as any).clearActionsHistory = function () {
@@ -35,7 +42,12 @@ window.onerror = (errorMsg, url, lineNumber) => {
 
 (window as any).toolSelect = function() {
   workspace.cancelInteractions();
-  new SelectInteraction();
+  new SelectInteraction(SCHEME);
+};
+
+(window as any).selectPhysical = function() {
+  workspace.cancelInteractions();
+  new SelectInteraction(PHYSICAL);
 };
 
 (window as any).deleteSelection = deleteSelection;
@@ -58,7 +70,9 @@ window.onerror = (errorMsg, url, lineNumber) => {
 };
 
 (window as any).addBreadboard = () => {
-  new AddComponentInteraction([new ic74x245()]);
+  const c = new Breadboard();
+  c.layerName = PHYSICAL;
+  new AddComponentInteraction([c]);
 };
 
 const fileSelector = document.getElementById('file-selector') as HTMLInputElement;

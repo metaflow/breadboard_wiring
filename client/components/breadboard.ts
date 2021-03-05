@@ -23,6 +23,7 @@ export class Breadboard extends Component {
                 const c = new Contact({
                     T: '',
                     offset: new Point(left + i * p_contact, top + j * p_contact).plain(),
+                    layerName: '',
                 });
                 // TODO: id: letters[j] + (i + 1), 
                 this.addChild(c);

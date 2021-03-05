@@ -159,6 +159,7 @@ export class Component {
             T: this.constructor.name,
             id: this._id,
             offset: this._offset.plain(),
+            layerName: this.layerName,
         };
         return z;
     }

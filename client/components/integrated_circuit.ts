@@ -46,6 +46,7 @@ export class IntegratedCircuit extends Component {
             const c = new Contact({
                 T: '',
                 offset: new Point((i + 0.5) * contact_width + gap, height + pin_length).plain(),
+                layerName: '',
             });
             this.addChild(c);
             this.contacts.push(c);
@@ -54,6 +55,7 @@ export class IntegratedCircuit extends Component {
             let c = new Contact({
                 T: '',
                 offset: new Point((this.pins.length - i - 1 + 0.5) * contact_width + gap, -pin_length).plain(),
+                layerName: '',
             });
             this.addChild(c);
             this.contacts.push(c);

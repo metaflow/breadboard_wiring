@@ -57,6 +57,7 @@ export class IntegratedCircuitSchematic extends SelectableComponent {
             const c = new Contact({
                 T: '',
                 offset: new Point(- pin_length, (i + 1) * contact_height).plain(),
+                layerName: '',
             });
             this.addChild(c)
             this.contacts.push(c);
@@ -77,7 +78,8 @@ export class IntegratedCircuitSchematic extends SelectableComponent {
             if (s === "") continue;
             const c = new Contact({
                 T: '',
-                offset: new Point(width + pin_length, (i + 1) * contact_height).plain()
+                offset: new Point(width + pin_length, (i + 1) * contact_height).plain(),
+                layerName: '',
             });
             this.addChild(c);
             this.contacts.push(c);
