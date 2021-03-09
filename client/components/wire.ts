@@ -107,7 +107,7 @@ export function newWirePointSpec(p: PlainPoint, helper: boolean): WirePointSpec 
         T: WirePoint.name,
         helper: helper,
         offset: p,
-        layerName: "",  // TODO: check that child's layer is overriden.
+        stageName: "",  // TODO: check that child's layer is overriden.
     };
 }
 

@@ -1,7 +1,6 @@
 import Konva from 'konva';
 import hotkeys from 'hotkeys-js';
-import { PHYSICAL, physicalLayer, physicalStage, SCHEME, workspace } from './workspace';
-import { schemeStage, schemeLayer, gridAlignment } from './workspace';
+import { PHYSICAL, physicalLayer, schemeLayer, gridAlignment, SCHEME, stage, workspace } from './workspace';
 import { ic74x245 } from './components/74x245';
 import { onError, typeGuard } from './utils';
 import theme from '../theme.json';
@@ -25,8 +24,9 @@ window.onerror = (errorMsg, url, lineNumber) => {
 };
 
 (window as any).add245physical = function () {
+  console.log('add245physical');
   const c = new ic74x245();
-  c.layerName = PHYSICAL;
+  c.stageName = PHYSICAL;
   new AddComponentInteraction([c]);
 };
 
@@ -71,7 +71,7 @@ window.onerror = (errorMsg, url, lineNumber) => {
 
 (window as any).addBreadboard = () => {
   const c = new Breadboard();
-  c.layerName = PHYSICAL;
+  c.stageName = PHYSICAL;
   new AddComponentInteraction([c]);
 };
 
@@ -99,23 +99,23 @@ function deleteSelection() {
 }
 
 // first we need to create a stage
-schemeStage(new Konva.Stage({
+stage(SCHEME, new Konva.Stage({
   container: 'scheme',
   width: window.screen.width,
   height: window.screen.height,
 }));
-schemeStage().container().style.backgroundColor = theme.backgroud;
-schemeStage().add(schemeLayer(new Konva.Layer()));
+stage(SCHEME).container().style.backgroundColor = theme.backgroud;
+stage(SCHEME).add(schemeLayer(new Konva.Layer()));
 schemeLayer().scaleX(2);
 schemeLayer().scaleY(2);
 
-physicalStage(new Konva.Stage({
+stage(SCHEME, new Konva.Stage({
   container: 'physical',
   width: window.screen.width,
   height: window.screen.height,
 }));
-physicalStage().container().style.backgroundColor = theme.backgroud;
-physicalStage().add(physicalLayer(new Konva.Layer()));
+stage(PHYSICAL).container().style.backgroundColor = theme.backgroud;
+stage(PHYSICAL).add(physicalLayer(new Konva.Layer()));
 physicalLayer().scaleX(2);
 physicalLayer().scaleY(2);
 
@@ -127,21 +127,7 @@ document.getElementById('physical')?.addEventListener('contextmenu', e => {
   e.preventDefault()
 });
 
-schemeStage().on('mousemove', function (e: Konva.KonvaEventObject<MouseEvent>) {
-  workspace.onMouseMove(e);
-});
-
-schemeStage().on('wheel', function(e : Konva.KonvaEventObject<WheelEvent>) {
-  workspace.onMouseWheel(e);
-});
-
-schemeStage().on('mousedown', function (e) {
-  workspace.onMouseDown(e);
-});
-
-schemeStage().on('mouseup', function(e) {
-  workspace.onMouseUp(e); 
-});
+workspace.setupEvents();
 
 hotkeys('esc', function (e) {
   e.preventDefault();
