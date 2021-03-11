@@ -57,7 +57,7 @@ export class IntegratedCircuitSchematic extends SelectableComponent {
             const c = new Contact({
                 T: '',
                 offset: new Point(- pin_length, (i + 1) * contact_height).plain(),
-                stageName: '',
+                layerName: '',
             });
             this.addChild(c)
             this.contacts.push(c);
@@ -79,7 +79,7 @@ export class IntegratedCircuitSchematic extends SelectableComponent {
             const c = new Contact({
                 T: '',
                 offset: new Point(width + pin_length, (i + 1) * contact_height).plain(),
-                stageName: '',
+                layerName: '',
             });
             this.addChild(c);
             this.contacts.push(c);
@@ -159,7 +159,7 @@ export class IntegratedCircuitSchematic extends SelectableComponent {
         const o = this;
         const f = (e: Konva.KonvaEventObject<MouseEvent>) => {
             if (workspace.currentInteraction()) {
-                workspace.onMouseDown(e);
+                workspace.onMouseDown(e, o.stageName());
                 return;
             }
             if (e.evt.button != 0) return;
@@ -167,7 +167,7 @@ export class IntegratedCircuitSchematic extends SelectableComponent {
             if (!this.selected()) {
                 workspace.update(new UpdateSelectionMutation(selectionAddresses(), [o.address()]));
             }
-            new MoveSelectionInteraction();
+            new MoveSelectionInteraction(o.stageName());
         };
         this.rect.on('mousedown', f);
         this.right_labels.forEach(x => x.on('mousedown', f));

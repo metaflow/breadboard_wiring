@@ -1,7 +1,7 @@
 import { Mutation, Interaction, mutationDeserializers } from "../mutation";
 import { KonvaEventObject } from "konva/types/Node";
 import { Component, ComponentSpec, deserializeComponent } from "../components/component";
-import { Point, workspace } from "../workspace";
+import { Point, stageLayer, workspace } from "../workspace";
 import theme from '../../theme.json';
 import { assert } from "../utils";
 import { plainToClass } from "class-transformer";
@@ -42,16 +42,18 @@ export class AddComponentInteraction extends Interaction {
     components: Component[];
     offsets: Point[];
     start: Point;
-    constructor(cc: Component[]) {
-        super();
+    // TODO: set component stageName from parameter.
+    constructor(stageName: string, cc: Component[]) {
+        super(stageName);
         console.log('add compoenents', cc)
         this.components = cc;
         this.components.forEach(c => {
             c.mainColor(theme.active);
+            c.layerName(stageLayer(stageName));
             c.show();
         });
         this.offsets = this.components.map(c => c.offset());
-        this.start = Point.cursor();
+        this.start = Point.cursor(stageName);
     }
     cancel() {
         this.components.forEach(c => c.remove());
@@ -60,7 +62,7 @@ export class AddComponentInteraction extends Interaction {
         const o = this;
         this.components.forEach((c, i) => {
             // TODO: actually wire offset does nothing here.
-            c.offset(o.offsets[i].clone().add(Point.cursor()).sub(o.start).alignToGrid());
+            c.offset(o.offsets[i].clone().add(Point.cursor(o.stageName)).sub(o.start).alignToGrid());
         });
         return this;
     }

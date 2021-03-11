@@ -12,8 +12,8 @@ export class AddWireInteraction extends Interaction {
     startMarker: Konva.Circle | undefined;
     endMarker: Konva.Circle | undefined;
     points: Point[] = [];
-    constructor(p?: Point) {
-        super();
+    constructor(stageName: string, p?: Point) {
+        super(stageName);
         if (p != null) this.points.push(p);
         this.line = new Konva.Line({
             points: [],
@@ -34,14 +34,15 @@ export class AddWireInteraction extends Interaction {
             this.startMarker.position(this.points[0]);
             this.endMarker.position(this.points[this.points.length - 1]);
         }
+        // TODO: not scheme layer.
         schemeLayer().add(this.line);
         schemeLayer().add(this.startMarker);
         schemeLayer().add(this.endMarker);
         workspace.invalidateScene();
     }
     mousemove(event: Konva.KonvaEventObject<MouseEvent>): Interaction | null {
-        this.endMarker?.position(Point.cursor().alignToGrid());
-        if (this.points.length == 0) this.startMarker?.position(Point.cursor().alignToGrid());
+        this.endMarker?.position(Point.cursor(this.stageName).alignToGrid());
+        if (this.points.length == 0) this.startMarker?.position(Point.cursor(this.stageName).alignToGrid());
         this.updateLayout();
         return this;
     }
@@ -53,9 +54,9 @@ export class AddWireInteraction extends Interaction {
             }
             return this;
         }
-        const xy = Point.cursor().alignToGrid();
+        const xy = Point.cursor(this.stageName).alignToGrid();
         this.points.push(xy);
-        const c = closesetContact(xy);
+        const c = closesetContact(this.stageName, xy);
         this.updateLayout();
         // Complete action if clicked on contact.        
         if (this.points.length >= 2 && c != null && c.absolutePosition().closeTo(xy)) {
@@ -127,7 +128,7 @@ export class AddWireInteraction extends Interaction {
         for (const xy of this.points) { // TODO: use spec points after optimization?
             pp.push(...pointAsNumber(xy));
         }
-        const xy = Point.cursor().alignToGrid();
+        const xy = Point.cursor(this.stageName).alignToGrid();
         pp.push(...pointAsNumber(xy));
         this.line?.points(pp);
         workspace.invalidateScene();

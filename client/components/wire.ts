@@ -1,5 +1,5 @@
 import Konva from 'konva';
-import { pointAsNumber, Point, closesetContact, PlainPoint } from '../workspace';
+import { pointAsNumber, Point, closesetContact, PlainPoint, layerStage } from '../workspace';
 import { all, Component, componentDeserializers, ComponentSpec } from './component';
 import { workspace } from '../workspace';
 import { SelectableComponent, selectionAddresses } from './selectable_component';
@@ -51,7 +51,7 @@ export class WirePoint extends SelectableComponent {
         const point = this;
         this.selectionRect.on('mousedown', function (e) {
             if (workspace.currentInteraction()) {
-                workspace.onMouseDown(e);
+                workspace.onMouseDown(e, point.stageName());
                 return;
             }
             if (e.evt.button != 0) return;
@@ -59,7 +59,7 @@ export class WirePoint extends SelectableComponent {
             if (!point.selected()) {
                 workspace.update(new UpdateSelectionMutation(selectionAddresses(), [point.address()]));
             }
-            new MoveSelectionInteraction();
+            new MoveSelectionInteraction(point.stageName());
         });
         this.selectionRect.on('mouseover mouseout', function (e: any) {
             const wire = point.parent();
@@ -83,7 +83,7 @@ export class WirePoint extends SelectableComponent {
         this.selectionRect.y(xy.y);
         this.selectionRect.width(wirePointSize);
         this.selectionRect.height(wirePointSize);
-        const c = closesetContact(this.absolutePosition());
+        const c = closesetContact(layerStage(this.layerName()), this.absolutePosition());
         if (c == null || !c.absolutePosition().closeTo(this.absolutePosition())) {
             this.selectionRect.dash([0.5, 0.5]);
         } else {
@@ -107,7 +107,7 @@ export function newWirePointSpec(p: PlainPoint, helper: boolean): WirePointSpec 
         T: WirePoint.name,
         helper: helper,
         offset: p,
-        stageName: "",  // TODO: check that child's layer is overriden.
+        layerName: "", // TODO: check that child's layer is overriden.
     };
 }
 

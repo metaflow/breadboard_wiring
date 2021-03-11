@@ -20,14 +20,13 @@ window.onerror = (errorMsg, url, lineNumber) => {
 };
 
 (window as any).add245 = function () {
-  new AddComponentInteraction([new ic74x245()]);
+  new AddComponentInteraction(SCHEME, [new ic74x245()]);
 };
 
 (window as any).add245physical = function () {
   console.log('add245physical');
   const c = new ic74x245();
-  c.stageName = PHYSICAL;
-  new AddComponentInteraction([c]);
+  new AddComponentInteraction(PHYSICAL, [c]);
 };
 
 (window as any).clearActionsHistory = function () {
@@ -37,7 +36,7 @@ window.onerror = (errorMsg, url, lineNumber) => {
 
 (window as any).addOrthogonal = function() {
   workspace.cancelInteractions();
-  new AddWireInteraction();
+  new AddWireInteraction(SCHEME);
 };
 
 (window as any).toolSelect = function() {
@@ -54,7 +53,7 @@ window.onerror = (errorMsg, url, lineNumber) => {
 
 (window as any).moveSelection = function() {
   workspace.cancelInteractions();
-  new MoveSelectionInteraction();
+  new MoveSelectionInteraction(SCHEME); // TODO: add same for the physical layer.
 };
 
 (window as any).downloadSchematic = function() {
@@ -71,8 +70,7 @@ window.onerror = (errorMsg, url, lineNumber) => {
 
 (window as any).addBreadboard = () => {
   const c = new Breadboard();
-  c.stageName = PHYSICAL;
-  new AddComponentInteraction([c]);
+  new AddComponentInteraction(PHYSICAL, [c]);
 };
 
 const fileSelector = document.getElementById('file-selector') as HTMLInputElement;
@@ -98,7 +96,6 @@ function deleteSelection() {
   workspace.update(new DeleteComponentsMutation(cc, selectionAddresses()));
 }
 
-// first we need to create a stage
 stage(SCHEME, new Konva.Stage({
   container: 'scheme',
   width: window.screen.width,
@@ -109,7 +106,7 @@ stage(SCHEME).add(schemeLayer(new Konva.Layer()));
 schemeLayer().scaleX(2);
 schemeLayer().scaleY(2);
 
-stage(SCHEME, new Konva.Stage({
+stage(PHYSICAL, new Konva.Stage({
   container: 'physical',
   width: window.screen.width,
   height: window.screen.height,
@@ -178,7 +175,8 @@ hotkeys('ctrl+x', function () {
 hotkeys('ctrl+v', function () {  
   navigator.clipboard.readText().then(txt => {
     const ss = JSON.parse(txt);
-    new AddComponentInteraction(ss.map((a: ComponentSpec) => {
+    // TODO: not scheme, should be based on component space.
+    new AddComponentInteraction(SCHEME, ss.map((a: ComponentSpec) => {
       return deserializeComponent(a);
     }));
   });

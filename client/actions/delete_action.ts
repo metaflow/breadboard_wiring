@@ -21,7 +21,7 @@ export class DeleteComponentsMutation extends Mutation {
             c.updateLayout();
             c.show();
             c.materialized(true);
-        })
+        });
         selectionAddresses(this.prevSelection);
     }
 }

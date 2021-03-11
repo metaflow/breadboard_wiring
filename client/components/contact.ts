@@ -19,13 +19,13 @@ export class Contact extends SelectableComponent {
         const o = this;
         this.circle.on('mousedown', function (e) {            
             if (workspace.currentInteraction()) {
-                workspace.onMouseDown(e);
+                workspace.onMouseDown(e, o.stageName());
                 return;
             }
             if (e.evt.button != 0) return;
             e.cancelBubble = true;
-            // TODO: if there is an existing wire.
-            new AddWireInteraction(o.absolutePosition());
+            // TODO: what if there is an existing wire attached here? How this should look like in UI?
+            new AddWireInteraction(o.stageName(), o.absolutePosition());
         });
     }
     updateLayout(): void {

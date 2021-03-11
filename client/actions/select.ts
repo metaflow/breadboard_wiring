@@ -1,6 +1,6 @@
 import { Mutation, Interaction, mutationDeserializers } from "../mutation";
 import Konva from "konva";
-import { schemeStage, Point, schemeLayer, workspace, layer } from "../workspace";
+import { Point, workspace, layer, stage, SCHEME } from "../workspace";
 import { selectionAddresses } from "../components/selectable_component";
 import { KonvaEventObject } from "konva/types/Node";
 import theme from '../../theme.json';
@@ -9,15 +9,13 @@ import { plainToClass } from "class-transformer";
 export class SelectInteraction extends Interaction {
     rect: Konva.Rect|null = null;
     prevSelection: string[];
-    layerName: string;
-    constructor(layerName: string) {        
-        super();
-        this.layerName = layerName;
+    constructor(stageName: string) {        
+        super(stageName);
         this.prevSelection = selectionAddresses();        
     }
     mousemove(event: KonvaEventObject<MouseEvent>): Interaction | null {
         if (this.rect == null) return this;
-        let pos = Point.cursor();
+        let pos = Point.cursor(this.stageName);
         this.rect.width(pos.x - this.rect.x());
         this.rect.height(pos.y - this.rect.y());        
         workspace.invalidateScene();
@@ -27,21 +25,21 @@ export class SelectInteraction extends Interaction {
     selected(): string[] {
         if (this.rect == null) return [];
         const r = this.rect.getClientRect(null);
-        return schemeStage().find('.selectable')
+        return stage(SCHEME).find('.selectable')
             .toArray()
             .filter((shape) => Konva.Util.haveIntersection(r, shape.getClientRect()))
             .map(a => a.attrs['address']);
     }
     mousedown(event: KonvaEventObject<MouseEvent>): Interaction | null {
         if (this.rect != null) return this;
-        let pos = Point.cursor();
+        let pos = Point.cursor(this.stageName);
         this.rect = new Konva.Rect({
             x: pos.x,
             y: pos.y,
             stroke: theme.selection,
             strokeWidth: 1,
         });
-        layer(this.layerName).add(this.rect);
+        layer(this.stageName).add(this.rect);
         return this;
     }
     mouseup(event: KonvaEventObject<MouseEvent>): Interaction | null {

@@ -42,7 +42,9 @@ export interface MutationSpec {
 }
 
 export abstract class Interaction {
-    constructor() {
+    stageName: string;
+    constructor(stageName: string) {
+        this.stageName = stageName;
         workspace.currentInteraction(this);
     }
     mousemove(event: Konva.KonvaEventObject<MouseEvent>): Interaction | null {

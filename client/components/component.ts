@@ -1,5 +1,5 @@
 import Konva from "konva";
-import { Point, PlainPoint, workspace, SCHEME, layer } from "../workspace";
+import { Point, PlainPoint, workspace, SCHEME, layer, layerStage } from "../workspace";
 import assertExists from "ts-assert-exists";
 import { assert, error, typeGuard } from "../utils";
 import theme from '../../theme.json';
@@ -31,19 +31,32 @@ export class Component {
     _id: number;
     _materialized = false; // If this component really "exists" and accessabe from the address root.
     _dirtyLayout = true;
-    layerName: string;
-    constructor(spec?: ComponentSpec) {
+    _layerName: string;
+    visible: boolean = false;
+    constructor(spec?: ComponentSpec) { // TODO: parameter is optional to make auto serialization work. Should I add a new ctor instead or hard branch at the beginning?
         let id = -1;
         if (spec !== undefined) {
             this._offset = new Point(spec.offset);
             if (spec.id !== undefined) id = spec.id;            
         }
-        this.layerName = spec?.layerName || SCHEME;
+        this._layerName = spec?.layerName || SCHEME;
         if (id < 0) {
             id = idCounter;
             idCounter++;
         }
         this._id = id;
+    }
+    layerName(x?: string): string {
+        if (x != null) {
+            assert(!this.visible, 'component must be hidden before updating layer');
+            assert(this._parent == null, 'child components should not change layer');
+            this._layerName = x;            
+        }
+        if (this._parent != null) return this._parent.layerName();
+        return this._layerName;
+    }    
+    stageName(): string {
+        return layerStage(this.layerName());
     }
     materialized(b?: boolean): boolean {
         if (b === undefined || this._materialized == b) return this._materialized;
@@ -107,12 +120,14 @@ export class Component {
         return this.offset();
     }
     show() {
+        this.visible = true;        
         if (this._dirtyLayout) this.updateLayout();
-        this.shapes.moveTo(this.layer());
+        this.shapes.moveTo(layer(this.layerName()));
         this.children.forEach(c => c.show());
         if (this.parent() == null) workspace.addVisibleComponent(this);
     }
     hide() {
+        this.visible = false;
         this.shapes.remove();
         workspace.invalidateScene();
         this.children.forEach(c => c.hide());
@@ -142,10 +157,10 @@ export class Component {
         if (this._parent != null) return this._parent.dirtyLayout();
         return this._dirtyLayout;
     }
-    layer(): Konva.Layer {
-        if (this._parent != null) return this._parent.layer();
-        return layer(this.layerName);
-    }
+    // layer(): Konva.Layer {
+    //     if (this._parent != null) return this._parent.layer();
+    //     return layer(this.stageName);
+    // }
     mainColor(color?: string): string {
         if (color !== undefined) {
             this._mainColor = color;
@@ -159,7 +174,7 @@ export class Component {
             T: this.constructor.name,
             id: this._id,
             offset: this._offset.plain(),
-            layerName: this.layerName,
+            layerName: this.layerName(),
         };
         return z;
     }
