@@ -1,7 +1,7 @@
 import { Mutation, Interaction, mutationDeserializers } from "../mutation";
 import { KonvaEventObject } from "konva/types/Node";
 import { Component, ComponentSpec, deserializeComponent } from "../components/component";
-import { Point, stageLayer, workspace } from "../workspace";
+import { Point, stageLayer, StageName, workspace } from "../workspace";
 import theme from '../../theme.json';
 import { assert } from "../utils";
 import { plainToClass } from "class-transformer";
@@ -43,7 +43,7 @@ export class AddComponentInteraction extends Interaction {
     offsets: Point[];
     start: Point;
     // TODO: set component stageName from parameter.
-    constructor(stageName: string, cc: Component[]) {
+    constructor(stageName: StageName, cc: Component[]) {
         super(stageName);
         console.log('add compoenents', cc)
         this.components = cc;

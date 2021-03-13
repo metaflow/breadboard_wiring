@@ -1,6 +1,6 @@
 import { Mutation, Interaction } from "../mutation";
 import { KonvaEventObject } from "konva/types/Node";
-import { Point, SCHEME, stage, workspace } from "../workspace";
+import { Point, SCHEME, stage, StageName, workspace } from "../workspace";
 import { all, Component, deserializeComponent } from "../components/component";
 import { moveSingleWire, Wire, WirePoint } from "../components/wire";
 import { selectionByType, selectionAddresses } from "../components/selectable_component";
@@ -20,7 +20,7 @@ export class MoveSelectionInteraction extends Interaction {
     auxComponents: Component[];
     selection: string[];
     wires = new Map<Wire, [number[], Wire]>();  // Map of "original wire" => (id of affected points, aux wire).
-    constructor(stageName: string) {
+    constructor(stageName: StageName) {
         super(stageName);
         this.selection = selectionAddresses();
         this.from = Point.cursor(stageName);

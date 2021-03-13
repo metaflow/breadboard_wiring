@@ -1,9 +1,7 @@
-import { classToPlain, Expose, plainToClass } from 'class-transformer';
+import { classToPlain, Expose } from 'class-transformer';
 import Konva from 'konva';
-import { AddComponentMutation } from './actions/add_ic_action';
-import { UpdateSelectionMutation } from './actions/select';
-import { assert, error } from './utils';
-import { workspace } from './workspace';
+import { assert } from './utils';
+import { StageName, workspace } from './workspace';
 
 /* active - (finish) ->  ready - (apply) -> applied
          |                     ^                  |
@@ -42,8 +40,8 @@ export interface MutationSpec {
 }
 
 export abstract class Interaction {
-    stageName: string;
-    constructor(stageName: string) {
+    stageName: StageName;
+    constructor(stageName: StageName) {
         this.stageName = stageName;
         workspace.currentInteraction(this);
     }

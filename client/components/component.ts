@@ -1,5 +1,5 @@
 import Konva from "konva";
-import { Point, PlainPoint, workspace, SCHEME, layer, layerStage } from "../workspace";
+import { Point, PlainPoint, workspace, SCHEME, layer, layerStage, stageLayer, StageName, LayerName, LayerNameT } from "../workspace";
 import assertExists from "ts-assert-exists";
 import { assert, error, typeGuard } from "../utils";
 import theme from '../../theme.json';
@@ -31,7 +31,7 @@ export class Component {
     _id: number;
     _materialized = false; // If this component really "exists" and accessabe from the address root.
     _dirtyLayout = true;
-    _layerName: string;
+    _layerName: LayerName;
     visible: boolean = false;
     constructor(spec?: ComponentSpec) { // TODO: parameter is optional to make auto serialization work. Should I add a new ctor instead or hard branch at the beginning?
         let id = -1;
@@ -39,14 +39,14 @@ export class Component {
             this._offset = new Point(spec.offset);
             if (spec.id !== undefined) id = spec.id;            
         }
-        this._layerName = spec?.layerName || SCHEME;
+        this._layerName = LayerNameT.check(spec?.layerName || stageLayer(SCHEME));
         if (id < 0) {
             id = idCounter;
             idCounter++;
         }
         this._id = id;
     }
-    layerName(x?: string): string {
+    layerName(x?: LayerName): LayerName {
         if (x != null) {
             assert(!this.visible, 'component must be hidden before updating layer');
             assert(this._parent == null, 'child components should not change layer');
@@ -55,7 +55,7 @@ export class Component {
         if (this._parent != null) return this._parent.layerName();
         return this._layerName;
     }    
-    stageName(): string {
+    stageName(): StageName {
         return layerStage(this.layerName());
     }
     materialized(b?: boolean): boolean {

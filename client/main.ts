@@ -1,6 +1,6 @@
 import Konva from 'konva';
 import hotkeys from 'hotkeys-js';
-import { PHYSICAL, physicalLayer, schemeLayer, gridAlignment, SCHEME, stage, workspace } from './workspace';
+import { PHYSICAL, gridAlignment, SCHEME, stage, workspace, layer, stageLayer } from './workspace';
 import { ic74x245 } from './components/74x245';
 import { onError, typeGuard } from './utils';
 import theme from '../theme.json';
@@ -102,9 +102,12 @@ stage(SCHEME, new Konva.Stage({
   height: window.screen.height,
 }));
 stage(SCHEME).container().style.backgroundColor = theme.backgroud;
-stage(SCHEME).add(schemeLayer(new Konva.Layer()));
-schemeLayer().scaleX(2);
-schemeLayer().scaleY(2);
+{
+  const x = layer(stageLayer(SCHEME), new Konva.Layer());
+  x.scaleX(2);
+  x.scaleY(2);
+  stage(SCHEME).add(x);
+}
 
 stage(PHYSICAL, new Konva.Stage({
   container: 'physical',
@@ -112,9 +115,12 @@ stage(PHYSICAL, new Konva.Stage({
   height: window.screen.height,
 }));
 stage(PHYSICAL).container().style.backgroundColor = theme.backgroud;
-stage(PHYSICAL).add(physicalLayer(new Konva.Layer()));
-physicalLayer().scaleX(2);
-physicalLayer().scaleY(2);
+{
+  const x = layer(stageLayer(PHYSICAL), new Konva.Layer());
+  x.scaleX(2);
+  x.scaleY(2);
+  stage(PHYSICAL).add(x);
+}
 
 document.getElementById('scheme')?.addEventListener('contextmenu', e => {
   e.preventDefault()
