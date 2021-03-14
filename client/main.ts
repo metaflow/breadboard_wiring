@@ -62,6 +62,7 @@ window.onerror = (errorMsg, url, lineNumber) => {
   var text = JSON.stringify(w),
     blob = new Blob([text], { type: 'text/plain' }),
     anchor = document.createElement('a');
+  console.log(w, text);
   anchor.download = "scheme.bbw";
   anchor.href = (window.webkitURL || window.URL).createObjectURL(blob);
   anchor.dataset.downloadurl = ['text/plain', anchor.download, anchor.href].join(':');

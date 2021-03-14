@@ -1,16 +1,14 @@
 import Konva from "konva";
 import { AddWireInteraction } from "../actions/add_wire";
-import { workspace } from "../workspace";
+import { SCHEME, workspace } from "../workspace";
 import { ComponentSpec } from "./component";
 import { SelectableComponent } from "./selectable_component";
-
-const radius = 3;
 
 export class Contact extends SelectableComponent {
     circle: Konva.Circle;
     constructor(spec: ComponentSpec) {
         super(spec);
-        this.circle = new Konva.Circle({radius});
+        this.circle = new Konva.Circle({radius: 1});
         this.shapes.add(this.circle);
         this.setupEvents();
         this.updateLayout();
@@ -30,9 +28,10 @@ export class Contact extends SelectableComponent {
     }
     updateLayout(): void {
         super.updateLayout();
+        // TODO: not 'green' use theme color.
         this.circle.stroke(this.selected() ? 'green' : this.mainColor());
         this.circle.position(this.absolutePosition());
-        this.circle.strokeWidth(1);
-        this.circle.radius(radius);
+        this.circle.strokeWidth(this.stageName() == SCHEME ? 1 : 0.5);
+        this.circle.radius(this.stageName() == SCHEME ? 3 : 0.7);
     }
 }

@@ -93,7 +93,7 @@ export class Component {
         c.parent(this);
         this.children.set(id, c);
         c.mainColor(this.mainColor());
-        c.show();
+        if (this.visible) c.show();
         c.materialized(this.materialized());
         return c;
     }
@@ -120,6 +120,7 @@ export class Component {
         return this.offset();
     }
     show() {
+        console.log('show component');
         this.visible = true;        
         if (this._dirtyLayout) this.updateLayout();
         this.shapes.moveTo(layer(this.layerName()));

@@ -1,14 +1,17 @@
 import Konva from 'konva';
-import { Point } from '../workspace';
+import { Point, workspace } from '../workspace';
 import { Contact } from './contact';
-import { Component, ComponentSpec } from './component';
+import { Component, componentDeserializers, ComponentSpec } from './component';
 import theme from '../../theme.json';
+import { SelectableComponent, selectionAddresses } from './selectable_component';
+import { UpdateSelectionMutation } from '../actions/select';
+import { MoveSelectionInteraction } from '../actions/move_selection';
 
 const p_width = 170.5;
 const p_height = 63.1;
 const p_contact = 2.54;
 
-export class Breadboard extends Component {
+export class Breadboard extends SelectableComponent {
     contacts: Contact[] = [];
     rect: Konva.Rect;
     constructor(spec?: ComponentSpec) {
@@ -30,13 +33,30 @@ export class Breadboard extends Component {
                 this.contacts.push(c);
             }
         }
-        this.rect = new Konva.Rect({            
+        this.rect = new Konva.Rect({
             fill: theme.breadboard,
             stroke: theme.foreground,
             strokeWidth: 1,
         });
         this.shapes.add(this.rect);
         this.updateLayout();
+        this.setupEvents();
+    }
+    setupEvents() {
+        const o = this;
+        const f = (e: Konva.KonvaEventObject<MouseEvent>) => {
+            if (workspace.currentInteraction()) {
+                workspace.onMouseDown(e, o.stageName());
+                return;
+            }
+            if (e.evt.button != 0) return;
+            e.cancelBubble = true;
+            if (!this.selected()) {
+                workspace.update(new UpdateSelectionMutation(selectionAddresses(), [o.address()]));
+            }
+            new MoveSelectionInteraction(o.stageName());
+        };
+        this.rect.on('mousedown', f);
     }
     updateLayout(): void {
         super.updateLayout();
@@ -45,3 +65,7 @@ export class Breadboard extends Component {
         this.rect.width(p_width);
     }
 }
+
+componentDeserializers.set(Breadboard.name, function (data: ComponentSpec): Breadboard {
+    return new Breadboard(data);
+});

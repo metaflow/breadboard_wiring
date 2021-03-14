@@ -180,7 +180,7 @@ export interface StageState {
 interface WorkspaceState {
     components: StageState | undefined;
     history: any[] | undefined;
-    layers: Map<string, any> | undefined;    
+    layers: [string, any][] | undefined;
 }
 
 interface ViewState {
@@ -362,7 +362,9 @@ export class Workspace {
     }
     persistInLocalHistory() {
         if (this.loading) return;
-        localStorage.setItem('actions_history', JSON.stringify(this.serialize()));
+        const x = this.serialize();
+        console.log(x);
+        localStorage.setItem('actions_history', JSON.stringify(x));
     }
     private delayedPersistInLocalHistory() {
         window.clearTimeout(this.persistTimeout);
@@ -388,6 +390,7 @@ export class Workspace {
         return h;
     }
     deserialize(s: any) {
+        console.log('deserialize', s);
         // TODO: make it a "reset or clear".
         this.history = [];
         this.forwardHistory = []; // TODO: store forward history too.
@@ -416,11 +419,13 @@ export class Workspace {
             }
         }
         if (ws.layers != undefined) {
-            ws.layers.forEach((v: ViewState, name: string) => {
-                const lr = layer(name as LayerName);
-                lr.offset(v.offset);
-                lr.scaleX(v.scale);
-                lr.scaleY(v.scale);
+            console.log('layers', ws.layers);
+            ws.layers.forEach((v: [string, ViewState]) => {
+                const [name, state] = v;
+                const lr = layer(LayerNameT.check(name));                
+                lr.offset(state.offset);
+                lr.scaleX(state.scale);
+                lr.scaleY(state.scale);
             });            
         }
         this.invalidateScene();
@@ -435,15 +440,13 @@ export class Workspace {
         return z;
     }
     serialize(): WorkspaceState {
-        const layers = new Map<string, ViewState>();
-        allStages.forEach(x => {
-            layers.set(stageLayer(x), this.serializeLayerState(stageLayer(x)));
-        })
         // TODO: store forward history too?
         return {
             components: this.componentsState(),
             history: this.serializeActions(),         
-            layers,
+            layers: allStages.map(x => {
+                return [stageLayer(x), this.serializeLayerState(stageLayer(x))];
+            }),
         };
     }
     private serializeLayerState(layerName: LayerName): ViewState {
