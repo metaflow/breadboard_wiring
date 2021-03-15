@@ -3,7 +3,7 @@ import { removeRedundantPoints, addHelperPoints, WirePointSpec, Wire, newWirePoi
 import { Interaction } from '../mutation';
 import { pointAsNumber, Point, closesetContact, workspace, stageLayer, layer, StageName } from '../workspace';
 import theme from '../../theme.json';
-import { AddComponentMutation } from './add_ic_action';
+import { AddComponentMutation } from './add_component';
 import { UpdateWireSpecMutation } from './update_wire_spec';
 import { all } from '../components/component';
 
@@ -42,8 +42,9 @@ export class AddWireInteraction extends Interaction {
         workspace.invalidateScene();
     }
     mousemove(event: Konva.KonvaEventObject<MouseEvent>): Interaction | null {
-        this.endMarker?.position(Point.cursor(this.stageName).alignToGrid());
-        if (this.points.length == 0) this.startMarker?.position(Point.cursor(this.stageName).alignToGrid());
+        const s = this.stageName;
+        this.endMarker?.position(Point.cursor(this.stageName).alignToGrid(s));
+        if (this.points.length == 0) this.startMarker?.position(Point.cursor(s).alignToGrid(s));
         this.updateLayout();
         return this;
     }
@@ -55,7 +56,7 @@ export class AddWireInteraction extends Interaction {
             }
             return this;
         }
-        const xy = Point.cursor(this.stageName).alignToGrid();
+        const xy = Point.cursor(this.stageName).alignToGrid(this.stageName);
         this.points.push(xy);
         const c = closesetContact(this.stageName, xy);
         this.updateLayout();
@@ -129,7 +130,7 @@ export class AddWireInteraction extends Interaction {
         for (const xy of this.points) { // TODO: use spec points after optimization?
             pp.push(...pointAsNumber(xy));
         }
-        const xy = Point.cursor(this.stageName).alignToGrid();
+        const xy = Point.cursor(this.stageName).alignToGrid(this.stageName);
         pp.push(...pointAsNumber(xy));
         this.line?.points(pp);
         workspace.invalidateScene();

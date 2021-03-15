@@ -7,9 +7,8 @@ import { Mutation, Interaction, deserializeMutation } from './mutation';
 import { diffString } from 'json-diff';
 import { SelectInteraction, UpdateSelectionMutation } from './actions/select';
 import {Union, Literal, Static} from 'runtypes';
-import { Layer } from 'konva/types/Layer';
 
-let _gridAlignment: number | null = null;
+let _gridAlignment = new Map<StageName, number|null>();
 
 export class PlainPoint {
     x: number = 0;
@@ -111,14 +110,14 @@ export class Point implements Konva.Vector2d {
         if (pos == null) pos = { x: 0, y: 0 };
         return new Point(layer(stageLayer(stageName)).getTransform().copy().invert().point(pos));
     }
-    alignToGrid(): this {
-        return this.align(gridAlignment());
+    alignToGrid(stage: StageName): this {
+        return this.align(gridAlignment(stage));
     }
 };
 
-export function gridAlignment(v?: number | null): number | null {
-    if (v !== undefined) _gridAlignment = v;
-    return _gridAlignment;
+export function gridAlignment(stage: StageName, v?: number | null): number | null {
+    if (v !== undefined) _gridAlignment.set(stage, v);
+    return _gridAlignment.get(stage) || null;
 }
 
 export function pointAsNumber(xy: Point): [number, number] { // TODO: move to Point(if used).

@@ -9,18 +9,22 @@ block content
         button(onclick='downloadSchematic()') save
         input(type="file" id="file-selector" multiple)
     #drawing
-      #scheme-area
+      #scheme-area(class='area' data-stage='scheme')
         #scheme-toolbar
           button(onclick='add245()') 245
           button(onclick='addOrthogonal()') wire
           button(onclick='toolSelect()') select
           button(onclick='deleteSelection()') delete
+          input(type='checkbox' onclick='toggleGridAlignment(this)')
+          | align
         #scheme
-      #physical-area
+      #physical-area(class='area' data-stage='physical')
         #physical-toolbar
           button(onclick='addBreadboard()') BB
           button(onclick='add245physical()') 245
           button(onclick='addOrthogonal()') wire
-           button(onclick='selectPhysical()') select
+          button(onclick='selectPhysical()') select
+          input(type='checkbox' onclick='toggleGridAlignment(this)')
+          | align
         #physical
   script(src='/gen/bundle.js')

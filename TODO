@@ -1,6 +1,7 @@
 ("todo list" extension format)
 
-- second worspace for physical view
+- bug: adding wire to physical adds to scheme
+- adding wire stick to closest contact, not grid
 - click and move should be a "move and select action", not separate select then move
 - option to align to grid
 - option to align to contacts

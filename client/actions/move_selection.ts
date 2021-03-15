@@ -65,7 +65,7 @@ export class MoveSelectionInteraction extends Interaction {
     mousemove(e: KonvaEventObject<MouseEvent>): Interaction | null {
         const d = Point.cursor(this.stageName).sub(this.from);
         this.auxComponents.forEach((c, i) => {
-            c.offset(this.components[i].offset().add(d).alignToGrid());
+            c.offset(this.components[i].offset().add(d).alignToGrid(c.stageName()));
             c.updateLayout();
         });
         this.wires.forEach((v, k) => {

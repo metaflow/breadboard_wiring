@@ -1,5 +1,5 @@
 import Konva from 'konva';
-import { pointAsNumber, Point, closesetContact, PlainPoint, layerStage } from '../workspace';
+import { pointAsNumber, Point, closesetContact, PlainPoint, layerStage, LayerNameT } from '../workspace';
 import { all, Component, componentDeserializers, ComponentSpec } from './component';
 import { workspace } from '../workspace';
 import { SelectableComponent, selectionAddresses } from './selectable_component';
@@ -286,7 +286,8 @@ export function moveSingleWire(dxy: Point, spec: WirePointSpec[], affectedIds: n
         nextHorizontal.push(z[i].offset.y == z[i + 1].offset.y);
       }
       if (affected[i]) {
-        z[i].offset = new Point(z[i].offset).add(dxy).alignToGrid().plain();
+        const s = layerStage(LayerNameT.check(z[i].layerName));
+        z[i].offset = new Point(z[i].offset).add(dxy).alignToGrid(s).plain();
       }
     }
     for (let i = 0; i < z.length; i++) {

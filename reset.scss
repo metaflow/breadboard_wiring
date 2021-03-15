@@ -45,4 +45,7 @@ table{
 input{
     -webkit-appearance: none;
     border-radius: 0;
+    &[type="checkbox"] {
+        -webkit-appearance: checkbox;
+    }
 }

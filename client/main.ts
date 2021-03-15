@@ -1,6 +1,6 @@
 import Konva from 'konva';
 import hotkeys from 'hotkeys-js';
-import { PHYSICAL, gridAlignment, SCHEME, stage, workspace, layer, stageLayer } from './workspace';
+import { PHYSICAL, gridAlignment, SCHEME, stage, workspace, layer, stageLayer, StageNameT } from './workspace';
 import { ic74x245 } from './components/74x245';
 import { onError, typeGuard } from './utils';
 import theme from '../theme.json';
@@ -10,7 +10,7 @@ import { MoveSelectionInteraction } from './actions/move_selection';
 import { DeleteComponentsMutation } from './actions/delete_action';
 import { selectionAddresses, selectionRoots } from './components/selectable_component';
 import { ComponentSpec, deserializeComponent } from './components/component';
-import { AddComponentInteraction } from './actions/add_ic_action';
+import { AddComponentInteraction } from './actions/add_component';
 import Split from 'split.js';
 import { Breadboard } from './components/breadboard';
  
@@ -74,6 +74,12 @@ window.onerror = (errorMsg, url, lineNumber) => {
   new AddComponentInteraction(PHYSICAL, [c]);
 };
 
+(window as any).toggleGridAlignment = function(a: HTMLInputElement) {
+  const area = a.closest('.area');
+  const s = StageNameT.check(area?.getAttribute('data-stage'));
+  gridAlignment(s, a.checked ? 20 : null);
+}
+
 const fileSelector = document.getElementById('file-selector') as HTMLInputElement;
 fileSelector?.addEventListener('change', () => {  
   const fileList = fileSelector.files;
@@ -124,11 +130,11 @@ stage(PHYSICAL).container().style.backgroundColor = theme.backgroud;
 }
 
 document.getElementById('scheme')?.addEventListener('contextmenu', e => {
-  e.preventDefault()
+  e.preventDefault();
 });
 
 document.getElementById('physical')?.addEventListener('contextmenu', e => {
-  e.preventDefault()
+  e.preventDefault();
 });
 
 workspace.setupEvents();
@@ -189,7 +195,6 @@ hotkeys('ctrl+v', function () {
   });
 });
 
-gridAlignment(15);
 workspace.loadFromLocalHistory();
 
 Split(['#scheme-area', '#physical-area'], {

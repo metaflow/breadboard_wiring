@@ -62,7 +62,7 @@ export class AddComponentInteraction extends Interaction {
         const o = this;
         this.components.forEach((c, i) => {
             // TODO: actually wire offset does nothing here.
-            c.offset(o.offsets[i].clone().add(Point.cursor(o.stageName)).sub(o.start).alignToGrid());
+            c.offset(o.offsets[i].clone().add(Point.cursor(o.stageName)).sub(o.start).alignToGrid(this.stageName));
         });
         return this;
     }
