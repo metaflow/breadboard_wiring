@@ -2,7 +2,7 @@ import Konva from 'konva';
 import hotkeys from 'hotkeys-js';
 import { PHYSICAL, gridAlignment, SCHEME, stage, workspace, layer, stageLayer, StageNameT } from './workspace';
 import { ic74x245 } from './components/74x245';
-import { onError, typeGuard } from './utils';
+import { onError, checkT } from './utils';
 import theme from '../theme.json';
 import { AddWireInteraction } from './actions/add_wire';
 import { SelectInteraction } from './actions/select';
@@ -89,7 +89,7 @@ fileSelector?.addEventListener('change', () => {
   const reader = new FileReader();
   reader.addEventListener('load', (event) => {    
     const s = event.target?.result;
-    if (typeGuard(s, 'string')) {      
+    if (checkT(s, 'string')) {      
       workspace.deserialize(JSON.parse(s));
       fileSelector.value = '';
     }

@@ -1,6 +1,6 @@
 import { componentDeserializers, ComponentSpec } from "./component";
 import Konva from "konva";
-import { pointAsNumber, Point } from "../workspace";
+import { Point } from "../workspace";
 import { Contact } from "./contact";
 import { workspace } from "../workspace";
 import { SelectableComponent, selectionAddresses } from "./selectable_component";
@@ -95,7 +95,7 @@ export class IntegratedCircuitSchematic extends SelectableComponent {
     }
     updateLayout() {
         super.updateLayout();
-        let [x, y] = pointAsNumber(this.absolutePosition());
+        let [x, y] = this.absolutePosition().array();
         this.rect.x(x);
         this.rect.y(y);        
         const pins = Math.max(this.left_pins.length, this.right_pins.length);

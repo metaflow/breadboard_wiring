@@ -1,7 +1,7 @@
 import Konva from 'konva';
-import { removeRedundantPoints, addHelperPoints, WirePointSpec, Wire, newWirePointSpec, attachPoints } from '../components/wire';
+import { WirePointSpec, Wire, newWirePointSpec, attachPoints } from '../components/wire';
 import { Interaction } from '../mutation';
-import { pointAsNumber, Point, closesetContact, workspace, stageLayer, layer, StageName } from '../workspace';
+import { Point, closesetContact, workspace, stageLayer, layer, StageName } from '../workspace';
 import theme from '../../theme.json';
 import { AddComponentMutation } from './add_component';
 import { UpdateWireSpecMutation } from './update_wire_spec';
@@ -34,7 +34,6 @@ export class AddWireInteraction extends Interaction {
             this.startMarker.position(this.points[0]);
             this.endMarker.position(this.points[this.points.length - 1]);
         }
-        // TODO: not scheme layer.
         const lr = layer(stageLayer(stageName));
         lr.add(this.line);
         lr.add(this.startMarker);
@@ -43,13 +42,13 @@ export class AddWireInteraction extends Interaction {
     }
     mousemove(event: Konva.KonvaEventObject<MouseEvent>): Interaction | null {
         const s = this.stageName;
-        this.endMarker?.position(Point.cursor(this.stageName).alignToGrid(s));
+        this.endMarker?.position(Point.cursor(s).alignToGrid(s));
         if (this.points.length == 0) this.startMarker?.position(Point.cursor(s).alignToGrid(s));
         this.updateLayout();
         return this;
     }
     mousedown(event: Konva.KonvaEventObject<MouseEvent>): Interaction | null {
-        if (event.evt.button != 0) {
+        if (event.evt.button != 0) { // Not left click. TODO: maybe only right click?
             if (this.points.length >= 2) {
                 this.complete();
                 return null;
@@ -73,7 +72,6 @@ export class AddWireInteraction extends Interaction {
         const o = this;
         let existingWire: Wire | null = null;
         let specs: WirePointSpec[] = [];
-        console.log(all(Wire));
         for (const w of all(Wire)) {
             if (existingWire != null) break;
             const a = w.points[0].absolutePosition();
@@ -103,17 +101,13 @@ export class AddWireInteraction extends Interaction {
         }
         if (existingWire == null) {
             specs = this.points.map(p => newWirePointSpec(p.plain(), false));
-            specs = removeRedundantPoints(specs);
-            specs = addHelperPoints(specs);
             const wire = new Wire();
+            wire.layerName(stageLayer(this.stageName));
             wire.pointsSpec(specs);
             workspace.update(new AddComponentMutation(wire.serialize()));
             return;
         }
         console.log('attach to existing wire');
-        // TODO: make this point simplification in Wire.pointsSpec()?
-        specs = removeRedundantPoints(specs);
-        specs = addHelperPoints(specs);
         workspace.update(new UpdateWireSpecMutation(existingWire.address(), existingWire.pointsSpec(), specs));
     }
     removeHelpers() {
@@ -126,12 +120,9 @@ export class AddWireInteraction extends Interaction {
         this.removeHelpers();
     }
     updateLayout() {
-        const pp: number[] = [];
-        for (const xy of this.points) { // TODO: use spec points after optimization?
-            pp.push(...pointAsNumber(xy));
-        }
+        const pp: number[] = this.points.flatMap(z => z.array());
         const xy = Point.cursor(this.stageName).alignToGrid(this.stageName);
-        pp.push(...pointAsNumber(xy));
+        pp.push(...xy.array());
         this.line?.points(pp);
         workspace.invalidateScene();
     }

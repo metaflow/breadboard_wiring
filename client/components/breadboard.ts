@@ -1,7 +1,7 @@
 import Konva from 'konva';
 import { Point, workspace } from '../workspace';
 import { Contact } from './contact';
-import { Component, componentDeserializers, ComponentSpec } from './component';
+import { componentDeserializers, ComponentSpec } from './component';
 import theme from '../../theme.json';
 import { SelectableComponent, selectionAddresses } from './selectable_component';
 import { UpdateSelectionMutation } from '../actions/select';
@@ -28,7 +28,6 @@ export class Breadboard extends SelectableComponent {
                     offset: new Point(left + i * p_contact, top + j * p_contact).plain(),
                     layerName: '',
                 });
-                // TODO: id: letters[j] + (i + 1), 
                 this.addChild(c);
                 this.contacts.push(c);
             }

@@ -1,7 +1,7 @@
 import Konva from "konva";
 import { Point, PlainPoint, workspace, SCHEME, layer, layerStage, stageLayer, StageName, LayerName, LayerNameT } from "../workspace";
 import assertExists from "ts-assert-exists";
-import { assert, error, typeGuard } from "../utils";
+import { assert, error, checkT } from "../utils";
 import theme from '../../theme.json';
 
 export interface ComponentSpec {
@@ -33,11 +33,11 @@ export class Component {
     _dirtyLayout = true;
     _layerName: LayerName;
     visible: boolean = false;
-    constructor(spec?: ComponentSpec) { // TODO: parameter is optional to make auto serialization work. Should I add a new ctor instead or hard branch at the beginning?
+    constructor(spec?: ComponentSpec) { // Parameter is optional as some ancestors' ctors accept this.
         let id = -1;
         if (spec !== undefined) {
             this._offset = new Point(spec.offset);
-            if (spec.id !== undefined) id = spec.id;            
+            if (spec.id !== undefined) id = spec.id;
         }
         this._layerName = LayerNameT.check(spec?.layerName || stageLayer(SCHEME));
         if (id < 0) {
@@ -63,7 +63,7 @@ export class Component {
         this._materialized = b;
         this.children.forEach(c => c.materialized(b));
         if (b) {
-            assert(!materializedComponents.has(this.address()))
+            assert(!materializedComponents.has(this.address()), `${this.address} already materialized`);
             materializedComponents.set(this.address(), this);
             if (this.parent() == null) roots.set(this.id(), this);
         } else {
@@ -120,8 +120,9 @@ export class Component {
         return this.offset();
     }
     show() {
-        console.log('show component');
-        this.visible = true;        
+        // console.log('show component');
+        if (this.visible && !this._dirtyLayout) return;
+        this.visible = true;
         if (this._dirtyLayout) this.updateLayout();
         this.shapes.moveTo(layer(this.layerName()));
         this.children.forEach(c => c.show());
@@ -182,7 +183,7 @@ export class Component {
     descendants<T>(q: { new(...args: any[]): T }): T[] {
         const z: T[] = [];
         this.children.forEach(c => {
-            if (typeGuard(c, q)) {
+            if (checkT(c, q)) {
                 z.push(c);
                 z.push(...c.descendants(q));
             }
@@ -197,7 +198,7 @@ export class Component {
     }
     static typedByAddress<T extends Component>(q: { new(...args: any[]): T }, a: string): T {
         let t = Component.byAddress(a);
-        if (typeGuard(t, q)) return t as T;
+        if (checkT(t, q)) return t as T;
         throw error(t, 'is not an instance of', q);
     }
 }
@@ -232,5 +233,5 @@ export function deserializeComponent(data: any): Component {
 
 export function all<T extends Component>(q: { new(...args: any[]): T }): T[] {
     return Array.from(materializedComponents.values())
-        .filter(c => typeGuard(c, q)) as T[];
+        .filter(c => checkT(c, q)) as T[];
 }

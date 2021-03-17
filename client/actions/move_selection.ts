@@ -7,7 +7,7 @@ import { selectionByType, selectionAddresses } from "../components/selectable_co
 import { Contact } from "../components/contact";
 import { MoveComponentMutation } from "./move_component";
 import assertExists from "ts-assert-exists";
-import { typeGuard } from "../utils";
+import { checkT } from "../utils";
 import theme from '../../theme.json';
 import { CompoundMutation } from "./compound";
 import { UpdateWireSpecMutation } from "./update_wire_spec";
@@ -24,7 +24,7 @@ export class MoveSelectionInteraction extends Interaction {
         super(stageName);
         this.selection = selectionAddresses();
         this.from = Point.cursor(stageName);
-        this.components = selectionByType(Component).filter(c => !typeGuard(c, WirePoint));
+        this.components = selectionByType(Component).filter(c => !checkT(c, WirePoint));
         this.auxComponents = this.components.map(c => {
             const x = deserializeComponent(c.serialize());
             x.mainColor(theme.active);
@@ -41,6 +41,7 @@ export class MoveSelectionInteraction extends Interaction {
         for (const p of points) {
             if (!this.wires.has(p.wire())) {
                 const w = new Wire();
+                w.layerName(p.wire().layerName());
                 w.mainColor(theme.active);
                 w.offset(p.wire().offset());
                 w.alwaysShowPoints = true;

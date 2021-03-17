@@ -1,6 +1,7 @@
 ("todo list" extension format)
 
-- bug: adding wire to physical adds to scheme
+- grid toggle should be saved to the state
+- snap to contacts (option)
 - adding wire stick to closest contact, not grid
 - click and move should be a "move and select action", not separate select then move
 - option to align to grid
@@ -8,6 +9,7 @@
 - click and move IC should be a one action
 - add breadboard
 - move breadboard (one in relation to another)
+- store forward history in file too?
 
 scenario:
 - draw a scrematic, with LED, ground and other

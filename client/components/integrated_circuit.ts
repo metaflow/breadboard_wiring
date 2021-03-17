@@ -1,6 +1,6 @@
 import { Component, ComponentSpec } from "./component";
 import Konva from "konva";
-import { pointAsNumber, Point } from "../workspace";
+import { Point } from "../workspace";
 import { Contact } from "./contact";
 import theme from '../../theme.json';
 
@@ -75,7 +75,7 @@ export class IntegratedCircuit extends Component {
 
     updateLayout() {
         super.updateLayout();
-        let [x, y] = pointAsNumber(this.absolutePosition());
+        let [x, y] = this.absolutePosition().array();
         const w = Math.floor((this.pins.length + 1) / 2);
         this.rect.x(x);
         this.rect.y(y);

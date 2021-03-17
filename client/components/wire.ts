@@ -1,10 +1,10 @@
 import Konva from 'konva';
-import { pointAsNumber, Point, closesetContact, PlainPoint, layerStage, LayerNameT } from '../workspace';
+import { Point, closesetContact, PlainPoint, layerStage, LayerNameT } from '../workspace';
 import { all, Component, componentDeserializers, ComponentSpec } from './component';
 import { workspace } from '../workspace';
 import { SelectableComponent, selectionAddresses } from './selectable_component';
 import theme from '../../theme.json';
-import { copy, typeGuard } from '../utils';
+import { copy, checkT } from '../utils';
 import { Contact } from './contact';
 import assertExists from 'ts-assert-exists';
 import { MoveSelectionInteraction } from '../actions/move_selection';
@@ -36,10 +36,7 @@ After moving all points in wire we should check wire self-intersections to remov
 */
 
 export class WirePoint extends SelectableComponent {
-    selectableInterface: true = true;
     selectionRect: Konva.Rect;
-    visible: boolean = false; // TODO: ake visibility a port of component.
-    _selected: boolean = false;
     helper: boolean;
     constructor(spec: WirePointSpec) {
         super(spec);
@@ -63,7 +60,7 @@ export class WirePoint extends SelectableComponent {
         });
         this.selectionRect.on('mouseover mouseout', function (e: any) {
             const wire = point.parent();
-            if (typeGuard(wire, Wire)) wire.onPointEvent(e.type);
+            if (checkT(wire, Wire)) wire.onPointEvent(e.type);
         });
         this.shapes.add(this.selectionRect);
         this.updateLayout();
@@ -107,7 +104,7 @@ export function newWirePointSpec(p: PlainPoint, helper: boolean): WirePointSpec 
         T: WirePoint.name,
         helper: helper,
         offset: p,
-        layerName: "", // TODO: check that child's layer is overriden.
+        layerName: "",
     };
 }
 
@@ -149,7 +146,7 @@ export class Wire extends Component {
         const pp: number[] = [];
         for (const p of this.points) {
             if (p.helper) continue;
-            pp.push(...pointAsNumber(p.absolutePosition()));
+            pp.push(...p.absolutePosition().array());
         }
         this.line.points(pp);
         this.line.strokeWidth(wireWidth);
@@ -161,6 +158,8 @@ export class Wire extends Component {
     }
     pointsSpec(v?: WirePointSpec[]): WirePointSpec[] {
         if (v !== undefined) {
+            v = removeRedundantPoints(v);
+            v = addHelperPoints(v);
             this.hoverPoint = false;
             const selected = this.points.filter(p => p.selected()).map(p => p.id());
             this.points.forEach(p => p.remove());
@@ -201,7 +200,7 @@ componentDeserializers.set(Wire.name, function (data: any): Wire {
     return new Wire(data);
 });
 
-export function removeRedundantPoints(s: WirePointSpec[]): WirePointSpec[] {
+function removeRedundantPoints(s: WirePointSpec[]): WirePointSpec[] {
     // Make sure that on every line there are 3 points.
     // Iterate over points and add to line.
     // If only two points: add intermediate one.
@@ -245,7 +244,7 @@ export function removeRedundantPoints(s: WirePointSpec[]): WirePointSpec[] {
     return pp;
 }
 
-export function addHelperPoints(s: WirePointSpec[]): WirePointSpec[] {
+function addHelperPoints(s: WirePointSpec[]): WirePointSpec[] {
     const z: WirePointSpec[] = [];
     for (let k = 0; k < s.length; k++) {
         if (k > 0) {
@@ -313,7 +312,5 @@ export function moveSingleWire(dxy: Point, spec: WirePointSpec[], affectedIds: n
     for (const p of z) {
       p.helper = false;
     }
-    z = removeRedundantPoints(z);
-    z = addHelperPoints(z);
     return z;
   }

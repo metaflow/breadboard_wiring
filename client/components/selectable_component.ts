@@ -1,10 +1,9 @@
 import { Component } from "./component";
-import { typeGuard } from "../utils";
+import { checkT } from "../utils";
 import theme from '../../theme.json';
 
 export class SelectableComponent extends Component {
     _selected: boolean = false;
-    selectableInterface: true = true;  // TODO: needed?
     selected(v?: boolean): boolean {
         if (v !== undefined) {
             if (this._selected != v) {
@@ -34,7 +33,7 @@ export function selection(): SelectableComponent[] {
 }
 
 export function selectionByType<T>(q: { new(...args: any[]): T }): T[] {
-    return selection().filter(x => typeGuard(x, q)).map(x => x as any as T);
+    return selection().filter(x => checkT(x, q)).map(x => x as any as T);
 }
 
 export function selectionRoots(): Component[] {

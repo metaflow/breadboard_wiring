@@ -83,6 +83,9 @@ export class Point implements Konva.Vector2d {
     plain() {
         return { x: this.x, y: this.y } as PlainPoint;
     }
+    array(): [number, number] {
+        return [this.x, this.y];
+    }    
     distance(other: this): number {
         const dx = this.x - other.x;
         const dy = this.y - other.y;
@@ -119,11 +122,6 @@ export function gridAlignment(stage: StageName, v?: number | null): number | nul
     if (v !== undefined) _gridAlignment.set(stage, v);
     return _gridAlignment.get(stage) || null;
 }
-
-export function pointAsNumber(xy: Point): [number, number] { // TODO: move to Point(if used).
-    return [xy.x, xy.y];
-}
-
 export function closesetContact(stageName: StageName, xy?: Point): Contact | null {
     if (xy === undefined) xy = Point.cursor(stageName);
     let z: Contact | null = null;
@@ -213,10 +211,14 @@ export class Workspace {
     cancelInteractions() {
         this.currentInteraction()?.cancel();
     }
-    onMouseDown(e: Konva.KonvaEventObject<MouseEvent>, stageName: StageName) {
+    onMouseDown(e: Konva.KonvaEventObject<MouseEvent>, stageName: StageName) {        
         // TODO: check with current interaction that its stage.
         e.evt.preventDefault(); // Disable scroll on middle button click. TODO: check button?
         if (this._currentInteraction != null) {
+            if (this._currentInteraction.stageName !== stageName) {
+                console.log('action on different stage', this._currentInteraction.stageName, stageName);
+                return;
+            }
             this._currentInteraction = this._currentInteraction.mousedown(e);
             return;
         }
@@ -242,6 +244,10 @@ export class Workspace {
     }
     onMouseUp(event: Konva.KonvaEventObject<MouseEvent>, stageName: StageName) {
         if (this._currentInteraction != null) {
+            if (this._currentInteraction.stageName !== stageName) {
+                console.log('action on different stage', this._currentInteraction.stageName, stageName);
+                return;
+            }
             this._currentInteraction = this._currentInteraction.mouseup(event);
             return;
         }
@@ -263,6 +269,10 @@ export class Workspace {
     }
     onMouseMove(event: Konva.KonvaEventObject<MouseEvent>, stageName: StageName) {
         if (this._currentInteraction != null) {
+            if (this._currentInteraction.stageName !== stageName) {
+                console.log('action on different stage', this._currentInteraction.stageName, stageName);
+                return;
+            }
             this._currentInteraction = this._currentInteraction.mousemove(event);
             return;
         }
@@ -388,13 +398,14 @@ export class Workspace {
         }
         return h;
     }
-    deserialize(s: any) {
-        console.log('deserialize', s);
-        // TODO: make it a "reset or clear".
+    clear() {
         this.history = [];
-        this.forwardHistory = []; // TODO: store forward history too.
+        this.forwardHistory = [];
         this.stateHistory = [];
         this.clearComponents();
+    }
+    deserialize(s: any) {
+        this.clear()
         document.title = 'scheme';
         const ws = s as WorkspaceState;
         if (ws.components !== undefined && ws.components.roots != null && (ws.history === undefined || !this.debugActions)) {
@@ -418,7 +429,6 @@ export class Workspace {
             }
         }
         if (ws.layers != undefined) {
-            console.log('layers', ws.layers);
             ws.layers.forEach((v: [string, ViewState]) => {
                 const [name, state] = v;
                 const lr = layer(LayerNameT.check(name));                
