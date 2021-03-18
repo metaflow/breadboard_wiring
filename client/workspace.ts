@@ -114,14 +114,10 @@ export class Point implements Konva.Vector2d {
         return new Point(layer(stageLayer(stageName)).getTransform().copy().invert().point(pos));
     }
     alignToGrid(stage: StageName): this {
-        return this.align(gridAlignment(stage));
+        return this.align(workspace.gridAlignment(stage));
     }
 };
 
-export function gridAlignment(stage: StageName, v?: number | null): number | null {
-    if (v !== undefined) _gridAlignment.set(stage, v);
-    return _gridAlignment.get(stage) || null;
-}
 export function closesetContact(stageName: StageName, xy?: Point): Contact | null {
     if (xy === undefined) xy = Point.cursor(stageName);
     let z: Contact | null = null;
@@ -212,7 +208,6 @@ export class Workspace {
         this.currentInteraction()?.cancel();
     }
     onMouseDown(e: Konva.KonvaEventObject<MouseEvent>, stageName: StageName) {        
-        // TODO: check with current interaction that its stage.
         e.evt.preventDefault(); // Disable scroll on middle button click. TODO: check button?
         if (this._currentInteraction != null) {
             if (this._currentInteraction.stageName !== stageName) {
@@ -225,7 +220,7 @@ export class Workspace {
         // Left button.
         if (e.evt.button == 0) {
             console.log('start new selection');
-            new SelectInteraction(SCHEME /* TODO: get from the event */).mousedown(e);
+            new SelectInteraction(stageName).mousedown(e);
             return;
         }
         // Right click: deselect all.
@@ -254,10 +249,9 @@ export class Workspace {
         this.draggingScene = false;
     }
     onMouseWheel(e: Konva.KonvaEventObject<WheelEvent>, stageName: StageName) {
-        // TODO: add mousewheel as interaction method.
         let d = (e.evt.deltaY < 0) ? (1 / 1.1) : 1.1;
         const lr = layer(stageLayer(stageName));
-        let x = lr.scaleX(); // TODO: appropriate layer. Check all refrences to schemeLayer().
+        let x = lr.scaleX();
         if (!x) return;
         let c = Point.cursor(stageName);
         x *= d;
@@ -449,7 +443,6 @@ export class Workspace {
         return z;
     }
     serialize(): WorkspaceState {
-        // TODO: store forward history too?
         return {
             components: this.componentsState(),
             history: this.serializeActions(),         
@@ -506,8 +499,12 @@ export class Workspace {
             stage(x).on('mouseup', function (e: Konva.KonvaEventObject<MouseEvent>) {
                 workspace.onMouseUp(e, x);
             });
-        });
-        
+        });        
+    }
+    // TODO: stage should be a separate object?
+    gridAlignment(stage: StageName, v?: number | null): number | null {
+        if (v !== undefined) _gridAlignment.set(stage, v);
+        return _gridAlignment.get(stage) || null;
     }
 }
 

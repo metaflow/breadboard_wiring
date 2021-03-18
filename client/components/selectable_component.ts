@@ -36,6 +36,7 @@ export function selectionByType<T>(q: { new(...args: any[]): T }): T[] {
     return selection().filter(x => checkT(x, q)).map(x => x as any as T);
 }
 
+// TODO: Selection should be tied to stage.
 export function selectionRoots(): Component[] {
     return Array.from(new Set<Component>(selectionByType(Component).map(c => {
         let p = c;
@@ -46,9 +47,13 @@ export function selectionRoots(): Component[] {
 
 export function selectionAddresses(s?: string[]): string[] {
     if (s !== undefined) {
-        // TODO: only deselect what is no longer selected.
-        clearSelection();
-        s.forEach(a => Component.typedByAddress(SelectableComponent, a).selected(true));
+        // Deselect no longer selected components.
+        selection()
+            .filter(x => s.indexOf(x.address()) === -1)
+            .forEach(x => x.selected(false));
+        // Select new components.
+        s.forEach(a => Component.typedByAddress(SelectableComponent, a)
+            .selected(true));
     }
     return selection().map(x => x.address()).sort();
 }

@@ -1,6 +1,6 @@
 import Konva from 'konva';
 import hotkeys from 'hotkeys-js';
-import { PHYSICAL, gridAlignment, SCHEME, stage, workspace, layer, stageLayer, StageNameT } from './workspace';
+import { PHYSICAL, SCHEME, stage, workspace, layer, stageLayer, StageNameT } from './workspace';
 import { ic74x245 } from './components/74x245';
 import { onError, checkT } from './utils';
 import theme from '../theme.json';
@@ -51,11 +51,6 @@ window.onerror = (errorMsg, url, lineNumber) => {
 
 (window as any).deleteSelection = deleteSelection;
 
-(window as any).moveSelection = function() {
-  workspace.cancelInteractions();
-  new MoveSelectionInteraction(SCHEME); // TODO: add same for the physical layer.
-};
-
 (window as any).downloadSchematic = function() {
   let w = workspace.serialize();
   delete w.history;
@@ -77,7 +72,7 @@ window.onerror = (errorMsg, url, lineNumber) => {
 (window as any).toggleGridAlignment = function(a: HTMLInputElement) {
   const area = a.closest('.area');
   const s = StageNameT.check(area?.getAttribute('data-stage'));
-  gridAlignment(s, a.checked ? 20 : null);
+  workspace.gridAlignment(s, a.checked ? 20 : null);
 }
 
 const fileSelector = document.getElementById('file-selector') as HTMLInputElement;
