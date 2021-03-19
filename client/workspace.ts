@@ -8,8 +8,6 @@ import { diffString } from 'json-diff';
 import { SelectInteraction, UpdateSelectionMutation } from './actions/select';
 import {Union, Literal, Static} from 'runtypes';
 
-let _gridAlignment = new Map<AreaName, number|null>();
-
 export class PlainPoint {
     x: number = 0;
     y: number = 0;
@@ -102,10 +100,7 @@ export class Point implements Konva.Vector2d {
     }
     length(): number {
         return Math.sqrt(this.x * this.x + this.y * this.y);
-    }
-    alignToGrid(stage: AreaName): this {
-        return this.align(workspace.gridAlignment(stage));
-    }
+    }    
 };
 
 let layers = new Map<string, Konva.Layer>();
@@ -151,7 +146,9 @@ export class Area {
     readonly name: AreaName
     private draggingScene = false;
     private draggingOrigin = new Point();
-    private initialOffset = new Point();;
+    private initialOffset = new Point();
+    private _gridAlignment: number|null = null;
+
     constructor(name: AreaName, _stage: Konva.Stage) {
         this.name = name;
         this.stage = _stage;
@@ -175,8 +172,8 @@ export class Area {
         e.evt.preventDefault(); // Disable scroll on middle button click. TODO: check button?
         const t = workspace.currentInteraction();
         if (t != null) {
-            if (t.stageName !== this.name) {
-                console.log('action on different stage', t.stageName, this.name);
+            if (t.areaName !== this.name) {
+                console.log('action on different stage', t.areaName, this.name);
                 return;
             }
             workspace.currentInteraction(t.mousedown(e));
@@ -205,8 +202,8 @@ export class Area {
     onMouseUp(event: Konva.KonvaEventObject<MouseEvent>) {
         const t = workspace.currentInteraction();
         if (t != null) {
-            if (t.stageName !== this.name) {
-                console.log('action on different stage', t.stageName, this.name);
+            if (t.areaName !== this.name) {
+                console.log('action on different stage', t.areaName, this.name);
                 return;
             }
             workspace.currentInteraction(t.mouseup(event));
@@ -230,8 +227,8 @@ export class Area {
     onMouseMove(event: Konva.KonvaEventObject<MouseEvent>) {
         const t = workspace.currentInteraction();
         if (t != null) {
-            if (t.stageName !== this.name) {
-                console.log('action on different stage', t.stageName, this.name);
+            if (t.areaName !== this.name) {
+                console.log('action on different stage', t.areaName, this.name);
                 return;
             }
             workspace.currentInteraction(t.mousemove(event));
@@ -256,6 +253,16 @@ export class Area {
         let pos = this.stage.getPointerPosition();
         if (pos == null) pos = { x: 0, y: 0 };
         return new Point(this.layer().getTransform().copy().invert().point(pos));
+    }
+    alignedCursor(): Point {
+        return this.align(this.cursor());
+    }
+    align(p : Point): Point {
+        return p.clone().align(this.gridAlignment());
+    }
+    gridAlignment(v?: number | null): number | null {
+        if (v !== undefined) this._gridAlignment = v;
+        return this._gridAlignment;
     }
     layer(): Konva.Layer {
         return layer(stageLayer(this.name));
@@ -517,11 +524,6 @@ export class Workspace {
     setupEvents() {
         this.areas.forEach(a => a.setupEvents());
             
-    }
-    // TODO: stage should be a separate object?
-    gridAlignment(stage: AreaName, v?: number | null): number | null {
-        if (v !== undefined) _gridAlignment.set(stage, v);
-        return _gridAlignment.get(stage) || null;
     }
 }
 

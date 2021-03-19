@@ -45,7 +45,7 @@ export class Breadboard extends SelectableComponent {
         const o = this;
         const f = (e: Konva.KonvaEventObject<MouseEvent>) => {
             if (workspace.currentInteraction()) {
-                workspace.onMouseDown(e, o.stageName());
+                o.area().onMouseDown(e);
                 return;
             }
             if (e.evt.button != 0) return;
@@ -53,7 +53,7 @@ export class Breadboard extends SelectableComponent {
             if (!this.selected()) {
                 workspace.update(new UpdateSelectionMutation(selectionAddresses(), [o.address()]));
             }
-            new MoveSelectionInteraction(o.stageName());
+            new MoveSelectionInteraction(o.areaName());
         };
         this.rect.on('mousedown', f);
     }

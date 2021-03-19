@@ -1,5 +1,5 @@
 import Konva from 'konva';
-import { Point, closesetContact, PlainPoint, layerStage, LayerNameT } from '../workspace';
+import { Point, PlainPoint, layerStage, LayerNameT } from '../workspace';
 import { all, Component, componentDeserializers, ComponentSpec } from './component';
 import { workspace } from '../workspace';
 import { SelectableComponent, selectionAddresses } from './selectable_component';
@@ -48,7 +48,7 @@ export class WirePoint extends SelectableComponent {
         const point = this;
         this.selectionRect.on('mousedown', function (e) {
             if (workspace.currentInteraction()) {
-                workspace.onMouseDown(e, point.stageName());
+                workspace.area(point.areaName()).onMouseDown(e);
                 return;
             }
             if (e.evt.button != 0) return;
@@ -56,7 +56,7 @@ export class WirePoint extends SelectableComponent {
             if (!point.selected()) {
                 workspace.update(new UpdateSelectionMutation(selectionAddresses(), [point.address()]));
             }
-            new MoveSelectionInteraction(point.stageName());
+            new MoveSelectionInteraction(point.areaName());
         });
         this.selectionRect.on('mouseover mouseout', function (e: any) {
             const wire = point.parent();
@@ -80,7 +80,7 @@ export class WirePoint extends SelectableComponent {
         this.selectionRect.y(xy.y);
         this.selectionRect.width(wirePointSize);
         this.selectionRect.height(wirePointSize);
-        const c = closesetContact(layerStage(this.layerName()), this.absolutePosition());
+        const c = this.area().closesetContact(this.absolutePosition());
         if (c == null || !c.absolutePosition().closeTo(this.absolutePosition())) {
             this.selectionRect.dash([0.5, 0.5]);
         } else {
@@ -285,8 +285,10 @@ export function moveSingleWire(dxy: Point, spec: WirePointSpec[], affectedIds: n
         nextHorizontal.push(z[i].offset.y == z[i + 1].offset.y);
       }
       if (affected[i]) {
-        const s = layerStage(LayerNameT.check(z[i].layerName));
-        z[i].offset = new Point(z[i].offset).add(dxy).alignToGrid(s).plain();
+        // TODO: can this be simplified to not resolve area over and over?
+        const a = workspace.area(layerStage(LayerNameT.check(z[i].layerName)));
+        const p = new Point(z[i].offset).add(dxy);        
+        z[i].offset = a.align(p).plain();
       }
     }
     for (let i = 0; i < z.length; i++) {

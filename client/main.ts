@@ -72,7 +72,7 @@ window.onerror = (errorMsg, url, lineNumber) => {
 (window as any).toggleGridAlignment = function(a: HTMLInputElement) {
   const area = a.closest('.area');
   const s = AreaNameT.check(area?.getAttribute('data-stage'));
-  workspace.gridAlignment(s, a.checked ? 20 : null);
+  workspace.area(s).gridAlignment(a.checked ? 20 : null);
 }
 
 const fileSelector = document.getElementById('file-selector') as HTMLInputElement;

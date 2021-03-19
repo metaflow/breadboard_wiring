@@ -1,6 +1,6 @@
 import { Mutation, Interaction, mutationDeserializers } from "../mutation";
 import Konva from "konva";
-import { Point, workspace, layer, stage, SCHEME, stageLayer, AreaName } from "../workspace";
+import { Point, workspace, layer, SCHEME, stageLayer, AreaName } from "../workspace";
 import { selectionAddresses } from "../components/selectable_component";
 import { KonvaEventObject } from "konva/types/Node";
 import theme from '../../theme.json';
@@ -15,7 +15,7 @@ export class SelectInteraction extends Interaction {
     }
     mousemove(event: KonvaEventObject<MouseEvent>): Interaction | null {
         if (this.rect == null) return this;
-        let pos = Point.cursor(this.stageName);
+        let pos = this.area().cursor();
         this.rect.width(pos.x - this.rect.x());
         this.rect.height(pos.y - this.rect.y());        
         workspace.invalidateScene();
@@ -25,21 +25,21 @@ export class SelectInteraction extends Interaction {
     selected(): string[] {
         if (this.rect == null) return [];
         const r = this.rect.getClientRect(null);
-        return stage(SCHEME).find('.selectable')
+        return this.area().stage.find('.selectable')
             .toArray()
             .filter((shape) => Konva.Util.haveIntersection(r, shape.getClientRect()))
             .map(a => a.attrs['address']);
     }
     mousedown(event: KonvaEventObject<MouseEvent>): Interaction | null {
         if (this.rect != null) return this;
-        let pos = Point.cursor(this.stageName);
+        let pos = this.area().cursor();
         this.rect = new Konva.Rect({
             x: pos.x,
             y: pos.y,
             stroke: theme.selection,
             strokeWidth: 1,
         });
-        layer(stageLayer(this.stageName)).add(this.rect);
+        layer(stageLayer(this.areaName)).add(this.rect);
         return this;
     }
     mouseup(event: KonvaEventObject<MouseEvent>): Interaction | null {

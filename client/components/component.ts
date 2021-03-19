@@ -1,5 +1,5 @@
 import Konva from "konva";
-import { Point, PlainPoint, workspace, SCHEME, layer, layerStage, stageLayer, AreaName, LayerName, LayerNameT } from "../workspace";
+import { Point, PlainPoint, workspace, SCHEME, layer, layerStage as layerArea, stageLayer, AreaName, LayerName, LayerNameT, Area } from "../workspace";
 import assertExists from "ts-assert-exists";
 import { assert, error, checkT } from "../utils";
 import theme from '../../theme.json';
@@ -55,8 +55,11 @@ export class Component {
         if (this._parent != null) return this._parent.layerName();
         return this._layerName;
     }    
-    stageName(): AreaName {
-        return layerStage(this.layerName());
+    areaName(): AreaName {
+        return layerArea(this.layerName());
+    }
+    area(): Area {
+        return workspace.area(this.areaName());
     }
     materialized(b?: boolean): boolean {
         if (b === undefined || this._materialized == b) return this._materialized;

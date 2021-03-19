@@ -1,6 +1,6 @@
 import { Mutation, Interaction } from "../mutation";
 import { KonvaEventObject } from "konva/types/Node";
-import { Point, SCHEME, stage, AreaName, workspace } from "../workspace";
+import { Point, AreaName, workspace } from "../workspace";
 import { all, Component, deserializeComponent } from "../components/component";
 import { moveSingleWire, Wire, WirePoint } from "../components/wire";
 import { selectionByType, selectionAddresses } from "../components/selectable_component";
@@ -20,10 +20,10 @@ export class MoveSelectionInteraction extends Interaction {
     auxComponents: Component[];
     selection: string[];
     wires = new Map<Wire, [number[], Wire]>();  // Map of "original wire" => (id of affected points, aux wire).
-    constructor(stageName: AreaName) {
-        super(stageName);
+    constructor(areaName: AreaName) {
+        super(areaName);
         this.selection = selectionAddresses();
-        this.from = Point.cursor(stageName);
+        this.from = this.area().cursor();
         this.components = selectionByType(Component).filter(c => !checkT(c, WirePoint));
         this.auxComponents = this.components.map(c => {
             const x = deserializeComponent(c.serialize());
@@ -52,7 +52,7 @@ export class MoveSelectionInteraction extends Interaction {
             }
             this.wires.get(p.wire())![0].push(assertExists(p.id()));
         }
-        stage(SCHEME).container()!.setAttribute('style', 'cursor: move');
+        this.area().stage.container()!.setAttribute('style', 'cursor: move');
     }
     cancel() {
         this.components.forEach(c => c.show());
@@ -61,12 +61,13 @@ export class MoveSelectionInteraction extends Interaction {
             v[1].remove();
         });
         this.auxComponents.forEach(c => c.remove());
-        stage(SCHEME).container()!.setAttribute('style', 'cursor: auto');
+        this.area().stage.container()!.setAttribute('style', 'cursor: auto');
     }
     mousemove(e: KonvaEventObject<MouseEvent>): Interaction | null {
-        const d = Point.cursor(this.stageName).sub(this.from);
+        const d = this.area().cursor().sub(this.from);
         this.auxComponents.forEach((c, i) => {
-            c.offset(this.components[i].offset().add(d).alignToGrid(c.stageName()));
+            const a = workspace.area(c.areaName());
+            c.offset(a.align(this.components[i].offset().add(d)));
             c.updateLayout();
         });
         this.wires.forEach((v, k) => {

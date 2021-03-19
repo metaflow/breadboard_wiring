@@ -1,7 +1,7 @@
 import Konva from 'konva';
 import { WirePointSpec, Wire, newWirePointSpec, attachPoints } from '../components/wire';
 import { Interaction } from '../mutation';
-import { Point, closesetContact, workspace, stageLayer, layer, AreaName } from '../workspace';
+import { Point, workspace, stageLayer, layer, AreaName } from '../workspace';
 import theme from '../../theme.json';
 import { AddComponentMutation } from './add_component';
 import { UpdateWireSpecMutation } from './update_wire_spec';
@@ -41,9 +41,9 @@ export class AddWireInteraction extends Interaction {
         workspace.invalidateScene();
     }
     mousemove(event: Konva.KonvaEventObject<MouseEvent>): Interaction | null {
-        const s = this.stageName;
-        this.endMarker?.position(Point.cursor(s).alignToGrid(s));
-        if (this.points.length == 0) this.startMarker?.position(Point.cursor(s).alignToGrid(s));
+        const c = this.area().alignedCursor();
+        this.endMarker?.position(c);
+        if (this.points.length == 0) this.startMarker?.position(c);
         this.updateLayout();
         return this;
     }
@@ -55,9 +55,9 @@ export class AddWireInteraction extends Interaction {
             }
             return this;
         }
-        const xy = Point.cursor(this.stageName).alignToGrid(this.stageName);
+        const xy = this.area().alignedCursor();
         this.points.push(xy);
-        const c = closesetContact(this.stageName, xy);
+        const c = this.area().closesetContact(xy);
         this.updateLayout();
         // Complete action if clicked on contact.        
         if (this.points.length >= 2 && c != null && c.absolutePosition().closeTo(xy)) {
@@ -102,7 +102,7 @@ export class AddWireInteraction extends Interaction {
         if (existingWire == null) {
             specs = this.points.map(p => newWirePointSpec(p.plain(), false));
             const wire = new Wire();
-            wire.layerName(stageLayer(this.stageName));
+            wire.layerName(stageLayer(this.areaName));
             wire.pointsSpec(specs);
             workspace.update(new AddComponentMutation(wire.serialize()));
             return;
@@ -121,7 +121,7 @@ export class AddWireInteraction extends Interaction {
     }
     updateLayout() {
         const pp: number[] = this.points.flatMap(z => z.array());
-        const xy = Point.cursor(this.stageName).alignToGrid(this.stageName);
+        const xy = this.area().alignedCursor();
         pp.push(...xy.array());
         this.line?.points(pp);
         workspace.invalidateScene();

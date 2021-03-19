@@ -51,7 +51,7 @@ export class AddComponentInteraction extends Interaction {
             c.show();
         });
         this.offsets = this.components.map(c => c.offset());
-        this.start = Point.cursor(stageName);
+        this.start = this.area().cursor(); // End position will be aligned.
     }
     cancel() {
         this.components.forEach(c => c.remove());
@@ -59,7 +59,8 @@ export class AddComponentInteraction extends Interaction {
     mousemove(event: KonvaEventObject<MouseEvent>): Interaction | null {
         const o = this;
         this.components.forEach((c, i) => {
-            c.offset(o.offsets[i].clone().add(Point.cursor(o.stageName)).sub(o.start).alignToGrid(this.stageName));
+            const p = o.offsets[i].clone().add(o.area().cursor()).sub(o.start);
+            c.offset(o.area().align(p));
         });
         return this;
     }

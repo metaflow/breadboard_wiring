@@ -18,20 +18,20 @@ export class Contact extends SelectableComponent {
         const o = this;
         this.circle.on('mousedown', function (e) {            
             if (workspace.currentInteraction()) {
-                workspace.onMouseDown(e, o.stageName());
+                o.area().onMouseDown(e);
                 return;
             }
             if (e.evt.button != 0) return;
             e.cancelBubble = true;
             // TоыODO: what if there is an existing wire attached here? How this should look like in UI?
-            new AddWireInteraction(o.stageName(), o.absolutePosition());
+            new AddWireInteraction(o.areaName(), o.absolutePosition());
         });
     }
     updateLayout(): void {
         super.updateLayout();
         this.circle.stroke(this.selected() ? theme.selection : this.mainColor());
         this.circle.position(this.absolutePosition());
-        this.circle.strokeWidth(this.stageName() == SCHEME ? 1 : 0.5);
-        this.circle.radius(this.stageName() == SCHEME ? 3 : 0.7);
+        this.circle.strokeWidth(this.areaName() == SCHEME ? 1 : 0.5);
+        this.circle.radius(this.areaName() == SCHEME ? 3 : 0.7);
     }
 }

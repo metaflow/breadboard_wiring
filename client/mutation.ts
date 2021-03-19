@@ -1,7 +1,7 @@
 import { classToPlain, Expose } from 'class-transformer';
 import Konva from 'konva';
 import { assert } from './utils';
-import { AreaName, workspace } from './workspace';
+import { Area, AreaName, workspace } from './workspace';
 
 /* active - (finish) ->  ready - (apply) -> applied
          |                     ^                  |
@@ -40,9 +40,9 @@ export interface MutationSpec {
 }
 
 export abstract class Interaction {
-    stageName: AreaName;
+    areaName: AreaName;
     constructor(stageName: AreaName) {
-        this.stageName = stageName;
+        this.areaName = stageName;
         workspace.currentInteraction(this);
     }
     mousemove(event: Konva.KonvaEventObject<MouseEvent>): Interaction | null {
@@ -53,6 +53,9 @@ export abstract class Interaction {
     }
     mouseup(event: Konva.KonvaEventObject<MouseEvent>): Interaction | null {
         return this;
+    }
+    area(): Area {
+        return workspace.area(this.areaName);
     }
     abstract cancel(): void;
 }
