@@ -1,6 +1,6 @@
 import { Mutation, Interaction, mutationDeserializers } from "../mutation";
 import Konva from "konva";
-import { Point, workspace, layer, stage, SCHEME, stageLayer, StageName } from "../workspace";
+import { Point, workspace, layer, stage, SCHEME, stageLayer, AreaName } from "../workspace";
 import { selectionAddresses } from "../components/selectable_component";
 import { KonvaEventObject } from "konva/types/Node";
 import theme from '../../theme.json';
@@ -9,7 +9,7 @@ import { plainToClass } from "class-transformer";
 export class SelectInteraction extends Interaction {
     rect: Konva.Rect|null = null;
     prevSelection: string[];
-    constructor(stageName: StageName) {        
+    constructor(stageName: AreaName) {        
         super(stageName);
         this.prevSelection = selectionAddresses();        
     }

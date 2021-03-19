@@ -1,7 +1,7 @@
 import { classToPlain, Expose } from 'class-transformer';
 import Konva from 'konva';
 import { assert } from './utils';
-import { StageName, workspace } from './workspace';
+import { AreaName, workspace } from './workspace';
 
 /* active - (finish) ->  ready - (apply) -> applied
          |                     ^                  |
@@ -40,8 +40,8 @@ export interface MutationSpec {
 }
 
 export abstract class Interaction {
-    stageName: StageName;
-    constructor(stageName: StageName) {
+    stageName: AreaName;
+    constructor(stageName: AreaName) {
         this.stageName = stageName;
         workspace.currentInteraction(this);
     }

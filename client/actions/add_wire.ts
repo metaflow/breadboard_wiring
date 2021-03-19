@@ -1,7 +1,7 @@
 import Konva from 'konva';
 import { WirePointSpec, Wire, newWirePointSpec, attachPoints } from '../components/wire';
 import { Interaction } from '../mutation';
-import { Point, closesetContact, workspace, stageLayer, layer, StageName } from '../workspace';
+import { Point, closesetContact, workspace, stageLayer, layer, AreaName } from '../workspace';
 import theme from '../../theme.json';
 import { AddComponentMutation } from './add_component';
 import { UpdateWireSpecMutation } from './update_wire_spec';
@@ -12,7 +12,7 @@ export class AddWireInteraction extends Interaction {
     startMarker: Konva.Circle | undefined;
     endMarker: Konva.Circle | undefined;
     points: Point[] = [];
-    constructor(stageName: StageName, p?: Point) {
+    constructor(stageName: AreaName, p?: Point) {
         super(stageName);
         if (p != null) this.points.push(p);
         this.line = new Konva.Line({

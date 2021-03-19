@@ -8,7 +8,7 @@ import { diffString } from 'json-diff';
 import { SelectInteraction, UpdateSelectionMutation } from './actions/select';
 import {Union, Literal, Static} from 'runtypes';
 
-let _gridAlignment = new Map<StageName, number|null>();
+let _gridAlignment = new Map<AreaName, number|null>();
 
 export class PlainPoint {
     x: number = 0;
@@ -18,17 +18,17 @@ export class PlainPoint {
 export const SCHEME = 'scheme';
 export const PHYSICAL = 'physical';
 
-export const StageNameT = Union(
+export const AreaNameT = Union(
     Literal(SCHEME),
     Literal(PHYSICAL),
 );
-export type StageName = Static<typeof StageNameT>;
+export type AreaName = Static<typeof AreaNameT>;
 export const LayerNameT = Union(
     Literal('scheme:default'),
     Literal('physical:default'),
 );
 export type LayerName = Static<typeof LayerNameT>;
-export const allStages: StageName[] = [SCHEME, PHYSICAL];
+export const allStages: AreaName[] = [SCHEME, PHYSICAL];
 
 // just in case: https://stackoverflow.com/questions/34098023/typescript-self-referencing-return-type-for-static-methods-in-inheriting-classe?rq=1
 export class Point implements Konva.Vector2d {
@@ -103,34 +103,10 @@ export class Point implements Konva.Vector2d {
     length(): number {
         return Math.sqrt(this.x * this.x + this.y * this.y);
     }
-    static screenCursor(stageName: StageName): Point {
-        let pos = stage(stageName).getPointerPosition();
-        if (pos == null) pos = { x: 0, y: 0 };
-        return new Point(pos);
-    }
-    static cursor(stageName: StageName): Point {
-        let pos = stage(stageName).getPointerPosition();
-        if (pos == null) pos = { x: 0, y: 0 };
-        return new Point(layer(stageLayer(stageName)).getTransform().copy().invert().point(pos));
-    }
-    alignToGrid(stage: StageName): this {
+    alignToGrid(stage: AreaName): this {
         return this.align(workspace.gridAlignment(stage));
     }
 };
-
-export function closesetContact(stageName: StageName, xy?: Point): Contact | null {
-    if (xy === undefined) xy = Point.cursor(stageName);
-    let z: Contact | null = null;
-    let dz = 0;
-    all(Contact).forEach((c: Contact) => {
-        const d = c.absolutePosition().distance(xy!);
-        if (z == null || d < dz) {
-            z = c;
-            dz = d;
-        }
-    });
-    return z;
-}
 
 let layers = new Map<string, Konva.Layer>();
 export function layer(name: LayerName, v?: Konva.Layer): Konva.Layer {
@@ -143,35 +119,24 @@ export function layer(name: LayerName, v?: Konva.Layer): Konva.Layer {
     throw error(`no layer ${name}`);
 }
 
-let stages = new Map<string, Konva.Stage>();
-export function stage(name: StageName, v?: Konva.Stage): Konva.Stage {
-    if (v !== undefined) {
-        stages.set(name, v);
-        return v;
-    }
-    const x = stages.get(name);
-    if (x) return x;
-    throw error(`no stage ${name}`);
-}
-
-export function stageLayer(stageName: StageName): LayerName {
+export function stageLayer(stageName: AreaName): LayerName {
     assert(stageName.indexOf(":") < 0, `stage name ${stageName} is invalid`);
     return LayerNameT.check(stageName + ":default");
 }
 
-export function layerStage(layerName: LayerName): StageName {
+export function layerStage(layerName: LayerName): AreaName {
     const parts = layerName.split(":");
     assert(parts.length == 2, `layer name ${layerName} is invalid`);
-    return StageNameT.check(parts[0]);
+    return AreaNameT.check(parts[0]);
 }
 
-export interface StageState {
+export interface AreaState {
     roots: any[] | undefined;
     selection: string[] | undefined;
 }
 
 interface WorkspaceState {
-    components: StageState | undefined;
+    components: AreaState | undefined;
     history: any[] | undefined;
     layers: [string, any][] | undefined;
 }
@@ -181,46 +146,46 @@ interface ViewState {
     offset: PlainPoint;
 }
 
-export class Workspace {
+export class Area {
+    readonly stage: Konva.Stage;
+    readonly name: AreaName
     private draggingScene = false;
     private draggingOrigin = new Point();
-    private initialOffset = new Point();
-    private debugActions = true;
-    private _currentInteraction: Interaction | null = null;
-    private history: Mutation[] = [];
-    private forwardHistory: Mutation[] = [];
-    private loading = false;
-    private stateHistory: StageState[] = [];
-    private persistTimeout: number | undefined;
-    private visibleComponents = new Set<Component>();
-    private willRedraw = false;
-    constructor() {
-        this.stateHistory.push(this.componentsState());
+    private initialOffset = new Point();;
+    constructor(name: AreaName, _stage: Konva.Stage) {
+        this.name = name;
+        this.stage = _stage;
     }
-    currentInteraction(a?: Interaction | null): Interaction | null {  // TODO: move outside of workspace?
-        if (a !== undefined) {
-            this._currentInteraction?.cancel();
-            this._currentInteraction = a;
-        }
-        return this._currentInteraction;
+    setupEvents() {
+        const o = this;
+        this.stage.on('mousemove', function (e: Konva.KonvaEventObject<MouseEvent>) {
+            o.onMouseMove(e);
+        });
+        this.stage.on('wheel', function (e: Konva.KonvaEventObject<WheelEvent>) {
+            o.onMouseWheel(e);
+        });
+        this.stage.on('mousedown', function (e: Konva.KonvaEventObject<MouseEvent>) {
+            o.onMouseDown(e);
+        });
+        this.stage.on('mouseup', function (e: Konva.KonvaEventObject<MouseEvent>) {
+            o.onMouseUp(e);
+        });
     }
-    cancelInteractions() {
-        this.currentInteraction()?.cancel();
-    }
-    onMouseDown(e: Konva.KonvaEventObject<MouseEvent>, stageName: StageName) {        
+    onMouseDown(e: Konva.KonvaEventObject<MouseEvent>) {        
         e.evt.preventDefault(); // Disable scroll on middle button click. TODO: check button?
-        if (this._currentInteraction != null) {
-            if (this._currentInteraction.stageName !== stageName) {
-                console.log('action on different stage', this._currentInteraction.stageName, stageName);
+        const t = workspace.currentInteraction();
+        if (t != null) {
+            if (t.stageName !== this.name) {
+                console.log('action on different stage', t.stageName, this.name);
                 return;
             }
-            this._currentInteraction = this._currentInteraction.mousedown(e);
+            workspace.currentInteraction(t.mousedown(e));
             return;
         }
         // Left button.
         if (e.evt.button == 0) {
             console.log('start new selection');
-            new SelectInteraction(stageName).mousedown(e);
+            new SelectInteraction(this.name).mousedown(e);
             return;
         }
         // Right click: deselect all.
@@ -232,53 +197,118 @@ export class Workspace {
         if (e.evt.button == 1) {
             // TODO: convert scene dragging to interaction (?).
             this.draggingScene = true;
-            this.draggingOrigin = Point.screenCursor(stageName);
-            const lr = layer(stageLayer(stageName))
+            this.draggingOrigin = this.screenCursor();
+            const lr = this.layer();
             this.initialOffset = new Point(lr.offsetX(), lr.offsetY());
         }
     }
-    onMouseUp(event: Konva.KonvaEventObject<MouseEvent>, stageName: StageName) {
-        if (this._currentInteraction != null) {
-            if (this._currentInteraction.stageName !== stageName) {
-                console.log('action on different stage', this._currentInteraction.stageName, stageName);
+    onMouseUp(event: Konva.KonvaEventObject<MouseEvent>) {
+        const t = workspace.currentInteraction();
+        if (t != null) {
+            if (t.stageName !== this.name) {
+                console.log('action on different stage', t.stageName, this.name);
                 return;
             }
-            this._currentInteraction = this._currentInteraction.mouseup(event);
+            workspace.currentInteraction(t.mouseup(event));
             return;
         }
         this.draggingScene = false;
     }
-    onMouseWheel(e: Konva.KonvaEventObject<WheelEvent>, stageName: StageName) {
+    onMouseWheel(e: Konva.KonvaEventObject<WheelEvent>) {
         let d = (e.evt.deltaY < 0) ? (1 / 1.1) : 1.1;
-        const lr = layer(stageLayer(stageName));
+        const lr = this.layer();
         let x = lr.scaleX();
         if (!x) return;
-        let c = Point.cursor(stageName);
+        let c = this.cursor();
         x *= d;
         lr.scaleX(x);
         lr.scaleY(x);
-        lr.offset(c.sub(Point.cursor(stageName)).add(new Point(lr.offset())));
-        this.invalidateScene();
+        lr.offset(c.sub(this.cursor()).add(new Point(lr.offset())));
+        workspace.invalidateScene();
         workspace.delayedPersistInLocalHistory();
     }
-    onMouseMove(event: Konva.KonvaEventObject<MouseEvent>, stageName: StageName) {
-        if (this._currentInteraction != null) {
-            if (this._currentInteraction.stageName !== stageName) {
-                console.log('action on different stage', this._currentInteraction.stageName, stageName);
+    onMouseMove(event: Konva.KonvaEventObject<MouseEvent>) {
+        const t = workspace.currentInteraction();
+        if (t != null) {
+            if (t.stageName !== this.name) {
+                console.log('action on different stage', t.stageName, this.name);
                 return;
             }
-            this._currentInteraction = this._currentInteraction.mousemove(event);
+            workspace.currentInteraction(t.mousemove(event));
             return;
         }
         if (this.draggingScene) {
-            const lr = layer(stageLayer(stageName));
+            const lr = this.layer();
             const sx = lr.scaleX();
             if (!sx) return true;
-            let p = Point.screenCursor(stageName).sub(this.draggingOrigin).s(-1 / sx).add(this.initialOffset);
+            let p = this.screenCursor().sub(this.draggingOrigin).s(-1 / sx).add(this.initialOffset);
             lr.offset(p);
-            this.invalidateScene();
+            workspace.invalidateScene();
             workspace.delayedPersistInLocalHistory();
         }
+    }
+    screenCursor(): Point {
+        let pos = this.stage.getPointerPosition();
+        if (pos == null) pos = { x: 0, y: 0 };
+        return new Point(pos);
+    }
+    cursor(): Point {
+        let pos = this.stage.getPointerPosition();
+        if (pos == null) pos = { x: 0, y: 0 };
+        return new Point(this.layer().getTransform().copy().invert().point(pos));
+    }
+    layer(): Konva.Layer {
+        return layer(stageLayer(this.name));
+    }
+    closesetContact(xy?: Point): Contact | null {
+        if (xy === undefined) xy = this.cursor();
+        let z: Contact | null = null;
+        let dz = 0;
+        // TODO: not all contacts, nonly ones of this area.
+        all(Contact).forEach((c: Contact) => {             
+            const d = c.absolutePosition().distance(xy!);
+            if (z == null || d < dz) {
+                z = c;
+                dz = d;
+            }
+        });
+        return z;
+    }
+}
+
+
+export class Workspace {
+    private debugActions = true;
+    private _currentInteraction: Interaction | null = null;
+    private history: Mutation[] = [];
+    private forwardHistory: Mutation[] = [];
+    private loading = false;
+    private stateHistory: AreaState[] = [];
+    private persistTimeout: number | undefined;
+    private visibleComponents = new Set<Component>();
+    private willRedraw = false;
+    private areas = new Map<AreaName, Area>();
+    constructor() {
+        this.stateHistory.push(this.componentsState());        
+    }
+    addArea(name: AreaName, v: Konva.Stage) {
+        assert(!this.areas.has(name), `${name} area already set`);
+        this.areas.set(name, new Area(name, v));        
+    }
+    area(name: AreaName): Area {
+        const x = this.areas.get(name);
+        if (x) return x;
+        throw error(`${name} area is not set`);
+    }
+    currentInteraction(a?: Interaction | null): Interaction | null {
+        if (a !== undefined) {
+            this._currentInteraction?.cancel();
+            this._currentInteraction = a;
+        }
+        return this._currentInteraction;
+    }
+    cancelInteractions() {
+        this.currentInteraction()?.cancel();
     }
     update(a: Mutation, keepForwardHistory: boolean = false) {
         this.history.push(a);
@@ -369,7 +399,7 @@ export class Workspace {
         console.log(x);
         localStorage.setItem('actions_history', JSON.stringify(x));
     }
-    private delayedPersistInLocalHistory() {
+    delayedPersistInLocalHistory() {
         window.clearTimeout(this.persistTimeout);
         const w = this;
         this.persistTimeout = window.setTimeout(function () {
@@ -433,8 +463,8 @@ export class Workspace {
         }
         this.invalidateScene();
     }
-    componentsState(): StageState {
-        let z: StageState = {
+    componentsState(): AreaState {
+        let z: AreaState = {
             roots: Array.from(roots.values())
                 .sort((a, b) => a.id() - b.id())
                 .map(c => c.serialize()),
@@ -467,8 +497,7 @@ export class Workspace {
         this.visibleComponents.forEach(c => {
             if (c.dirtyLayout()) c.updateLayout();
         });
-        stage(SCHEME).batchDraw();
-        stage(PHYSICAL).batchDraw();
+        this.areas.forEach(a => a.stage.batchDraw());
     }
     invalidateScene() {
         // console.log('redraw');
@@ -486,23 +515,11 @@ export class Workspace {
         this.invalidateScene();
     }
     setupEvents() {
-        allStages.forEach(x => {
-            stage(x).on('mousemove', function (e: Konva.KonvaEventObject<MouseEvent>) {
-                workspace.onMouseMove(e, x);
-            });
-            stage(x).on('wheel', function (e: Konva.KonvaEventObject<WheelEvent>) {
-                workspace.onMouseWheel(e, x);
-            });
-            stage(x).on('mousedown', function (e: Konva.KonvaEventObject<MouseEvent>) {
-                workspace.onMouseDown(e, x);
-            });
-            stage(x).on('mouseup', function (e: Konva.KonvaEventObject<MouseEvent>) {
-                workspace.onMouseUp(e, x);
-            });
-        });        
+        this.areas.forEach(a => a.setupEvents());
+            
     }
     // TODO: stage should be a separate object?
-    gridAlignment(stage: StageName, v?: number | null): number | null {
+    gridAlignment(stage: AreaName, v?: number | null): number | null {
         if (v !== undefined) _gridAlignment.set(stage, v);
         return _gridAlignment.get(stage) || null;
     }

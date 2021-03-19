@@ -1,6 +1,6 @@
 import Konva from 'konva';
 import hotkeys from 'hotkeys-js';
-import { PHYSICAL, SCHEME, stage, workspace, layer, stageLayer, StageNameT } from './workspace';
+import { PHYSICAL, SCHEME, workspace, layer, stageLayer, AreaNameT } from './workspace';
 import { ic74x245 } from './components/74x245';
 import { onError, checkT } from './utils';
 import theme from '../theme.json';
@@ -71,7 +71,7 @@ window.onerror = (errorMsg, url, lineNumber) => {
 
 (window as any).toggleGridAlignment = function(a: HTMLInputElement) {
   const area = a.closest('.area');
-  const s = StageNameT.check(area?.getAttribute('data-stage'));
+  const s = AreaNameT.check(area?.getAttribute('data-stage'));
   workspace.gridAlignment(s, a.checked ? 20 : null);
 }
 
@@ -98,30 +98,31 @@ function deleteSelection() {
   workspace.update(new DeleteComponentsMutation(cc, selectionAddresses()));
 }
 
-stage(SCHEME, new Konva.Stage({
+workspace.addArea(SCHEME, new Konva.Stage({
   container: 'scheme',
   width: window.screen.width,
   height: window.screen.height,
 }));
-stage(SCHEME).container().style.backgroundColor = theme.backgroud;
+workspace.area(SCHEME).stage.container().style.backgroundColor = theme.backgroud;
 {
+  // TODO: setup layers in Area directly.
   const x = layer(stageLayer(SCHEME), new Konva.Layer());
   x.scaleX(2);
   x.scaleY(2);
-  stage(SCHEME).add(x);
+  workspace.area(SCHEME).stage.add(x);
 }
 
-stage(PHYSICAL, new Konva.Stage({
+workspace.addArea(PHYSICAL, new Konva.Stage({
   container: 'physical',
   width: window.screen.width,
   height: window.screen.height,
 }));
-stage(PHYSICAL).container().style.backgroundColor = theme.backgroud;
+workspace.area(PHYSICAL).stage.container().style.backgroundColor = theme.backgroud;
 {
   const x = layer(stageLayer(PHYSICAL), new Konva.Layer());
   x.scaleX(2);
   x.scaleY(2);
-  stage(PHYSICAL).add(x);
+  workspace.area(PHYSICAL).stage.add(x);
 }
 
 document.getElementById('scheme')?.addEventListener('contextmenu', e => {
