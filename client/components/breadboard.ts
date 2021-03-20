@@ -38,7 +38,7 @@ export class Breadboard extends SelectableComponent {
             strokeWidth: 1,
         });
         this.shapes.add(this.rect);
-        this.updateLayout();
+
         this.setupEvents();
     }
     setupEvents() {

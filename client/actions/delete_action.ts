@@ -22,7 +22,6 @@ export class DeleteComponentsMutation extends Mutation {
     undo(): void {
         this.specs.forEach(s => {
             const c = deserializeComponent(s);
-            c.updateLayout();
             c.show();
             c.materialized(true);
         });

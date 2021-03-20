@@ -11,7 +11,6 @@ export class AddComponentMutation extends Mutation {
     spec: ComponentSpec | undefined;
     constructor(spec: ComponentSpec) {
         super();
-        console.log('add component', spec);
         this.spec = spec;
         this.postInit();
     }
@@ -57,6 +56,7 @@ export class AddComponentInteraction extends Interaction {
         this.components.forEach(c => c.remove());
     }
     mousemove(event: KonvaEventObject<MouseEvent>): Interaction | null {
+        console.log('AddComponentInteraction mouse move');
         const o = this;
         this.components.forEach((c, i) => {
             const p = o.offsets[i].clone().add(o.area().cursor()).sub(o.start);

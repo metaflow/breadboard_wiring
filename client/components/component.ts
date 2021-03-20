@@ -1,5 +1,5 @@
 import Konva from "konva";
-import { Point, PlainPoint, workspace, SCHEME, layer, layerStage as layerArea, stageLayer, AreaName, LayerName, LayerNameT, Area } from "../workspace";
+import { Point, PlainPoint, workspace, layer, layerStage as layerArea, AreaName, LayerName, LayerNameT, Area, UNKNOWN } from "../workspace";
 import assertExists from "ts-assert-exists";
 import { assert, error, checkT } from "../utils";
 import theme from '../../theme.json';
@@ -33,13 +33,14 @@ export class Component {
     _dirtyLayout = true;
     _layerName: LayerName;
     visible: boolean = false;
+    // TODO: pass layer if spec is not defined?
     constructor(spec?: ComponentSpec) { // Parameter is optional as some ancestors' ctors accept this.
         let id = -1;
         if (spec !== undefined) {
             this._offset = new Point(spec.offset);
             if (spec.id !== undefined) id = spec.id;
         }
-        this._layerName = LayerNameT.check(spec?.layerName || stageLayer(SCHEME));
+        this._layerName = LayerNameT.check(spec?.layerName || UNKNOWN);
         if (id < 0) {
             id = idCounter;
             idCounter++;
@@ -125,18 +126,25 @@ export class Component {
     show() {
         // console.log('show component');
         if (this.visible && !this._dirtyLayout) return;
+        if (this._dirtyLayout) this.redraw();
+        if (this._parent == null) console.log('show', this);
         this.visible = true;
-        if (this._dirtyLayout) this.updateLayout();
         this.shapes.moveTo(layer(this.layerName()));
         this.children.forEach(c => c.show());
-        if (this.parent() == null) workspace.addVisibleComponent(this);
+        if (this._parent == null) {
+            workspace.addVisibleComponent(this); 
+            console.log('workspace.addVisibleComponent', this);
+        } 
     }
     hide() {
+        if (!this.visible) return;
         this.visible = false;
         this.shapes.remove();
-        workspace.invalidateScene();
         this.children.forEach(c => c.hide());
-        if (this.parent() == null) workspace.removeVisibleComponent(this);
+        if (this._parent == null) {
+            workspace.removeVisibleComponent(this);
+            console.log('hide', this);
+        }
     }
     remove() {
         this.hide();
@@ -146,9 +154,16 @@ export class Component {
     removeChild(x: Component) {
         this.children.delete(x.id());
     }
-    updateLayout() {
+    // Returns whether layout should be updated (useful for overrides).
+    redraw() {
+        if (this._parent == null) console.log('redraw', this.visible, this._dirtyLayout);
+        if (!(this.visible && this._dirtyLayout)) return;
         this._dirtyLayout = false;
+        this.updateLayout();        
         this.children.forEach(c => c.updateLayout());
+    }
+    updateLayout() {
+        if (this._parent === null) console.log('update layout');
     }
     invalidateLayout() {
         if (this.parent() != null) {
@@ -156,16 +171,13 @@ export class Component {
             return;
         }
         this._dirtyLayout = true;
+        console.log('dirty layout');
         workspace.invalidateScene();
     }
     dirtyLayout(): boolean {
         if (this._parent != null) return this._parent.dirtyLayout();
         return this._dirtyLayout;
     }
-    // layer(): Konva.Layer {
-    //     if (this._parent != null) return this._parent.layer();
-    //     return layer(this.stageName);
-    // }
     mainColor(color?: string): string {
         if (color !== undefined) {
             this._mainColor = color;

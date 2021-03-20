@@ -1,6 +1,6 @@
 import { Mutation, Interaction, mutationDeserializers } from "../mutation";
 import Konva from "konva";
-import { Point, workspace, layer, SCHEME, stageLayer, AreaName } from "../workspace";
+import { workspace, layer, stageLayer, AreaName } from "../workspace";
 import { selectionAddresses } from "../components/selectable_component";
 import { KonvaEventObject } from "konva/types/Node";
 import theme from '../../theme.json';

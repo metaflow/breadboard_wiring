@@ -15,15 +15,18 @@ export class PlainPoint {
 
 export const SCHEME = 'scheme';
 export const PHYSICAL = 'physical';
+export const UNKNOWN = 'unknown';
 
 export const AreaNameT = Union(
     Literal(SCHEME),
     Literal(PHYSICAL),
+    Literal(UNKNOWN),
 );
 export type AreaName = Static<typeof AreaNameT>;
 export const LayerNameT = Union(
     Literal('scheme:default'),
     Literal('physical:default'),
+    Literal(UNKNOWN),
 );
 export type LayerName = Static<typeof LayerNameT>;
 export const allStages: AreaName[] = [SCHEME, PHYSICAL];
@@ -115,11 +118,11 @@ export function layer(name: LayerName, v?: Konva.Layer): Konva.Layer {
 }
 
 export function stageLayer(stageName: AreaName): LayerName {
-    assert(stageName.indexOf(":") < 0, `stage name ${stageName} is invalid`);
     return LayerNameT.check(stageName + ":default");
 }
 
 export function layerStage(layerName: LayerName): AreaName {
+    assert(layerName !== UNKNOWN, 'UNKNOWN layer is passed');
     const parts = layerName.split(":");
     assert(parts.length == 2, `layer name ${layerName} is invalid`);
     return AreaNameT.check(parts[0]);
@@ -292,7 +295,7 @@ export class Workspace {
     private loading = false;
     private stateHistory: AreaState[] = [];
     private persistTimeout: number | undefined;
-    private visibleComponents = new Set<Component>();
+    private visibleComponents = new Set<Component>(); // Includes non-materialized components.
     private willRedraw = false;
     private areas = new Map<AreaName, Area>();
     constructor() {
@@ -308,7 +311,8 @@ export class Workspace {
         throw error(`${name} area is not set`);
     }
     currentInteraction(a?: Interaction | null): Interaction | null {
-        if (a !== undefined) {
+        if (a !== undefined && a !== this._currentInteraction) {
+            console.log('cancel current interaction');
             this._currentInteraction?.cancel();
             this._currentInteraction = a;
         }
@@ -500,14 +504,12 @@ export class Workspace {
         resetIdCounter();
     }
     redraw() {
+        console.log('redraw', this.visibleComponents);
         this.willRedraw = false;
-        this.visibleComponents.forEach(c => {
-            if (c.dirtyLayout()) c.updateLayout();
-        });
+        this.visibleComponents.forEach(c => c.redraw());
         this.areas.forEach(a => a.stage.batchDraw());
     }
     invalidateScene() {
-        // console.log('redraw');
         if (this.willRedraw) return;
         this.willRedraw = true;
         const o = this;
@@ -523,7 +525,6 @@ export class Workspace {
     }
     setupEvents() {
         this.areas.forEach(a => a.setupEvents());
-            
     }
 }
 

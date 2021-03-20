@@ -68,12 +68,11 @@ export class MoveSelectionInteraction extends Interaction {
         this.auxComponents.forEach((c, i) => {
             const a = workspace.area(c.areaName());
             c.offset(a.align(this.components[i].offset().add(d)));
-            c.updateLayout();
         });
         this.wires.forEach((v, k) => {
             v[1].pointsSpec(moveSingleWire(d, k.pointsSpec(), v[0]));
         });
-        workspace.invalidateScene();
+        workspace.invalidateScene(); // TODO: why components change can't do that?
         return this;
     }
     mouseup(event: KonvaEventObject<MouseEvent>): Interaction | null {

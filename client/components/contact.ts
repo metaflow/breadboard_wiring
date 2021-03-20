@@ -12,7 +12,6 @@ export class Contact extends SelectableComponent {
         this.circle = new Konva.Circle({radius: 1});
         this.shapes.add(this.circle);
         this.setupEvents();
-        this.updateLayout();
     }    
     setupEvents() {
         const o = this;
@@ -27,7 +26,7 @@ export class Contact extends SelectableComponent {
             new AddWireInteraction(o.areaName(), o.absolutePosition());
         });
     }
-    updateLayout(): void {
+    updateLayout() {
         super.updateLayout();
         this.circle.stroke(this.selected() ? theme.selection : this.mainColor());
         this.circle.position(this.absolutePosition());

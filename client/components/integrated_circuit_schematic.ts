@@ -90,7 +90,6 @@ export class IntegratedCircuitSchematic extends SelectableComponent {
         for (const x of this.pin_lines) this.shapes.add(x);
         this.name = new Konva.Text({ text: spec.label, align: 'center', wrap: 'none' });
         this.shapes.add(this.name);
-        this.updateLayout();
         this.setupEvents();
     }
     updateLayout() {

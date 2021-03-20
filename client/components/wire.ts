@@ -47,6 +47,7 @@ export class WirePoint extends SelectableComponent {
         });
         const point = this;
         this.selectionRect.on('mousedown', function (e) {
+            // TODO: check
             if (workspace.currentInteraction()) {
                 workspace.area(point.areaName()).onMouseDown(e);
                 return;
@@ -62,8 +63,7 @@ export class WirePoint extends SelectableComponent {
             const wire = point.parent();
             if (checkT(wire, Wire)) wire.onPointEvent(e.type);
         });
-        this.shapes.add(this.selectionRect);
-        this.updateLayout();
+        this.shapes.add(this.selectionRect);        
     }
     materialized(b?: boolean): boolean {
         let z = super.materialized(b);
@@ -140,9 +140,9 @@ export class Wire extends Component {
         });
         this.pointsSpec(spec?.points);
         this.shapes.add(this.line);
-        this.updateLayout();
     }
     updateLayout() {
+        super.updateLayout();
         const pp: number[] = [];
         for (const p of this.points) {
             if (p.helper) continue;
@@ -154,7 +154,6 @@ export class Wire extends Component {
         for (const p of this.points) {
             p.visible = this.hoverWire || this.hoverPoint || this.alwaysShowPoints || p.selected();
         }
-        super.updateLayout();
     }
     pointsSpec(v?: WirePointSpec[]): WirePointSpec[] {
         if (v !== undefined) {
