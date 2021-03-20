@@ -6,7 +6,6 @@ import { onError, checkT } from './utils';
 import theme from '../theme.json';
 import { AddWireInteraction } from './actions/add_wire';
 import { SelectInteraction } from './actions/select';
-import { MoveSelectionInteraction } from './actions/move_selection';
 import { DeleteComponentsMutation } from './actions/delete_action';
 import { selectionAddresses, selectionRoots } from './components/selectable_component';
 import { ComponentSpec, deserializeComponent } from './components/component';

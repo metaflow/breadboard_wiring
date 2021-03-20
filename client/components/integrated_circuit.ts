@@ -70,7 +70,6 @@ export class IntegratedCircuit extends Component {
             stroke: this.mainColor(),
         });
         this.shapes.add(this.arc);
-        this.updateLayout();
     }
 
     updateLayout() {
