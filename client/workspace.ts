@@ -1,8 +1,8 @@
 import Konva from 'konva';
 import { Contact } from './components/contact';
 import { all, Component, deserializeComponent, resetIdCounter, roots } from './components/component';
-import { selectionAddresses } from './components/selectable_component';
-import { assert, error } from './utils';
+import { SelectableComponent, selectionAddresses } from './components/selectable_component';
+import { assert, checkT, error } from './utils';
 import { Mutation, Interaction, deserializeMutation } from './mutation';
 import { diffString } from 'json-diff';
 import { SelectInteraction, UpdateSelectionMutation } from './actions/select';
@@ -274,7 +274,7 @@ export class Area {
         if (xy === undefined) xy = this.cursor();
         let z: Contact | null = null;
         let dz = 0;
-        // TODO: not all contacts, nonly ones of this area.
+        // TODO: not all contacts, only ones of this area.
         all(Contact).forEach((c: Contact) => {             
             const d = c.absolutePosition().distance(xy!);
             if (z == null || d < dz) {
@@ -283,6 +283,41 @@ export class Area {
             }
         });
         return z;
+    }
+    
+    _selection = new Set<SelectableComponent>();
+    selection(): SelectableComponent[] {
+        return Array.from(this._selection);
+    }
+
+    selectionByType<T>(q: { new(...args: any[]): T }): T[] {
+        return this.selection().filter(x => checkT(x, q)).map(x => x as any as T);
+    }
+
+    // TODO: Selection should be tied to stage.
+    selectionRoots(): Component[] {
+        return Array.from(new Set<Component>(this.selectionByType(Component).map(c => {
+            let p = c;
+            while (p.parent() != null) p = p.parent()!;
+            return p;
+        })));
+    }
+
+    selectionAddresses(s?: string[]): string[] {
+        if (s !== undefined) {
+            // Deselect no longer selected components.
+            this.selection()
+                .filter(x => s.indexOf(x.address()) === -1)
+                .forEach(x => x.selected(false));
+            // Select new components.
+            s.forEach(a => Component.typedByAddress(SelectableComponent, a)
+                .selected(true));
+        }
+        return this.selection().map(x => x.address()).sort();
+    }
+
+    clearSelection() {
+        this._selection.forEach(x => x.selected(false));
     }
 }
 

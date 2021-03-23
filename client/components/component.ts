@@ -33,7 +33,6 @@ export class Component {
     _dirtyLayout = true;
     _layerName: LayerName;
     visible: boolean = false;
-    // TODO: pass layer if spec is not defined?
     constructor(spec?: ComponentSpec) { // Parameter is optional as some ancestors' ctors accept this.
         let id = -1;
         if (spec !== undefined) {
@@ -55,7 +54,7 @@ export class Component {
         }
         if (this._parent != null) return this._parent.layerName();
         return this._layerName;
-    }    
+    }
     areaName(): AreaName {
         return layerArea(this.layerName());
     }
@@ -171,7 +170,6 @@ export class Component {
             return;
         }
         this._dirtyLayout = true;
-        console.log('dirty layout');
         workspace.invalidateScene();
     }
     dirtyLayout(): boolean {

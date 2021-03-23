@@ -66,7 +66,6 @@ export class AddWireInteraction extends Interaction {
         }
         return this;
     }
-
     complete() {
         this.removeHelpers();
         const o = this;
@@ -107,7 +106,6 @@ export class AddWireInteraction extends Interaction {
             workspace.update(new AddComponentMutation(wire.serialize()));
             return;
         }
-        console.log('attach to existing wire');
         workspace.update(new UpdateWireSpecMutation(existingWire.address(), existingWire.pointsSpec(), specs));
     }
     removeHelpers() {

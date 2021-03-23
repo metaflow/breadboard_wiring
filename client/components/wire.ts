@@ -47,7 +47,6 @@ export class WirePoint extends SelectableComponent {
         });
         const point = this;
         this.selectionRect.on('mousedown', function (e) {
-            // TODO: check
             if (workspace.currentInteraction()) {
                 workspace.area(point.areaName()).onMouseDown(e);
                 return;
@@ -191,7 +190,6 @@ export class Wire extends Component {
     onPointEvent(eventType: string) {
         this.hoverPoint = eventType == 'mouseover';
         this.invalidateLayout();
-        workspace.invalidateScene();
     }
 }
 

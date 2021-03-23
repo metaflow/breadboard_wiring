@@ -7,7 +7,7 @@ export class SelectableComponent extends Component {
     selected(v?: boolean): boolean {
         if (v !== undefined) {
             if (this._selected != v) {
-                this._selected = v;
+                this._selected = v;                
                 this.mainColor(v ? theme.selection : theme.foreground);
                 if (v) {
                     _selection.add(this);
@@ -25,39 +25,4 @@ export class SelectableComponent extends Component {
         }
         return z;
     }
-}
-
-let _selection = new Set<SelectableComponent>();
-export function selection(): SelectableComponent[] {
-    return Array.from(_selection);
-}
-
-export function selectionByType<T>(q: { new(...args: any[]): T }): T[] {
-    return selection().filter(x => checkT(x, q)).map(x => x as any as T);
-}
-
-// TODO: Selection should be tied to stage.
-export function selectionRoots(): Component[] {
-    return Array.from(new Set<Component>(selectionByType(Component).map(c => {
-        let p = c;
-        while (p.parent() != null) p = p.parent()!;
-        return p;
-    })));
-}
-
-export function selectionAddresses(s?: string[]): string[] {
-    if (s !== undefined) {
-        // Deselect no longer selected components.
-        selection()
-            .filter(x => s.indexOf(x.address()) === -1)
-            .forEach(x => x.selected(false));
-        // Select new components.
-        s.forEach(a => Component.typedByAddress(SelectableComponent, a)
-            .selected(true));
-    }
-    return selection().map(x => x.address()).sort();
-}
-
-export function clearSelection() {
-    _selection.forEach(x => x.selected(false));
 }
