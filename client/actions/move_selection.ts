@@ -103,7 +103,7 @@ export class MoveSelectionInteraction extends Interaction {
                 mm.push(new DeleteComponentsMutation([k.serialize()], []));
             } else {
                 mm.push(new UpdateWireSpecMutation(k.address(), k.pointsSpec(), v[1].pointsSpec()));
-            }            
+            }
         });
         workspace.update(new CompoundMutation(mm));
         this.cancel();

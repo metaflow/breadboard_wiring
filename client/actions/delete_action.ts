@@ -26,7 +26,7 @@ export class DeleteComponentsMutation extends Mutation {
     constructor(components: ComponentSpec[], prevSelection: string[]) {
         super();
         this.specs = components;
-        this.prevSelection = prevSelection;        
+        this.prevSelection = prevSelection;
     }
     apply(): void {
         this.specs.forEach(c => {
