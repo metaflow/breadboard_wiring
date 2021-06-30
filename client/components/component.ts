@@ -33,8 +33,8 @@ export function resetIdCounter() {
     idCounter = 0;
 }
 
-export const materializedComponents = new Map<string, Component>();
-export const roots = new Map<number, Component>();
+// export const materializedComponents = new Map<string, Component>();
+// export const roots = new Map<number, Component>();
 
 export class Component {
     _parent: Component | null = null;
@@ -82,12 +82,12 @@ export class Component {
         this._materialized = b;
         this.children.forEach(c => c.materialized(b));
         if (b) {
-            assert(!materializedComponents.has(this.address()), `${this.address} already materialized`);
-            materializedComponents.set(this.address(), this);
-            if (this.parent() == null) roots.set(this.id(), this);
+            assert(!this.area().materializedComponents.has(this.address()), `${this.address} already materialized`);
+            this.area().materializedComponents.set(this.address(), this);
+            if (this.parent() == null) this.area().roots.set(this.id(), this);
         } else {
-            materializedComponents.delete(this.address());
-            if (this.parent() == null) roots.delete(this.id());
+          this.area().materializedComponents.delete(this.address());
+          if (this.parent() == null) this.area().roots.delete(this.id());
         }
         return b;
     }
@@ -218,17 +218,6 @@ export class Component {
             }
         });
         return z;
-    }
-    static byID(n: number): Component {
-        return assertExists(roots.get(n));
-    }
-    static byAddress(a: string): Component {
-        return assertExists(materializedComponents.get(a));
-    }
-    static typedByAddress<T extends Component>(q: { new(...args: any[]): T }, a: string): T {
-        let t = Component.byAddress(a);
-        if (checkT(t, q)) return t as T;
-        throw error(t, 'is not an instance of', q);
     }
 }
 

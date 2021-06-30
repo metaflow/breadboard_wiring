@@ -14,10 +14,9 @@
  * limitations under the License.
  */
 
-import { Mutation, Interaction, mutationDeserializers } from "../mutation";
+import { Mutation, Interaction, mutationDeserializers, AreaMutation } from "../mutation";
 import Konva from "konva";
 import { workspace, layer, stageLayer, AreaName } from "../workspace";
-import { selectionAddresses } from "../components/selectable_component";
 import { KonvaEventObject } from "konva/types/Node";
 import theme from '../../theme.json';
 import { plainToClass } from "class-transformer";
@@ -25,17 +24,17 @@ import { plainToClass } from "class-transformer";
 export class SelectInteraction extends Interaction {
     rect: Konva.Rect|null = null;
     prevSelection: string[];
-    constructor(stageName: AreaName) {        
-        super(stageName);
-        this.prevSelection = selectionAddresses();        
+    constructor(areaName: AreaName) {
+        super(areaName);
+        this.prevSelection = this.area().selectionAddresses();
     }
     mousemove(event: KonvaEventObject<MouseEvent>): Interaction | null {
         if (this.rect == null) return this;
         let pos = this.area().cursor();
         this.rect.width(pos.x - this.rect.x());
-        this.rect.height(pos.y - this.rect.y());        
+        this.rect.height(pos.y - this.rect.y());
         workspace.invalidateScene();
-        selectionAddresses(this.selected());
+        this.area().selectionAddresses(this.selected());
         return this;
     }
     selected(): string[] {
@@ -61,28 +60,28 @@ export class SelectInteraction extends Interaction {
     mouseup(event: KonvaEventObject<MouseEvent>): Interaction | null {
         this.rect?.remove();
         workspace.invalidateScene();
-        workspace.update(new UpdateSelectionMutation(this.prevSelection, selectionAddresses()));        
+        workspace.update(new UpdateSelectionMutation(this.area().name, this.prevSelection, selectionAddresses()));
         return null;
     }
     cancel(): void {
         this.rect?.remove();
-        selectionAddresses(this.prevSelection);
+        this.area().selectionAddresses(this.prevSelection);
     }
 }
 
-export class UpdateSelectionMutation extends Mutation {
+export class UpdateSelectionMutation extends AreaMutation {
     prevSelection: string[] = [];
     newSelection: string[] = [];
-    constructor(prevSelection: string[], newSelection: string[]) {
-        super();
+    constructor(an: AreaName, prevSelection: string[], newSelection: string[]) {
+        super(an);
         this.prevSelection = prevSelection;
         this.newSelection = newSelection;
     }
     apply() {
-        selectionAddresses(this.newSelection);
+      this.area().selectionAddresses(this.newSelection);
     }
     undo() {
-        selectionAddresses(this.prevSelection);
+      this.area().selectionAddresses(this.prevSelection);
     }
 }
 

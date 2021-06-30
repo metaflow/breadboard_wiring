@@ -45,10 +45,20 @@ export abstract class Mutation {
         return classToPlain(this);
     }
     postInit() { }
-    @Expose()
+    @Expose() // Include in JSON.
     T() {
         return this.constructor.name;
     }
+}
+
+export abstract class AreaMutation {
+  areaName: AreaName;
+  constructor(an: AreaName) {
+      this.areaName = an;
+  }
+  area(): Area {
+    return workspace.area(this.areaName);
+  }
 }
 
 export interface MutationSpec {
@@ -59,6 +69,7 @@ export abstract class Interaction {
     areaName: AreaName;
     constructor(stageName: AreaName) {
         this.areaName = stageName;
+        // TODO: make part of the area?
         workspace.currentInteraction(this);
     }
     mousemove(event: Konva.KonvaEventObject<MouseEvent>): Interaction | null {

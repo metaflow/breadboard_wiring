@@ -16,13 +16,14 @@
 
 import Konva from 'konva';
 import { Contact } from './components/contact';
-import { all, Component, deserializeComponent, resetIdCounter, roots } from './components/component';
-import { SelectableComponent, selectionAddresses } from './components/selectable_component';
+import { all, Component, resetIdCounter } from './components/component';
+import { SelectableComponent } from './components/selectable_component';
 import { assert, checkT, error } from './utils';
 import { Mutation, Interaction, deserializeMutation } from './mutation';
 import { diffString } from 'json-diff';
 import { SelectInteraction, UpdateSelectionMutation } from './actions/select';
-import {Union, Literal, Static} from 'runtypes';
+import { Union, Literal, Static } from 'runtypes';
+import assertExists from 'ts-assert-exists';
 
 export class PlainPoint {
     x: number = 0;
@@ -45,7 +46,7 @@ export const LayerNameT = Union(
     Literal(UNKNOWN),
 );
 export type LayerName = Static<typeof LayerNameT>;
-export const allStages: AreaName[] = [SCHEME, PHYSICAL];
+export const allAreas: AreaName[] = [SCHEME, PHYSICAL];
 
 // just in case: https://stackoverflow.com/questions/34098023/typescript-self-referencing-return-type-for-static-methods-in-inheriting-classe?rq=1
 export class Point implements Konva.Vector2d {
@@ -102,7 +103,7 @@ export class Point implements Konva.Vector2d {
     }
     array(): [number, number] {
         return [this.x, this.y];
-    }    
+    }
     distance(other: this): number {
         const dx = this.x - other.x;
         const dy = this.y - other.y;
@@ -119,7 +120,7 @@ export class Point implements Konva.Vector2d {
     }
     length(): number {
         return Math.sqrt(this.x * this.x + this.y * this.y);
-    }    
+    }
 };
 
 let layers = new Map<string, Konva.Layer>();
@@ -150,9 +151,8 @@ export interface AreaState {
 }
 
 interface WorkspaceState {
-    components: AreaState | undefined;
     history: any[] | undefined;
-    layers: [string, any][] | undefined;
+    areas: [string, ViewState, AreaState][] | undefined;
 }
 
 interface ViewState {
@@ -162,15 +162,19 @@ interface ViewState {
 
 export class Area {
     readonly stage: Konva.Stage;
-    readonly name: AreaName
+    readonly name: AreaName;
     private draggingScene = false;
     private draggingOrigin = new Point();
     private initialOffset = new Point();
-    private _gridAlignment: number|null = null;
+    private _gridAlignment: number | null = null;
+    materializedComponents = new Map<string, Component>();
+    roots = new Map<number, Component>();
+    stateHistory: AreaState[] = []; // TODO: make private.
 
     constructor(name: AreaName, _stage: Konva.Stage) {
         this.name = name;
         this.stage = _stage;
+        this.stateHistory.push(this.serialize());
     }
     setupEvents() {
         const o = this;
@@ -187,7 +191,7 @@ export class Area {
             o.onMouseUp(e);
         });
     }
-    onMouseDown(e: Konva.KonvaEventObject<MouseEvent>) {        
+    onMouseDown(e: Konva.KonvaEventObject<MouseEvent>) {
         e.evt.preventDefault(); // Disable scroll on middle button click. TODO: check button?
         const t = workspace.currentInteraction();
         if (t != null) {
@@ -206,7 +210,7 @@ export class Area {
         }
         // Right click: deselect all.
         if (e.evt.button == 2) {
-            workspace.update(new UpdateSelectionMutation(selectionAddresses(), []));
+            workspace.update(new UpdateSelectionMutation(this.name, this.selectionAddresses(), []));
             return;
         }
         // Middle button.
@@ -273,10 +277,13 @@ export class Area {
         if (pos == null) pos = { x: 0, y: 0 };
         return new Point(this.layer().getTransform().copy().invert().point(pos));
     }
+    hasCursor(): boolean {
+        return this.stage.getPointerPosition() != null; // TODO: check if that works.
+    }
     alignedCursor(): Point {
         return this.align(this.cursor());
     }
-    align(p : Point): Point {
+    align(p: Point): Point {
         return p.clone().align(this.gridAlignment());
     }
     gridAlignment(v?: number | null): number | null {
@@ -291,7 +298,7 @@ export class Area {
         let z: Contact | null = null;
         let dz = 0;
         // TODO: not all contacts, only ones of this area.
-        all(Contact).forEach((c: Contact) => {             
+        all(Contact).forEach((c: Contact) => {
             const d = c.absolutePosition().distance(xy!);
             if (z == null || d < dz) {
                 z = c;
@@ -300,16 +307,22 @@ export class Area {
         });
         return z;
     }
-    
+    serialize(): AreaState {
+        let z: AreaState = {
+            roots: Array.from(this.roots.values())
+                .sort((a, b) => a.id() - b.id())
+                .map(c => c.serialize()),
+            selection: this.selectionAddresses(),
+        }
+        return z;
+    }
     _selection = new Set<SelectableComponent>();
     selection(): SelectableComponent[] {
         return Array.from(this._selection);
     }
-
     selectionByType<T>(q: { new(...args: any[]): T }): T[] {
         return this.selection().filter(x => checkT(x, q)).map(x => x as any as T);
     }
-
     // TODO: Selection should be tied to stage.
     selectionRoots(): Component[] {
         return Array.from(new Set<Component>(this.selectionByType(Component).map(c => {
@@ -318,7 +331,6 @@ export class Area {
             return p;
         })));
     }
-
     selectionAddresses(s?: string[]): string[] {
         if (s !== undefined) {
             // Deselect no longer selected components.
@@ -326,14 +338,24 @@ export class Area {
                 .filter(x => s.indexOf(x.address()) === -1)
                 .forEach(x => x.selected(false));
             // Select new components.
-            s.forEach(a => Component.typedByAddress(SelectableComponent, a)
+            s.forEach(a => this.typedComponentByAddress(SelectableComponent, a)
                 .selected(true));
         }
         return this.selection().map(x => x.address()).sort();
     }
-
     clearSelection() {
         this._selection.forEach(x => x.selected(false));
+    }
+    componentByID(n: number): Component {
+        return assertExists(this.roots.get(n));
+    }
+    componentByAddress(a: string): Component {
+        return assertExists(this.materializedComponents.get(a));
+    }
+    typedComponentByAddress<T extends Component>(q: { new(...args: any[]): T }, a: string): T {
+        let t = this.componentByAddress(a);
+        if (checkT(t, q)) return t as T;
+        throw error(t, 'is not an instance of', q);
     }
 }
 
@@ -344,17 +366,16 @@ export class Workspace {
     private history: Mutation[] = [];
     private forwardHistory: Mutation[] = [];
     private loading = false;
-    private stateHistory: AreaState[] = [];
     private persistTimeout: number | undefined;
     private visibleComponents = new Set<Component>(); // Includes non-materialized components.
     private willRedraw = false;
     private areas = new Map<AreaName, Area>();
     constructor() {
-        this.stateHistory.push(this.componentsState());        
+
     }
     addArea(name: AreaName, v: Konva.Stage) {
         assert(!this.areas.has(name), `${name} area already set`);
-        this.areas.set(name, new Area(name, v));        
+        this.areas.set(name, new Area(name, v));
     }
     area(name: AreaName): Area {
         const x = this.areas.get(name);
@@ -380,32 +401,40 @@ export class Workspace {
             console.log('action', a);
             let endGroup = true;
             a.apply();
-            let sa = this.stateHistory[this.stateHistory.length - 1];
-            let sb = this.componentsState();
-            this.stateHistory.push(sb);
+            this.areas.forEach(area => {
+                assert(area.stateHistory.length > 0);
+                area.stateHistory.push(area.serialize());
+            });
             a.undo();
-            let s = this.componentsState();
-            if (JSON.stringify(sa) != JSON.stringify(s)) {
-                if (endGroup) { console.groupEnd(); endGroup = false; }
-                error('undo changes state');
-                console.group('details');
-                console.log(diffString(sa, s));
-                console.log('expected state', sa);
-                console.log('actual state', s);
-                console.groupEnd();
-            }
+            this.areas.forEach(area => {
+                assert(area.stateHistory.length > 1);
+                const sa = area.stateHistory[area.stateHistory.length - 2];
+                let s = area.serialize();
+                if (JSON.stringify(sa) != JSON.stringify(s)) {
+                    if (endGroup) { console.groupEnd(); endGroup = false; }
+                    error(area.name, 'undo changes state');
+                    console.group('details');
+                    console.log(diffString(sa, s));
+                    console.log('expected state', sa);
+                    console.log('actual state', s);
+                    console.groupEnd();
+                }
+            });
             a.apply();
-            s = this.componentsState();
-            if (JSON.stringify(sb) != JSON.stringify(s)) {
-                if (endGroup) { console.groupEnd(); endGroup = false; }
-                error('redo changes state');
-                console.group('details');
-                console.log('diff', diffString(sb, s));
-                console.log('expected state', sb);
-                console.log('actual state', s);
-                console.groupEnd();
-            }
-            console.log('new state', this.componentsState());
+            this.areas.forEach(area => {
+                const s = area.serialize();
+                const sb = area.stateHistory[area.stateHistory.length - 1];
+                if (JSON.stringify(sb) != JSON.stringify(s)) {
+                    if (endGroup) { console.groupEnd(); endGroup = false; }
+                    error(area.name, 'redo changes state');
+                    console.group('details');
+                    console.log('diff', diffString(sb, s));
+                    console.log('expected state', sb);
+                    console.log('actual state', s);
+                    console.groupEnd();
+                }
+                console.log(area.name, 'new state', s);
+            });            
             if (endGroup) { console.groupEnd(); endGroup = false; }
         } else {
             a.apply();
@@ -418,31 +447,37 @@ export class Workspace {
         if (this.debugActions) {
             console.groupCollapsed(`undo action ${a.constructor.name}`);
             // State history is [..., sa, sb], we will end up in [..., sa].
-            let sb = this.stateHistory.pop();
-            let sa = this.stateHistory[this.stateHistory.length - 1];
-            // console.log('action', a);
             a.undo();
-            let s = this.componentsState();
-            if (JSON.stringify(sa) != JSON.stringify(s)) {
-                console.groupEnd();
-                error('undo state does not match recorded');
-                console.group('details');
-                console.log('diff', diffString(sa, s));
-                console.log('expected state', sa);
-                console.log('actual state', s);
-            }
+            this.areas.forEach(area => {
+                assert(area.stateHistory.length > 1);
+                let sa = area.stateHistory[area.stateHistory.length - 2];
+                let s = area.serialize();
+                if (JSON.stringify(sa) != JSON.stringify(s)) {
+                    console.groupEnd();
+                    error(area.name, 'undo state does not match recorded');
+                    console.group('details');
+                    console.log('diff', diffString(sa, s));
+                    console.log('expected state', sa);
+                    console.log('actual state', s);
+                }
+            });            
             a.apply();
-            s = this.componentsState();
-            if (JSON.stringify(sb) != JSON.stringify(s)) {
-                console.groupEnd();
-                error('redo state does not match');
-                console.group('details');
-                console.log('diff', diffString(sb, s));
-                console.log('expected state', sb);
-                console.log('actual state', s);
-            }
+            this.areas.forEach(area => {
+                const s = area.serialize();
+                const sb = area.stateHistory[area.stateHistory.length - 1];
+                if (JSON.stringify(sb) != JSON.stringify(s)) {
+                    console.groupEnd();
+                    error(area.name, 'redo state does not match');
+                    console.group('details');
+                    console.log('diff', diffString(sb, s));
+                    console.log('expected state', sb);
+                    console.log('actual state', s);
+                }
+                // Remove state from the history.
+                area.stateHistory.pop();
+            });
             a.undo();
-            console.log('new state', this.componentsState());
+            this.areas.forEach(area => console.log(area.name, 'new state', area.serialize()));
             console.groupEnd();
         } else {
             console.log(`undo action ${a.constructor.name}`)
@@ -487,59 +522,55 @@ export class Workspace {
     clear() {
         this.history = [];
         this.forwardHistory = [];
-        this.stateHistory = [];
         this.clearComponents();
     }
     deserialize(s: any) {
         this.clear()
         document.title = 'scheme';
         const ws = s as WorkspaceState;
-        if (ws.components !== undefined && ws.components.roots != null && (ws.history === undefined || !this.debugActions)) {
-            ws.components.roots.forEach((a: any) => {
-                const c = deserializeComponent(a);
-                c.show();
-                c.materialized(true);
-            });
-            selectionAddresses(s.selection);
-            console.log(this.componentsState());
-        }
-        this.stateHistory.push(this.componentsState());
-        if (ws.history != undefined) {
-            const h = ws.history.map(d => deserializeMutation(d));
-            if (this.debugActions) {
-                console.groupCollapsed('load actions');
-                h.forEach(a => this.update(a, true));
-                console.groupEnd();
-            } else {
-                this.history = h;
-            }
-        }
-        if (ws.layers != undefined) {
-            ws.layers.forEach((v: [string, ViewState]) => {
-                const [name, state] = v;
-                const lr = layer(LayerNameT.check(name));                
+        if (ws.areas != undefined) {
+            ws.areas.forEach((v: [string, ViewState, AreaState]) => {
+                const [name, state, as] = v;
+
+                // TODO: get from 'as'
+                // if (ws.components !== undefined && ws.components.roots != null && (ws.history === undefined || !this.debugActions)) {
+                //     ws.components.roots.forEach((a: any) => {
+                //         const c = deserializeComponent(a);
+                //         c.show();
+                //         c.materialized(true);
+                //     });
+                //     selectionAddresses(s.selection);
+                //     console.log(this.componentsState());
+                // }
+                // this.stateHistory.push(this.componentsState());
+                // if (ws.history != undefined) {
+                //     const h = ws.history.map(d => deserializeMutation(d));
+                //     if (this.debugActions) {
+                //         console.groupCollapsed('load actions');
+                //         h.forEach(a => this.update(a, true));
+                //         console.groupEnd();
+                //     } else {
+                //         this.history = h;
+                //     }
+                // }
+
+                const lr = layer(LayerNameT.check(name));
                 lr.offset(state.offset);
                 lr.scaleX(state.scale);
                 lr.scaleY(state.scale);
-            });            
+            });
         }
         this.invalidateScene();
     }
-    componentsState(): AreaState {
-        let z: AreaState = {
-            roots: Array.from(roots.values())
-                .sort((a, b) => a.id() - b.id())
-                .map(c => c.serialize()),
-            selection: selectionAddresses(),
-        }
-        return z;
-    }
     serialize(): WorkspaceState {
         return {
-            components: this.componentsState(),
-            history: this.serializeActions(),         
-            layers: allStages.map(x => {
-                return [stageLayer(x), this.serializeLayerState(stageLayer(x))];
+            history: this.serializeActions(),
+            areas: allAreas.map(x => {
+                return [
+                    stageLayer(x),
+                    this.serializeLayerState(stageLayer(x)),
+                    this.area(x).serialize(),
+                ];
             }),
         };
     }
@@ -551,7 +582,7 @@ export class Workspace {
         }
     }
     private clearComponents() {
-        roots.forEach(c => c.remove());
+        this.areas.forEach(a => a.roots.forEach(c => c.remove()));
         resetIdCounter();
     }
     redraw() {
@@ -576,6 +607,9 @@ export class Workspace {
     }
     setupEvents() {
         this.areas.forEach(a => a.setupEvents());
+    }
+    areaUnderCursor(): (Area|undefined) {
+        return Array.from(this.areas.values()).find(a => a.hasCursor());
     }
 }
 
