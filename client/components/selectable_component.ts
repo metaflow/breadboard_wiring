@@ -26,9 +26,9 @@ export class SelectableComponent extends Component {
                 this._selected = v;                
                 this.mainColor(v ? theme.selection : theme.foreground);
                 if (v) {
-                    _selection.add(this);
+                    this.area()._selection.add(this);
                 } else {
-                    _selection.delete(this);
+                    this.area()._selection.delete(this);
                 }
             }
         }

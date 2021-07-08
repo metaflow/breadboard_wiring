@@ -51,9 +51,10 @@ export abstract class Mutation {
     }
 }
 
-export abstract class AreaMutation {
+export abstract class AreaMutation extends Mutation {
   areaName: AreaName;
   constructor(an: AreaName) {
+      super();
       this.areaName = an;
   }
   area(): Area {

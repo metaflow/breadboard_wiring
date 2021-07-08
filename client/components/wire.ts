@@ -15,10 +15,10 @@
  */
 
 import Konva from 'konva';
-import { Point, PlainPoint, layerStage, LayerNameT } from '../workspace';
-import { all, Component, componentDeserializers, ComponentSpec } from './component';
+import { Point, PlainPoint, LayerNameT, Area } from '../workspace';
+import { Component, componentDeserializers, ComponentSpec } from './component';
 import { workspace } from '../workspace';
-import { SelectableComponent, selectionAddresses } from './selectable_component';
+import { SelectableComponent } from './selectable_component';
 import theme from '../../theme.json';
 import { copy, checkT } from '../utils';
 import { Contact } from './contact';
@@ -70,7 +70,7 @@ export class WirePoint extends SelectableComponent {
             if (e.evt.button != 0) return;
             e.cancelBubble = true;
             if (!point.selected()) {
-                workspace.update(new UpdateSelectionMutation(selectionAddresses(), [point.address()]));
+                workspace.update(new UpdateSelectionMutation(point.areaName(), point.area().selectionAddresses(), [point.address()]));
             }
             new MoveSelectionInteraction(point.areaName());
         });
@@ -278,13 +278,13 @@ export function attachPoints(points: Point[], spec: WirePointSpec[]): WirePointS
     return spec;
 }
 
-export function moveSingleWire(dxy: Point, spec: WirePointSpec[], affectedIds: number[]): WirePointSpec[] {
+export function moveSingleWire(area: Area, dxy: Point, spec: WirePointSpec[], affectedIds: number[]): WirePointSpec[] {
     let z: WirePointSpec[] = [];
     const affected: boolean[] = [];
     const fixed: boolean[] = [];
     const nextVertical: boolean[] = [];
     const nextHorizontal: boolean[] = [];
-    const contacts = all(Contact);
+    const contacts = area.componentByType(Contact);
     for (const p of spec) {
       const a = affectedIds.indexOf(assertExists(p.id)) != -1;
       if (p.helper && !a) continue;
@@ -298,10 +298,8 @@ export function moveSingleWire(dxy: Point, spec: WirePointSpec[], affectedIds: n
         nextHorizontal.push(z[i].offset.y == z[i + 1].offset.y);
       }
       if (affected[i]) {
-        // TODO: can this be simplified to not resolve area over and over?
-        const a = workspace.area(layerStage(LayerNameT.check(z[i].layerName)));
         const p = new Point(z[i].offset).add(dxy);        
-        z[i].offset = a.align(p).plain();
+        z[i].offset = area.align(p).plain();
       }
     }
     for (let i = 0; i < z.length; i++) {

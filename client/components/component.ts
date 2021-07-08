@@ -15,16 +15,15 @@
  */
 
 import Konva from "konva";
-import { Point, PlainPoint, workspace, layer, layerStage as layerArea, AreaName, LayerName, LayerNameT, Area, UNKNOWN } from "../workspace";
-import assertExists from "ts-assert-exists";
-import { assert, error, checkT } from "../utils";
+import { Point, PlainPoint, workspace, layer, AreaName, LayerName, LayerNameT, Area, UNKNOWN } from "../workspace";
+import { assert, checkT } from "../utils";
 import theme from '../../theme.json';
 
 export interface ComponentSpec {
     T: string;
     offset: PlainPoint;
     id?: number;
-    layerName: string;
+    layerName: string; // TODO: Remove this completely and use area from context.
 }
 
 let idCounter: number = 0;
@@ -249,7 +248,3 @@ export function deserializeComponent(data: any): Component {
 //     return t;
 // }
 
-export function all<T extends Component>(q: { new(...args: any[]): T }): T[] {
-    return Array.from(materializedComponents.values())
-        .filter(c => checkT(c, q)) as T[];
-}

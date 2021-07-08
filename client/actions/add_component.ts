@@ -17,7 +17,7 @@
 import { Mutation, Interaction, mutationDeserializers } from "../mutation";
 import { KonvaEventObject } from "konva/types/Node";
 import { Component, ComponentSpec, deserializeComponent } from "../components/component";
-import { Point, stageLayer, AreaName, workspace } from "../workspace";
+import { Point, stageLayer, AreaName, workspace, Area, LayerNameT } from "../workspace";
 import theme from '../../theme.json';
 import { assert } from "../utils";
 import { plainToClass } from "class-transformer";
@@ -43,7 +43,8 @@ export class AddComponentMutation extends Mutation {
     undo(): void {
         assert(this.spec != null);
         assert(this.spec?.id != null);
-        const c = Component.byID(this.spec?.id!);
+        const area = workspace.area(Area.fromLayer(LayerNameT.check(this.spec?.layerName)));
+        const c = area.componentByID(this.spec?.id!);
         c.materialized(false);
         c.hide();
     }

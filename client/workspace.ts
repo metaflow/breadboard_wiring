@@ -16,7 +16,7 @@
 
 import Konva from 'konva';
 import { Contact } from './components/contact';
-import { all, Component, resetIdCounter } from './components/component';
+import { Component, resetIdCounter } from './components/component';
 import { SelectableComponent } from './components/selectable_component';
 import { assert, checkT, error } from './utils';
 import { Mutation, Interaction, deserializeMutation } from './mutation';
@@ -138,12 +138,7 @@ export function stageLayer(stageName: AreaName): LayerName {
     return LayerNameT.check(stageName + ":default");
 }
 
-export function layerStage(layerName: LayerName): AreaName {
-    assert(layerName !== UNKNOWN, 'UNKNOWN layer is passed');
-    const parts = layerName.split(":");
-    assert(parts.length == 2, `layer name ${layerName} is invalid`);
-    return AreaNameT.check(parts[0]);
-}
+
 
 export interface AreaState {
     roots: any[] | undefined;
@@ -298,7 +293,7 @@ export class Area {
         let z: Contact | null = null;
         let dz = 0;
         // TODO: not all contacts, only ones of this area.
-        all(Contact).forEach((c: Contact) => {
+        this.componentByType(Contact).forEach((c: Contact) => {
             const d = c.absolutePosition().distance(xy!);
             if (z == null || d < dz) {
                 z = c;
@@ -356,6 +351,16 @@ export class Area {
         let t = this.componentByAddress(a);
         if (checkT(t, q)) return t as T;
         throw error(t, 'is not an instance of', q);
+    }
+    componentByType<T extends Component>(q: { new(...args: any[]): T }): T[] {
+        return Array.from(this.materializedComponents.values())
+            .filter(c => checkT(c, q)) as T[];
+    }
+    static fromLayer(layerName: LayerName): AreaName {
+        assert(layerName !== UNKNOWN, 'UNKNOWN layer is passed');
+        const parts = layerName.split(":");
+        assert(parts.length == 2, `layer name ${layerName} is invalid`);
+        return AreaNameT.check(parts[0]);
     }
 }
 

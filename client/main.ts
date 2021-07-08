@@ -23,7 +23,6 @@ import theme from '../theme.json';
 import { AddWireInteraction } from './actions/add_wire';
 import { SelectInteraction } from './actions/select';
 import { DeleteComponentsMutation } from './actions/delete_action';
-import { selectionAddresses, selectionRoots } from './components/selectable_component';
 import { ComponentSpec, deserializeComponent } from './components/component';
 import { AddComponentInteraction } from './actions/add_component';
 import Split from 'split.js';
@@ -108,9 +107,11 @@ fileSelector?.addEventListener('change', () => {
 });
 
 function deleteSelection() {
+  /*TODO:
   workspace.cancelInteractions();  
   const cc = selectionRoots().map(c => c.serialize());
   workspace.update(new DeleteComponentsMutation(cc, selectionAddresses()));
+  */
 }
 
 workspace.addArea(SCHEME, new Konva.Stage({
@@ -170,6 +171,7 @@ hotkeys('del', function () {
 });
 
 hotkeys('ctrl+c', function () {
+  /* TODO: for active area
   const ss = selectionRoots().map(c => {
     const s: ComponentSpec = c.serialize();
     delete(s.id);
@@ -180,9 +182,11 @@ hotkeys('ctrl+c', function () {
   navigator.clipboard.writeText(t).catch(() => {
     throw new Error('failed to write to clipboard');
   });
+  */
 });
 
 hotkeys('ctrl+x', function () {
+  /* TODO: cut for active area 
   const ss = selectionRoots().map(c => {
     const s: ComponentSpec = c.serialize();
     delete(s.id);
@@ -194,6 +198,7 @@ hotkeys('ctrl+x', function () {
     throw new Error('failed to write to clipboard');
   });
   deleteSelection();
+  */
 });
 
 hotkeys('ctrl+v', function () {  
