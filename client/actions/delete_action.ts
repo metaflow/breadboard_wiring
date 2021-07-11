@@ -14,23 +14,23 @@
  * limitations under the License.
  */
 
-import { Mutation, mutationDeserializers } from "../mutation";
-import { selectionAddresses } from "../components/selectable_component";
+import { AreaMutation, Mutation, mutationDeserializers } from "../mutation";
 import { Component, ComponentSpec, deserializeComponent } from "../components/component";
 import { plainToClass } from "class-transformer";
 import { assert } from "../utils";
+import { AreaName } from "../workspace";
 
-export class DeleteComponentsMutation extends Mutation {
+export class DeleteComponentsMutation extends AreaMutation {
     specs: ComponentSpec[];
     prevSelection: string[] = [];
-    constructor(components: ComponentSpec[], prevSelection: string[]) {
-        super();
+    constructor(an: AreaName, components: ComponentSpec[], prevSelection: string[]) {
+        super(an);
         this.specs = components;
         this.prevSelection = prevSelection;
     }
     apply(): void {
         this.specs.forEach(c => {
-            const x = Component.byID(c.id!);
+            const x = this.area().componentByID(c.id!);
             assert(x.parent() == null, 'child component should not be deleted');
             x.remove();
         });
@@ -41,7 +41,7 @@ export class DeleteComponentsMutation extends Mutation {
             c.show();
             c.materialized(true);
         });
-        selectionAddresses(this.prevSelection);
+        this.area().selectionAddresses(this.prevSelection);
     }
 }
 

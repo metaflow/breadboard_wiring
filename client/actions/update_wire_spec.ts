@@ -14,26 +14,28 @@
  * limitations under the License.
  */
 
-import { Mutation, mutationDeserializers } from "../mutation";
+import { AreaMutation, Mutation, mutationDeserializers } from "../mutation";
 import { Wire, WirePointSpec } from "../components/wire";
 import { plainToClass } from "class-transformer";
 import { Component } from "../components/component";
+import { AreaName } from "../workspace";
 
-export class UpdateWireSpecMutation extends Mutation {
+export class UpdateWireSpecMutation extends AreaMutation {
     address: string;
     from: WirePointSpec[];
     to: WirePointSpec[];
-    constructor(address: string, from: WirePointSpec[], to: WirePointSpec[]) {
-        super();
+    constructor(an: AreaName, address: string, from: WirePointSpec[], to: WirePointSpec[]) {
+        super(an);
         this.address = address;
         this.from = from;
         this.to = to;
     }
     apply() {
-        Component.typedByAddress(Wire, this.address).pointsSpec(this.to);
+
+        this.area().typedComponentByAddress(Wire, this.address).pointsSpec(this.to);
     }
     undo() {
-        Component.typedByAddress(Wire, this.address).pointsSpec(this.from);
+        this.area().typedComponentByAddress(Wire, this.address).pointsSpec(this.from);
     }
 }
 

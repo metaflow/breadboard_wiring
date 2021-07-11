@@ -71,7 +71,7 @@ export class Component {
         return this._layerName;
     }
     areaName(): AreaName {
-        return layerArea(this.layerName());
+        return Area.fromLayer(this.layerName());
     }
     area(): Area {
         return workspace.area(this.areaName());

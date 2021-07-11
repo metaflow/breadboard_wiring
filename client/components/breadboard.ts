@@ -19,7 +19,7 @@ import { Point, workspace } from '../workspace';
 import { Contact } from './contact';
 import { componentDeserializers, ComponentSpec } from './component';
 import theme from '../../theme.json';
-import { SelectableComponent, selectionAddresses } from './selectable_component';
+import { SelectableComponent } from './selectable_component';
 import { UpdateSelectionMutation } from '../actions/select';
 import { MoveSelectionInteraction } from '../actions/move_selection';
 
@@ -67,7 +67,7 @@ export class Breadboard extends SelectableComponent {
             if (e.evt.button != 0) return;
             e.cancelBubble = true;
             if (!this.selected()) {
-                workspace.update(new UpdateSelectionMutation(selectionAddresses(), [o.address()]));
+                workspace.update(new UpdateSelectionMutation(this.areaName(), this.area().selectionAddresses(), [o.address()]));
             }
             new MoveSelectionInteraction(o.areaName());
         };

@@ -60,7 +60,7 @@ export class SelectInteraction extends Interaction {
     mouseup(event: KonvaEventObject<MouseEvent>): Interaction | null {
         this.rect?.remove();
         workspace.invalidateScene();
-        workspace.update(new UpdateSelectionMutation(this.area().name, this.prevSelection, selectionAddresses()));
+        workspace.update(new UpdateSelectionMutation(this.area().name, this.prevSelection, this.area().selectionAddresses()));
         return null;
     }
     cancel(): void {

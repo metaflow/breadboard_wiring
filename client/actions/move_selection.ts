@@ -17,9 +17,8 @@
 import { Mutation, Interaction } from "../mutation";
 import { KonvaEventObject } from "konva/types/Node";
 import { Point, AreaName, workspace } from "../workspace";
-import { all, Component, deserializeComponent } from "../components/component";
+import { Component, deserializeComponent } from "../components/component";
 import { moveSingleWire, Wire, WirePoint } from "../components/wire";
-import { selectionByType, selectionAddresses } from "../components/selectable_component";
 import { Contact } from "../components/contact";
 import { MoveComponentMutation } from "./move_component";
 import assertExists from "ts-assert-exists";
@@ -38,9 +37,9 @@ export class MoveSelectionInteraction extends Interaction {
     wires = new Map<Wire, [number[], Wire]>();  // Map of "original wire" => (id of affected points, aux wire).
     constructor(areaName: AreaName) {
         super(areaName);
-        this.selection = selectionAddresses();
+        this.selection =  this.area().selectionAddresses();
         this.from = this.area().cursor();
-        this.components = selectionByType(Component).filter(c => !checkT(c, WirePoint));
+        this.components = this.area().selectionByType(Component).filter(c => !checkT(c, WirePoint));
         this.auxComponents = this.components.map(c => {
             const x = deserializeComponent(c.serialize());
             x.mainColor(theme.active);
@@ -48,9 +47,9 @@ export class MoveSelectionInteraction extends Interaction {
             c.hide();
             return x;
         });
-        const points = selectionByType(WirePoint);
+        const points = this.area().selectionByType(WirePoint);
         const cc = this.components.flatMap((c: Component) => c.descendants(Contact));
-        const attached = all(WirePoint).filter((p: WirePoint) => {
+        const attached = this.area().componentByType(WirePoint).filter((p: WirePoint) => {
             return cc.some((c: Contact) => c.absolutePosition().closeTo(p.absolutePosition()));
         });
         points.push(...(attached.filter((p: WirePoint) => points.indexOf(p) == -1)));
@@ -86,23 +85,23 @@ export class MoveSelectionInteraction extends Interaction {
             c.offset(a.align(this.components[i].offset().add(d)));
         });
         this.wires.forEach((v, k) => {
-            v[1].pointsSpec(moveSingleWire(d, k.pointsSpec(), v[0]));
+            v[1].pointsSpec(moveSingleWire(this.area(), d, k.pointsSpec(), v[0]));
         });
         return this;
     }
     mouseup(event: KonvaEventObject<MouseEvent>): Interaction | null {
         const mm: Mutation[] = [];
         // Add selection of the current selection to make proper undo.
-        mm.push(new UpdateSelectionMutation(this.selection, this.selection));
+        mm.push(new UpdateSelectionMutation(this.areaName, this.selection, this.selection));
         this.components.forEach((c, i) => {
-            mm.push(new MoveComponentMutation(c.address(), c.offset().plain(), this.auxComponents[i].offset().plain()));
+            mm.push(new MoveComponentMutation(this.areaName, c.address(), c.offset().plain(), this.auxComponents[i].offset().plain()));
         });
         this.wires.forEach((v, k) => {
             const points = v[1].pointsSpec();
             if (points.length < 2) {
-                mm.push(new DeleteComponentsMutation([k.serialize()], []));
+                mm.push(new DeleteComponentsMutation(this.areaName, [k.serialize()], []));
             } else {
-                mm.push(new UpdateWireSpecMutation(k.address(), k.pointsSpec(), v[1].pointsSpec()));
+                mm.push(new UpdateWireSpecMutation(this.areaName, k.address(), k.pointsSpec(), v[1].pointsSpec()));
             }
         });
         workspace.update(new CompoundMutation(mm));

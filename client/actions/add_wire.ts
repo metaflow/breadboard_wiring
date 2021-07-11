@@ -21,7 +21,6 @@ import { Point, workspace, stageLayer, layer, AreaName } from '../workspace';
 import theme from '../../theme.json';
 import { AddComponentMutation } from './add_component';
 import { UpdateWireSpecMutation } from './update_wire_spec';
-import { all } from '../components/component';
 
 export class AddWireInteraction extends Interaction {
     line: Konva.Line | undefined;
@@ -87,7 +86,7 @@ export class AddWireInteraction extends Interaction {
         const o = this;
         let existingWire: Wire | null = null;
         let specs: WirePointSpec[] = [];
-        for (const w of all(Wire)) {
+        for (const w of this.area().componentByType(Wire)) {
             if (existingWire != null) break;
             const a = w.points[0].absolutePosition();
             const b = w.points[w.points.length - 1].absolutePosition();
@@ -122,7 +121,7 @@ export class AddWireInteraction extends Interaction {
             workspace.update(new AddComponentMutation(wire.serialize()));
             return;
         }
-        workspace.update(new UpdateWireSpecMutation(existingWire.address(), existingWire.pointsSpec(), specs));
+        workspace.update(new UpdateWireSpecMutation(this.areaName, existingWire.address(), existingWire.pointsSpec(), specs));
     }
     removeHelpers() {
         this.line?.remove();
