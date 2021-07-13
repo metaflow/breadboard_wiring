@@ -1,5 +1,13 @@
-test('1 == 1', () => {
-  expect(1).toBe(1);
+import { deserializeMutation } from "../mutation";
+import { SCHEME } from "../workspace";
+import { UpdateSelectionMutation } from "./select";
+
+test('serialize', () => {
+  const m = new UpdateSelectionMutation(SCHEME, [], ['1']);
+  const s: any = m.serialize();
+  console.log(s);
+  const n = deserializeMutation(s);
+  // expect(n.T).toBe(UpdateSelectionMutation.name);
 });
 
 test('2 == 2', () => {

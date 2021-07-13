@@ -15,7 +15,7 @@
  */
 
 import { Mutation, Interaction } from "../mutation";
-import { KonvaEventObject } from "konva/types/Node";
+import type { KonvaEventObject } from "konva/types/Node";
 import { Point, AreaName, workspace } from "../workspace";
 import { Component, deserializeComponent } from "../components/component";
 import { moveSingleWire, Wire, WirePoint } from "../components/wire";

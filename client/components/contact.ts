@@ -17,7 +17,7 @@
 import Konva from "konva";
 import { AddWireInteraction } from "../actions/add_wire";
 import { SCHEME, workspace } from "../workspace";
-import { ComponentSpec } from "./component";
+import type { ComponentSpec } from "./component";
 import { SelectableComponent } from "./selectable_component";
 import theme from '../../theme.json';
 

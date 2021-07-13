@@ -17,8 +17,7 @@
 import { AreaMutation, Mutation, mutationDeserializers } from "../mutation";
 import { Wire, WirePointSpec } from "../components/wire";
 import { plainToClass } from "class-transformer";
-import { Component } from "../components/component";
-import { AreaName } from "../workspace";
+import type { AreaName } from "../workspace";
 
 export class UpdateWireSpecMutation extends AreaMutation {
     address: string;

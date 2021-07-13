@@ -18,7 +18,7 @@ import { AreaMutation, Mutation, mutationDeserializers } from "../mutation";
 import { Component, ComponentSpec, deserializeComponent } from "../components/component";
 import { plainToClass } from "class-transformer";
 import { assert } from "../utils";
-import { AreaName } from "../workspace";
+import type { AreaName } from "../workspace";
 
 export class DeleteComponentsMutation extends AreaMutation {
     specs: ComponentSpec[];

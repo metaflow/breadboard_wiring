@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { AreaMutation, Mutation, mutationDeserializers } from "../mutation";
+import { AreaMutation, mutationDeserializers } from "../mutation";
 import { AreaName, PlainPoint, Point } from "../workspace";
 import { Component } from "../components/component";
 import { plainToClass } from "class-transformer";

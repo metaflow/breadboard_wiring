@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-import { Mutation, Interaction, mutationDeserializers, AreaMutation } from "../mutation";
+import { Interaction, mutationDeserializers, AreaMutation } from "../mutation";
 import Konva from "konva";
 import { workspace, layer, stageLayer, AreaName } from "../workspace";
-import { KonvaEventObject } from "konva/types/Node";
+import type { KonvaEventObject } from "konva/types/Node";
 import theme from '../../theme.json';
 import { plainToClass } from "class-transformer";
 

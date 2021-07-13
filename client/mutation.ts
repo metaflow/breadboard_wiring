@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+console.log('import mutation');
 import { classToPlain, Expose } from 'class-transformer';
-import Konva from 'konva';
+import type Konva from 'konva';
 import { assert } from './utils';
 import { Area, AreaName, workspace } from './workspace';
 
@@ -32,6 +32,7 @@ export const mutationDeserializers = new Map<string, { (data: any): Mutation }>(
 
 export function deserializeMutation(data: any): Mutation {
     const t = data.T;
+    console.log(mutationDeserializers.size);
     assert(mutationDeserializers.has(t), t);
     const z = mutationDeserializers.get(t)!(data)! as Mutation;
     z.postInit();
@@ -73,13 +74,13 @@ export abstract class Interaction {
         // TODO: make part of the area?
         workspace.currentInteraction(this);
     }
-    mousemove(event: Konva.KonvaEventObject<MouseEvent>): Interaction | null {
+    mousemove(_: Konva.KonvaEventObject<MouseEvent>): Interaction | null {
         return this;
     }
-    mousedown(event: Konva.KonvaEventObject<MouseEvent>): Interaction | null {
+    mousedown(_: Konva.KonvaEventObject<MouseEvent>): Interaction | null {
         return this;
     }
-    mouseup(event: Konva.KonvaEventObject<MouseEvent>): Interaction | null {
+    mouseup(_: Konva.KonvaEventObject<MouseEvent>): Interaction | null {
         return this;
     }
     area(): Area {
