@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-import Konva from 'konva';
+import type Konva from 'konva';
 import { Contact } from './components/contact';
 import { Component, resetIdCounter } from './components/component';
 import { SelectableComponent } from './components/selectable_component';
 import { assert, checkT, error } from './utils';
-import { Mutation, Interaction, deserializeMutation } from './mutation';
+import type { Mutation, Interaction } from './mutation';
 import { diffString } from 'json-diff';
 import { SelectInteraction, UpdateSelectionMutation } from './actions/select';
 import { Union, Literal, Static } from 'runtypes';
@@ -137,8 +137,6 @@ export function layer(name: LayerName, v?: Konva.Layer): Konva.Layer {
 export function stageLayer(stageName: AreaName): LayerName {
     return LayerNameT.check(stageName + ":default");
 }
-
-
 
 export interface AreaState {
     roots: any[] | undefined;
