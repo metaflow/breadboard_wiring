@@ -14,12 +14,11 @@
  * limitations under the License.
  */
 
-import { Interaction, mutationDeserializers, AreaMutation } from "../everything";
+import { plainToClass } from "class-transformer";
 import Konva from "konva";
-import { workspace, layer, stageLayer, AreaName } from "../everything";
 import type { KonvaEventObject } from "konva/types/Node";
 import theme from '../../theme.json';
-import { plainToClass } from "class-transformer";
+import { AreaMutation, AreaName, Interaction, layer, mutationDeserializers, stageLayer, workspace } from "../everything";
 
 export class SelectInteraction extends Interaction {
     rect: Konva.Rect|null = null;

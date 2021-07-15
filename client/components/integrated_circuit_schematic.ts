@@ -14,14 +14,8 @@
  * limitations under the License.
  */
 
-import { componentDeserializers, ComponentSpec } from "./component";
 import Konva from "konva";
-import { Point } from "../everything";
-import { Contact } from "../everything";
-import { workspace } from "../everything";
-import { SelectableComponent } from "../everything";
-import { UpdateSelectionMutation } from "../everything";
-import { MoveSelectionInteraction } from "../everything";
+import { componentDeserializers, ComponentSpec, Contact, MoveSelectionInteraction, Point, SelectableComponent, UpdateSelectionMutation, workspace } from "../everything";
 
 // Increase values so wires shouldn't be <1 width.
 const gap = 3;

@@ -14,10 +14,9 @@
  * limitations under the License.
  */
 
-import { AreaMutation, Mutation, mutationDeserializers } from "../everything";
-import { Wire, WirePointSpec } from "../everything";
 import { plainToClass } from "class-transformer";
 import type { AreaName } from "../everything";
+import { AreaMutation, mutationDeserializers, Wire, WirePointSpec } from "../everything";
 
 export class UpdateWireSpecMutation extends AreaMutation {
     address: string;

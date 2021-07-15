@@ -15,11 +15,8 @@
  */
 
 import Konva from "konva";
-import { AddWireInteraction } from "../everything";
-import { SCHEME, workspace } from "../everything";
-import type { ComponentSpec } from "../everything";
-import { SelectableComponent } from "../everything";
 import theme from '../../theme.json';
+import { ComponentSpec, AddWireInteraction, SCHEME, SelectableComponent, workspace } from "../everything";
 
 export class Contact extends SelectableComponent {
     circle: Konva.Circle;

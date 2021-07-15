@@ -14,16 +14,11 @@
  * limitations under the License.
  */
 
-import type Konva from 'konva';
-import { Contact } from './everything';
-import { Component, resetIdCounter } from './everything';
-import { SelectableComponent } from './everything';
-import { assert, checkT, error } from './everything';
-import type { Mutation, Interaction } from './everything';
 import { diffString } from 'json-diff';
-import { SelectInteraction, UpdateSelectionMutation } from './everything';
-import { Union, Literal, Static } from 'runtypes';
+import type Konva from 'konva';
+import { Literal, Static, Union } from 'runtypes';
 import assertExists from 'ts-assert-exists';
+import { assert, checkT, Component, Contact, error, Interaction, Mutation, resetIdCounter, SelectableComponent, SelectInteraction, UpdateSelectionMutation } from './everything';
 
 export class PlainPoint {
     x: number = 0;

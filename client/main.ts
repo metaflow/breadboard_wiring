@@ -14,19 +14,11 @@
  * limitations under the License.
  */
 
-import Konva from 'konva';
 import hotkeys from 'hotkeys-js';
-import { PHYSICAL, SCHEME, workspace, layer, stageLayer, AreaNameT } from './everything';
-import { ic74x245 } from './everything';
-import { onError, checkT } from './everything';
-import theme from '../theme.json';
-import { AddWireInteraction } from './everything';
-import { SelectInteraction } from './everything';
-import { DeleteComponentsMutation } from './everything';
-import { ComponentSpec, deserializeComponent } from './everything';
-import { AddComponentInteraction } from './everything';
+import Konva from 'konva';
 import Split from 'split.js';
-import { Breadboard } from './everything';
+import theme from '../theme.json';
+import { AddComponentInteraction, AddWireInteraction, AreaNameT, Breadboard, checkT, ComponentSpec, deserializeComponent, ic74x245, layer, onError, PHYSICAL, SCHEME, SelectInteraction, stageLayer, workspace } from './everything';
  
 window.onerror = (errorMsg, url, lineNumber) => {
   onError(errorMsg, url, lineNumber);

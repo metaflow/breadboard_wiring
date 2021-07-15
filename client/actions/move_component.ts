@@ -14,11 +14,8 @@
  * limitations under the License.
  */
 
-import { AreaMutation, mutationDeserializers } from "../everything";
-import { AreaName, PlainPoint, Point } from "../everything";
-import { Component } from "../everything";
 import { plainToClass } from "class-transformer";
-import { assert } from "../everything";
+import { AreaMutation, AreaName, assert, Component, mutationDeserializers, PlainPoint, Point } from "../everything";
 
 export class MoveComponentMutation extends AreaMutation {
     address: string;

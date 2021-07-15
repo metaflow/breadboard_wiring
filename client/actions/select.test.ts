@@ -1,6 +1,4 @@
-import { deserializeMutation } from "../everything";
-import { SCHEME } from "../everything";
-import { UpdateSelectionMutation } from "../everything";
+import { deserializeMutation, SCHEME, UpdateSelectionMutation } from "../everything";
 
 test('serialize', () => {
   const m = new UpdateSelectionMutation(SCHEME, [], ['1']);

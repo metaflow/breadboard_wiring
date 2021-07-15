@@ -15,13 +15,8 @@
  */
 
 import Konva from 'konva';
-import { Point, workspace } from '../everything';
-import { Contact } from '../everything';
-import { componentDeserializers, ComponentSpec } from '../everything';
 import theme from '../../theme.json';
-import { SelectableComponent } from '../everything';
-import { UpdateSelectionMutation } from '../everything';
-import { MoveSelectionInteraction } from '../everything';
+import { componentDeserializers, ComponentSpec, Contact, MoveSelectionInteraction, Point, SelectableComponent, UpdateSelectionMutation, workspace } from '../everything';
 
 const p_width = 170.5;
 const p_height = 63.1;

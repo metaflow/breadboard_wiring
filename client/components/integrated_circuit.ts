@@ -14,11 +14,9 @@
  * limitations under the License.
  */
 
-import { Component, ComponentSpec } from "../everything";
 import Konva from "konva";
-import { Point } from "../everything";
-import { Contact } from "../everything";
 import theme from '../../theme.json';
+import { Component, ComponentSpec, Contact, Point } from "../everything";
 
 const gap = 1;
 const height = 2.54 * 2;

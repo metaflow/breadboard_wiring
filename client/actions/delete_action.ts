@@ -14,11 +14,9 @@
  * limitations under the License.
  */
 
-import { AreaMutation, Mutation, mutationDeserializers } from "../everything";
-import { Component, ComponentSpec, deserializeComponent } from "../everything";
 import { plainToClass } from "class-transformer";
-import { assert } from "../everything";
 import type { AreaName } from "../everything";
+import { AreaMutation, assert, ComponentSpec, deserializeComponent, mutationDeserializers } from "../everything";
 
 export class DeleteComponentsMutation extends AreaMutation {
     specs: ComponentSpec[];

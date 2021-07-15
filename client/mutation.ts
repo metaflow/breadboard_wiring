@@ -16,8 +16,7 @@
 
 import { classToPlain, Expose } from 'class-transformer';
 import type Konva from 'konva';
-import { assert } from './everything';
-import { Area, AreaName, workspace } from './everything';
+import { Area, AreaName, assert, workspace } from './everything';
 
 /* active - (finish) ->  ready - (apply) -> applied
          |                     ^                  |

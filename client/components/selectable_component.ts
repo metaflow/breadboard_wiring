@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 
-import { Component } from "../everything";
-import { checkT } from "../everything";
 import theme from '../../theme.json';
+import { Component } from "../everything";
 
 export class SelectableComponent extends Component {
     _selected: boolean = false;
