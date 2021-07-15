@@ -15,10 +15,10 @@
  */
 
 import Konva from "konva";
-import { AddWireInteraction } from "../actions/add_wire";
-import { SCHEME, workspace } from "../workspace";
-import type { ComponentSpec } from "./component";
-import { SelectableComponent } from "./selectable_component";
+import { AddWireInteraction } from "../everything";
+import { SCHEME, workspace } from "../everything";
+import type { ComponentSpec } from "../everything";
+import { SelectableComponent } from "../everything";
 import theme from '../../theme.json';
 
 export class Contact extends SelectableComponent {

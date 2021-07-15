@@ -14,20 +14,20 @@
  * limitations under the License.
  */
 
-import { Mutation, Interaction } from "../mutation";
+import { Mutation, Interaction } from "../everything";
 import type { KonvaEventObject } from "konva/types/Node";
-import { Point, AreaName, workspace } from "../workspace";
-import { Component, deserializeComponent } from "../components/component";
-import { moveSingleWire, Wire, WirePoint } from "../components/wire";
-import { Contact } from "../components/contact";
-import { MoveComponentMutation } from "./move_component";
+import { Point, AreaName, workspace } from "../everything";
+import { Component, deserializeComponent } from "../everything";
+import { moveSingleWire, Wire, WirePoint } from "../everything";
+import { Contact } from "../everything";
+import { MoveComponentMutation } from "../everything";
 import assertExists from "ts-assert-exists";
-import { checkT } from "../utils";
+import { checkT } from "../everything";
 import theme from '../../theme.json';
-import { CompoundMutation } from "./compound";
-import { UpdateWireSpecMutation } from "./update_wire_spec";
-import { UpdateSelectionMutation } from "./select";
-import { DeleteComponentsMutation } from "./delete_action";
+import { CompoundMutation } from "../everything";
+import { UpdateWireSpecMutation } from "../everything";
+import { UpdateSelectionMutation } from "../everything";
+import { DeleteComponentsMutation } from "../everything";
 
 export class MoveSelectionInteraction extends Interaction {
     from: Point;

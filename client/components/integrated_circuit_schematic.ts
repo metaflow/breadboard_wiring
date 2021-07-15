@@ -16,12 +16,12 @@
 
 import { componentDeserializers, ComponentSpec } from "./component";
 import Konva from "konva";
-import { Point } from "../workspace";
-import { Contact } from "./contact";
-import { workspace } from "../workspace";
-import { SelectableComponent } from "./selectable_component";
-import { UpdateSelectionMutation } from "../actions/select";
-import { MoveSelectionInteraction } from "../actions/move_selection";
+import { Point } from "../everything";
+import { Contact } from "../everything";
+import { workspace } from "../everything";
+import { SelectableComponent } from "../everything";
+import { UpdateSelectionMutation } from "../everything";
+import { MoveSelectionInteraction } from "../everything";
 
 // Increase values so wires shouldn't be <1 width.
 const gap = 3;

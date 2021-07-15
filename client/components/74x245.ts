@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-import { IntegratedCircuitSchematic, IntegratedCircuitSchematicSpec } from "./integrated_circuit_schematic";
-import { componentDeserializers } from "./component";
-import { Point, UNKNOWN } from "../workspace";
+import { IntegratedCircuitSchematic, IntegratedCircuitSchematicSpec } from "../everything";
+import { componentDeserializers } from "../everything";
+import { Point, UNKNOWN } from "../everything";
 
 export class ic74x245 extends IntegratedCircuitSchematic {
     constructor(spec?: IntegratedCircuitSchematicSpec) {

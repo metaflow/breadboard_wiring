@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-import { Component, ComponentSpec } from "./component";
+import { Component, ComponentSpec } from "../everything";
 import Konva from "konva";
-import { Point } from "../workspace";
-import { Contact } from "./contact";
+import { Point } from "../everything";
+import { Contact } from "../everything";
 import theme from '../../theme.json';
 
 const gap = 1;

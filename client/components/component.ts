@@ -15,8 +15,8 @@
  */
 
 import Konva from "konva";
-import { Point, PlainPoint, workspace, layer, AreaName, LayerName, LayerNameT, Area, UNKNOWN } from "../workspace";
-import { assert, checkT } from "../utils";
+import { Point, PlainPoint, workspace, layer, AreaName, LayerName, LayerNameT, Area, UNKNOWN } from "../everything";
+import { assert, checkT } from "../everything";
 import theme from '../../theme.json';
 
 export interface ComponentSpec {

@@ -15,13 +15,13 @@
  */
 
 import type Konva from 'konva';
-import { Contact } from './components/contact';
-import { Component, resetIdCounter } from './components/component';
-import { SelectableComponent } from './components/selectable_component';
-import { assert, checkT, error } from './utils';
-import type { Mutation, Interaction } from './mutation';
+import { Contact } from './everything';
+import { Component, resetIdCounter } from './everything';
+import { SelectableComponent } from './everything';
+import { assert, checkT, error } from './everything';
+import type { Mutation, Interaction } from './everything';
 import { diffString } from 'json-diff';
-import { SelectInteraction, UpdateSelectionMutation } from './actions/select';
+import { SelectInteraction, UpdateSelectionMutation } from './everything';
 import { Union, Literal, Static } from 'runtypes';
 import assertExists from 'ts-assert-exists';
 

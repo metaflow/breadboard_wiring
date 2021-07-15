@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-import { Component } from "./component";
-import { checkT } from "../utils";
+import { Component } from "../everything";
+import { checkT } from "../everything";
 import theme from '../../theme.json';
 
 export class SelectableComponent extends Component {

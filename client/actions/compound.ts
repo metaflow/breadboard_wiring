@@ -15,7 +15,7 @@
  */
 
 import { plainToClass } from "class-transformer";
-import { deserializeMutation, Mutation, mutationDeserializers, MutationSpec } from "../mutation";
+import { deserializeMutation, Mutation, mutationDeserializers, MutationSpec } from "../everything";
 
 export class CompoundMutation extends Mutation {
     actions: Mutation[]|undefined;

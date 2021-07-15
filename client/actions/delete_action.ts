@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-import { AreaMutation, Mutation, mutationDeserializers } from "../mutation";
-import { Component, ComponentSpec, deserializeComponent } from "../components/component";
+import { AreaMutation, Mutation, mutationDeserializers } from "../everything";
+import { Component, ComponentSpec, deserializeComponent } from "../everything";
 import { plainToClass } from "class-transformer";
-import { assert } from "../utils";
-import type { AreaName } from "../workspace";
+import { assert } from "../everything";
+import type { AreaName } from "../everything";
 
 export class DeleteComponentsMutation extends AreaMutation {
     specs: ComponentSpec[];

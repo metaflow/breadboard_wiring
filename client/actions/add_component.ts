@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-import { Mutation, Interaction, mutationDeserializers } from "../mutation";
+import { Mutation, Interaction, mutationDeserializers } from "../everything";
 import type { KonvaEventObject } from "konva/types/Node";
-import { Component, ComponentSpec, deserializeComponent } from "../components/component";
-import { Point, stageLayer, AreaName, workspace, Area, LayerNameT } from "../workspace";
+import { Component, ComponentSpec, deserializeComponent } from "../everything";
+import { Point, stageLayer, AreaName, workspace, Area, LayerNameT } from "../everything";
 import theme from '../../theme.json';
-import { assert } from "../utils";
+import { assert } from "../everything";
 import { plainToClass } from "class-transformer";
-import { CompoundMutation } from "./compound";
+import { CompoundMutation } from "../everything";
 
 export class AddComponentMutation extends Mutation {
     spec: ComponentSpec | undefined;

@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-console.log('import mutation');
+
 import { classToPlain, Expose } from 'class-transformer';
 import type Konva from 'konva';
-import { assert } from './utils';
-import { Area, AreaName, workspace } from './workspace';
+import { assert } from './everything';
+import { Area, AreaName, workspace } from './everything';
 
 /* active - (finish) ->  ready - (apply) -> applied
          |                     ^                  |

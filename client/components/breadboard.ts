@@ -15,13 +15,13 @@
  */
 
 import Konva from 'konva';
-import { Point, workspace } from '../workspace';
-import { Contact } from './contact';
-import { componentDeserializers, ComponentSpec } from './component';
+import { Point, workspace } from '../everything';
+import { Contact } from '../everything';
+import { componentDeserializers, ComponentSpec } from '../everything';
 import theme from '../../theme.json';
-import { SelectableComponent } from './selectable_component';
-import { UpdateSelectionMutation } from '../actions/select';
-import { MoveSelectionInteraction } from '../actions/move_selection';
+import { SelectableComponent } from '../everything';
+import { UpdateSelectionMutation } from '../everything';
+import { MoveSelectionInteraction } from '../everything';
 
 const p_width = 170.5;
 const p_height = 63.1;

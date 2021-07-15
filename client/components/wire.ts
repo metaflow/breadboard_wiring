@@ -15,16 +15,16 @@
  */
 
 import Konva from 'konva';
-import { Point, PlainPoint, LayerNameT, Area } from '../workspace';
-import { Component, componentDeserializers, ComponentSpec } from './component';
-import { workspace } from '../workspace';
-import { SelectableComponent } from './selectable_component';
+import { Point, PlainPoint, LayerNameT, Area } from '../everything';
+import { Component, componentDeserializers, ComponentSpec } from '../everything';
+import { workspace } from '../everything';
+import { SelectableComponent } from '../everything';
 import theme from '../../theme.json';
-import { copy, checkT } from '../utils';
-import { Contact } from './contact';
+import { copy, checkT } from '../everything';
+import { Contact } from '../everything';
 import assertExists from 'ts-assert-exists';
-import { MoveSelectionInteraction } from '../actions/move_selection';
-import { UpdateSelectionMutation } from '../actions/select';
+import { MoveSelectionInteraction } from '../everything';
+import { UpdateSelectionMutation } from '../everything';
 
 export interface WirePointSpec extends ComponentSpec {
     helper: boolean;

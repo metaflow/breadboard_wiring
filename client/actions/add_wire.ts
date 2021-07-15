@@ -15,12 +15,12 @@
  */
 
 import Konva from 'konva';
-import { WirePointSpec, Wire, newWirePointSpec, attachPoints } from '../components/wire';
-import { Interaction } from '../mutation';
-import { Point, workspace, stageLayer, layer, AreaName } from '../workspace';
+import { WirePointSpec, Wire, newWirePointSpec, attachPoints } from '../everything';
+import { Interaction } from '../everything';
+import { Point, workspace, stageLayer, layer, AreaName } from '../everything';
 import theme from '../../theme.json';
-import { AddComponentMutation } from './add_component';
-import { UpdateWireSpecMutation } from './update_wire_spec';
+import { AddComponentMutation } from '../everything';
+import { UpdateWireSpecMutation } from '../everything';
 
 export class AddWireInteraction extends Interaction {
     line: Konva.Line | undefined;
