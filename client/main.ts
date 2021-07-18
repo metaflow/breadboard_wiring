@@ -18,7 +18,7 @@ import hotkeys from 'hotkeys-js';
 import Konva from 'konva';
 import Split from 'split.js';
 import theme from '../theme.json';
-import { AddComponentInteraction, AddWireInteraction, AreaNameT, Breadboard, checkT, ComponentSpec, deserializeComponent, ic74x245, layer, onError, PHYSICAL, SCHEME, SelectInteraction, stageLayer, workspace } from './everything';
+import { AddComponentInteraction, AddWireInteraction, AreaNameT, Breadboard, checkT, ComponentSpec, deserializeComponent, ic74x245, layer, onError, PHYSICAL, SCHEME, SelectInteraction, areaLayer, workspace } from './everything';
  
 window.onerror = (errorMsg, url, lineNumber) => {
   onError(errorMsg, url, lineNumber);
@@ -114,7 +114,7 @@ workspace.addArea(SCHEME, new Konva.Stage({
 workspace.area(SCHEME).stage.container().style.backgroundColor = theme.backgroud;
 {
   // TODO: setup layers in Area directly.
-  const x = layer(stageLayer(SCHEME), new Konva.Layer());
+  const x = layer(areaLayer(SCHEME), new Konva.Layer());
   x.scaleX(2);
   x.scaleY(2);
   workspace.area(SCHEME).stage.add(x);
@@ -127,7 +127,7 @@ workspace.addArea(PHYSICAL, new Konva.Stage({
 }));
 workspace.area(PHYSICAL).stage.container().style.backgroundColor = theme.backgroud;
 {
-  const x = layer(stageLayer(PHYSICAL), new Konva.Layer());
+  const x = layer(areaLayer(PHYSICAL), new Konva.Layer());
   x.scaleX(2);
   x.scaleY(2);
   workspace.area(PHYSICAL).stage.add(x);

@@ -18,7 +18,7 @@ import { plainToClass } from "class-transformer";
 import Konva from "konva";
 import type { KonvaEventObject } from "konva/types/Node";
 import theme from '../../theme.json';
-import { AreaMutation, AreaName, Interaction, layer, mutationDeserializers, stageLayer, workspace } from "../everything";
+import { AreaMutation, AreaName, Interaction, layer, mutationDeserializers, areaLayer, workspace } from "../everything";
 
 export class SelectInteraction extends Interaction {
     rect: Konva.Rect|null = null;
@@ -53,7 +53,7 @@ export class SelectInteraction extends Interaction {
             stroke: theme.selection,
             strokeWidth: 1,
         });
-        layer(stageLayer(this.areaName)).add(this.rect);
+        layer(areaLayer(this.areaName)).add(this.rect);
         return this;
     }
     mouseup(event: KonvaEventObject<MouseEvent>): Interaction | null {

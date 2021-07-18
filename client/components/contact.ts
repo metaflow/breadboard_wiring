@@ -20,7 +20,7 @@ import { ComponentSpec, AddWireInteraction, SCHEME, SelectableComponent, workspa
 
 export class Contact extends SelectableComponent {
     circle: Konva.Circle;
-    constructor(spec: ComponentSpec) {
+    constructor(spec?: ComponentSpec) {
         super(spec);
         this.circle = new Konva.Circle({radius: 1});
         this.shapes.add(this.circle);

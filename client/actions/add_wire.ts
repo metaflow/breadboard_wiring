@@ -16,7 +16,7 @@
 
 import Konva from 'konva';
 import theme from '../../theme.json';
-import { AddComponentMutation, AreaName, attachPoints, Interaction, layer, newWirePointSpec, Point, stageLayer, UpdateWireSpecMutation, Wire, WirePointSpec, workspace } from '../everything';
+import { AddComponentMutation, AreaName, attachPoints, Interaction, layer, newWirePointSpec, Point, areaLayer, UpdateWireSpecMutation, Wire, WirePointSpec, workspace } from '../everything';
 
 export class AddWireInteraction extends Interaction {
     line: Konva.Line | undefined;
@@ -45,7 +45,7 @@ export class AddWireInteraction extends Interaction {
             this.startMarker.position(this.points[0]);
             this.endMarker.position(this.points[this.points.length - 1]);
         }
-        const lr = layer(stageLayer(stageName));
+        const lr = layer(areaLayer(stageName));
         lr.add(this.line);
         lr.add(this.startMarker);
         lr.add(this.endMarker);
@@ -112,7 +112,7 @@ export class AddWireInteraction extends Interaction {
         if (existingWire == null) {
             specs = this.points.map(p => newWirePointSpec(p.plain(), false));
             const wire = new Wire();
-            wire.layerName(stageLayer(this.areaName));
+            wire.layerName(areaLayer(this.areaName));
             wire.pointsSpec(specs);
             workspace.update(new AddComponentMutation(wire.serialize()));
             return;

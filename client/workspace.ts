@@ -129,7 +129,7 @@ export function layer(name: LayerName, v?: Konva.Layer): Konva.Layer {
     throw error(`no layer ${name}`);
 }
 
-export function stageLayer(stageName: AreaName): LayerName {
+export function areaLayer(stageName: AreaName): LayerName {
     return LayerNameT.check(stageName + ":default");
 }
 
@@ -279,7 +279,7 @@ export class Area {
         return this._gridAlignment;
     }
     layer(): Konva.Layer {
-        return layer(stageLayer(this.name));
+        return layer(areaLayer(this.name));
     }
     closesetContact(xy?: Point): Contact | null {
         if (xy === undefined) xy = this.cursor();
@@ -565,8 +565,8 @@ export class Workspace {
             history: this.serializeActions(),
             areas: allAreas.map(x => {
                 return [
-                    stageLayer(x),
-                    this.serializeLayerState(stageLayer(x)),
+                    areaLayer(x),
+                    this.serializeLayerState(areaLayer(x)),
                     this.area(x).serialize(),
                 ];
             }),

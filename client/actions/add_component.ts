@@ -17,7 +17,7 @@
 import { plainToClass } from "class-transformer";
 import type { KonvaEventObject } from "konva/types/Node";
 import theme from '../../theme.json';
-import { Area, AreaName, assert, Component, ComponentSpec, CompoundMutation, deserializeComponent, Interaction, LayerNameT, Mutation, mutationDeserializers, Point, stageLayer, workspace } from "../everything";
+import { Area, AreaName, assert, Component, ComponentSpec, CompoundMutation, deserializeComponent, Interaction, LayerNameT, Mutation, mutationDeserializers, Point, areaLayer, workspace } from "../everything";
 
 export class AddComponentMutation extends Mutation {
     spec: ComponentSpec | undefined;
@@ -59,7 +59,7 @@ export class AddComponentInteraction extends Interaction {
         this.components = cc;
         this.components.forEach(c => {
             c.mainColor(theme.active);
-            c.layerName(stageLayer(stageName));
+            c.layerName(areaLayer(stageName));
             c.show();
         });
         this.offsets = this.components.map(c => c.offset());
