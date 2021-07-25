@@ -42,10 +42,12 @@ export function error(...args: any): Error {
 
 export function onError(...args: any) {
     console.error(...args);
-    const c = document.getElementById("error-bar");
-    if (c) {
-        c.classList.remove('hidden');
-        c.innerText = 'Error occured. See console for the details';
+    if (document) {
+        const c = document.getElementById("error-bar");
+        if (c) {
+            c.classList.remove('hidden');
+            c.innerText = 'Error occured. See console for the details';
+        }
     }
 }
 

@@ -1,14 +1,15 @@
 module.exports = {
-  "roots": [
+  roots: [
     "<rootDir>/client"
   ],
-  "testMatch": [
+  setupFilesAfterEnv: ['<rootDir>/jest.setup.ts'],
+  testMatch: [
     "**/__tests__/**/*.+(ts|tsx|js)",
     "**/?(*.)+(spec|test).+(ts|tsx|js)"
   ],
-  "transform": {
+  transform: {
     "^.+\\.(ts|tsx)$": "ts-jest"
   },
-  "preset": "jest-puppeteer",
-  "verbose": true,
+  // preset: "jest-puppeteer",
+  // verbose: true,
 };

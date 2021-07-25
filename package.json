@@ -58,6 +58,7 @@
     "puppeteer": "^10.1.0",
     "scss-to-json": "^2.0.0",
     "ts-jest": "^27.0.3",
+    "ts-mockito": "^2.6.1",
     "tsify": "^4.0.2",
     "typescript": "^3.9.10",
     "vinyl-source-stream": "^2.0.0",

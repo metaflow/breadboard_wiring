@@ -371,9 +371,11 @@ export class Workspace {
     constructor() {
 
     }
-    addArea(name: AreaName, v: Konva.Stage) {
+    addArea(name: AreaName, v: Konva.Stage): Area {
         assert(!this.areas.has(name), `${name} area already set`);
-        this.areas.set(name, new Area(name, v));
+        const a = new Area(name, v)
+        this.areas.set(name, a);
+        return a;
     }
     area(name: AreaName): Area {
         const x = this.areas.get(name);
@@ -593,7 +595,9 @@ export class Workspace {
         if (this.willRedraw) return;
         this.willRedraw = true;
         const o = this;
-        window.setTimeout(() => { o.redraw(); }, 0);
+        // TODO: this does not work in test.
+        // setTimeout(() => { o.redraw(); }, 0);
+        o.redraw();
     }
     addVisibleComponent(c: Component) {
         this.visibleComponents.add(c);
