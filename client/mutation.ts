@@ -31,7 +31,7 @@ export const mutationDeserializers = new Map<string, { (data: any): Mutation }>(
 
 export function deserializeMutation(data: any): Mutation {
     const t = data.T;
-    console.log(mutationDeserializers.size);
+    // console.log(mutationDeserializers.size);
     assert(mutationDeserializers.has(t), t);
     const z = mutationDeserializers.get(t)!(data)! as Mutation;
     z.postInit();

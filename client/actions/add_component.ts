@@ -69,7 +69,6 @@ export class AddComponentInteraction extends Interaction {
         this.components.forEach(c => c.remove());
     }
     mousemove(event: KonvaEventObject<MouseEvent>): Interaction | null {
-        console.log('AddComponentInteraction mouse move');
         const o = this;
         this.components.forEach((c, i) => {
             const p = o.offsets[i].clone().add(o.area().cursor()).sub(o.start);

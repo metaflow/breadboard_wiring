@@ -137,10 +137,8 @@ export class Component {
         return this.offset();
     }
     show() {
-        // console.log('show component');
         if (this.visible && !this._dirtyLayout) return;
         if (this._dirtyLayout) this.redraw();
-        if (this._parent == null) console.log('show', this);
         this.visible = true;
         this.shapes.moveTo(layer(this.layerName()));
         this.children.forEach(c => c.show());
@@ -156,7 +154,6 @@ export class Component {
         this.children.forEach(c => c.hide());
         if (this._parent == null) {
             workspace.removeVisibleComponent(this);
-            console.log('hide', this);
         }
     }
     remove() {
@@ -169,14 +166,12 @@ export class Component {
     }
     // Returns whether layout should be updated (useful for overrides).
     redraw() {
-        if (this._parent == null) console.log('redraw', this.visible, this._dirtyLayout);
         if (!(this.visible && this._dirtyLayout)) return;
         this._dirtyLayout = false;
         this.updateLayout();        
         this.children.forEach(c => c.updateLayout());
     }
     updateLayout() {
-        if (this._parent === null) console.log('update layout');
     }
     invalidateLayout() {
         if (this.parent() != null) {

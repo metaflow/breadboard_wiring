@@ -1,4 +1,5 @@
-// Abstract should go before 
+// Need to organize dependencies for tests and avoid circular ones.
+// Abstract should go before concrete implementations.
 
 export * from './utils';
 export * from './mutation';

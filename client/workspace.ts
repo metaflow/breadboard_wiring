@@ -183,16 +183,12 @@ export class Area {
         e.evt.preventDefault(); // Disable scroll on middle button click. TODO: check button?
         const t = workspace.currentInteraction();
         if (t != null) {
-            if (t.areaName !== this.name) {
-                console.log('action on different stage', t.areaName, this.name);
-                return;
-            }
+            if (t.areaName !== this.name) return;
             workspace.currentInteraction(t.mousedown(e));
             return;
         }
         // Left button.
         if (e.evt.button == 0) {
-            console.log('start new selection');
             new SelectInteraction(this.name).mousedown(e);
             return;
         }
@@ -384,7 +380,6 @@ export class Workspace {
     }
     currentInteraction(a?: Interaction | null): Interaction | null {
         if (a !== undefined && a !== this._currentInteraction) {
-            console.log('cancel current interaction');
             this._currentInteraction?.cancel();
             this._currentInteraction = a;
         }
@@ -586,7 +581,7 @@ export class Workspace {
         resetIdCounter();
     }
     redraw() {
-        console.log('redraw', this.visibleComponents);
+        // console.log('redraw', this.visibleComponents);
         this.willRedraw = false;
         this.visibleComponents.forEach(c => c.redraw());
         this.areas.forEach(a => a.stage.batchDraw());
